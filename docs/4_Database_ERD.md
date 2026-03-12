@@ -6,12 +6,14 @@ Sơ đồ biểu diễn mô hình thực thể quan hệ (Entity Relationship Di
 erDiagram
     %% Định nghĩa bảng Người dùng
     USERS ||--o{ CHAT_SESSIONS : "Sở hữu"
+    USERS ||--o{ USER_FAVORITES : "Lưu trữ"
     USERS {
         uuid id PK "Khóa chính"
         string username "Tên đăng nhập"
         string password_hash "Mật khẩu mã hóa"
         string email "Email liên hệ"
         string role "ADMIN / USER"
+        jsonb preferences "Sở thích/Dị ứng cá nhân"
         datetime created_at
     }
 
@@ -35,6 +37,15 @@ erDiagram
         datetime timestamp
     }
 
+    %% Định nghĩa bảng Danh sách yêu thích
+    PLACES ||--o{ USER_FAVORITES : "Được lưu bởi"
+    USER_FAVORITES {
+        uuid id PK
+        uuid user_id FK "Liên kết Người dùng"
+        int place_id FK "Liên kết Địa điểm"
+        datetime saved_at "Thời gian lưu"
+    }
+
     %% Dữ liệu Cốt lõi về Ẩm thực và Du lịch
     CATEGORIES ||--o{ PLACES : "Phân loại"
     CATEGORIES {
@@ -52,10 +63,14 @@ erDiagram
         float rating "Đánh giá trung bình (1-5)"
         string price_range "Mức giá ($ - $$$$)"
         string vector_id "Liên kết Vector/Embbd (Bên AI)"
+        boolean is_active "Trạng thái hoạt động (Soft delete)"
     }
 ```
 
 ## Chú giải thiết kế Database (RDBMS + JSONB)
-1. **Liên kết Chặt chẽ (RDBMS)**: Hệ thống sử dụng khóa chính (Primary Key) là `UUID` cho các bảng liên quan đến user/chat để tăng cường bảo mật và tránh lỗi khi đồng bộ phân tán (Distributed ID).
-2. **Trường dữ liệu JSONB (PostgreSQL)**: Bảng `MESSAGES` sử dụng tính năng cực mạnh của Postgres là kiểu `JSONB` cho cột `metadata`. Mặc dù dùng CSDL Quan hệ nhưng chúng ta vẫn có thể linh hoạt lưu danh sách ID địa điểm tư vấn của con Bot (ví dụ: `[{"placeId":1,"name":"Phở"}]`) trực tiếp trong này mà không cần tạo thêm bảng Many-to-Many làm dư thừa thiết kế.
-3. **Places Data**: Bảng `PLACES` sẽ lưu trữ mô tả của mọi quán ăn và địa danh. Cột `vector_id` sẽ map với Model Vector lưu trên server Python (FastAPI).
+1. **Liên kết Chặt chẽ (RDBMS)**: Hệ thống sử dụng khóa chính (Primary Key) là `UUID` cho các bảng liên quan đến user/chat để tăng cường bảo mật.
+2. **Trường dữ liệu JSONB (PostgreSQL)**: 
+   - Cột `metadata` (Bảng `MESSAGES`) hỗ trợ lưu linh hoạt danh sách các ID địa điểm gợi ý.
+   - Cột `preferences` (Bảng `USERS`) hỗ trợ lưu vô số lượng tùy biến về sở thích khách hàng (VD: dị ứng hải sản, thích ăn mặn...) để AI lọc kết quả mà không cần sửa cấu trúc cột tĩnh truyền thống.
+3. **Danh sách yêu thích (`USER_FAVORITES`)**: Giải quyết tính năng cực kỳ thiết thực cho dự án - cho phép người dùng lưu lại danh sách các quán ăn mong muốn từ các lượt gợi ý của AI.
+4. **Soft Delete (`is_active` - `PLACES`)**: Giữ lịch sử Chat không bị Null Reference khi một địa điểm kinh doanh đóng cửa và bị gỡ khỏi ứng dụng. Bảng `PLACES` cũng đảm nhận lưu `vector_id` để map lên VectorDB bên Python.

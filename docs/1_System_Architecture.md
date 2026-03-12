@@ -53,8 +53,8 @@ flowchart TB
     %% Database Layer
     subgraph Database["🗄️ 5. Database Layer"]
         direction LR
-        PostgresDB[("PostgreSQL\n(Dữ liệu hệ thống,\n Users, Chat Logs)")]:::db
-        PlacesDB[("Dữ liệu Du lịch/Ẩm thực\n(PostgreSQL / CSV Vector)")]:::db
+        PostgresDB[("PostgreSQL\n(USERS, USER_FAVORITES, \nCONVERSATIONS, MESSAGES)")]:::db
+        PlacesDB[("Dữ liệu Du lịch/Ẩm thực\n(PLACES, CSV Vector)")]:::db
     end
 
     %% Connections
