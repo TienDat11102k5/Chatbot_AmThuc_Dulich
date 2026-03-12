@@ -1,4 +1,4 @@
-package com.bot.entity;
+package com.chatbot.backend.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -38,4 +38,3 @@ public class Message {
     @Column(nullable = false, updatable = false)
     private LocalDateTime timestamp;
 }
-

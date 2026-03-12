@@ -1,10 +1,8 @@
-package com.bot.entity;
+package com.chatbot.backend.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -35,7 +33,6 @@ public class User {
     private String role; // "ADMIN" or "USER"
 
     // Lưu trữ JSONB cho preferences
-    @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private String preferences;
 
@@ -43,4 +40,3 @@ public class User {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 }
-
