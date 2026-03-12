@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  database:
+    image: postgres:15-alpine
+    container_name: chatbot_db
+    environment:
+      POSTGRES_DB: chatbot_db
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    networks:
+      - chatbot_network
+
+  ai_service:
+    build:
+      context: ../ai_service
+    container_name: ai_service
+    ports:
+      - "8000:8000"
+    networks:
+      - chatbot_network
+
+  backend:
+    build:
+      context: ../backend
+    container_name: backend_core
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://database:5432/chatbot_db
+      - SPRING_DATASOURCE_USERNAME=admin
+      - SPRING_DATASOURCE_PASSWORD=password
+      - AI_SERVICE_URL=http://ai_service:8000
+    depends_on:
+      - database
+      - ai_service
+    networks:
+      - chatbot_network
+
+  frontend:
+    build:
+      context: ../frontend
+    container_name: frontend_web
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - chatbot_network
+
+networks:
+  chatbot_network:
+    driver: bridge
