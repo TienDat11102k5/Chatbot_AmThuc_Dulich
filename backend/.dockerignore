@@ -1,0 +1,29 @@
+# Thư mục build và file tạm
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!target/*.jar
+
+# Ignore file môi trường chứa key bảo mật
+.env
+.env.*
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Mac & Windows OS files
+.DS_Store
+Thumbs.db
+
+# IDE files (Eclipse, IntelliJ IDEA, VS Code)
+.idea/
+.vscode/
+*.iml
+*.iws
+
+# Thư mục git
+.git/
+.gitignore

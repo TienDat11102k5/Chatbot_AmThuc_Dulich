@@ -15,32 +15,36 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Lớp cấu hình lõi của Spring Security.
- * Thay thế cho WebSecurityConfigurerAdapter (đã bị deprecated).
- * Quản lý các quy tắc truy cập API, phân quyền CORS/CSRF và thiết lập bộ định tuyến bảo mật.
+ * Quản lý các quy tắc truy cập API, CORS, CSRF và thiết lập bộ định tuyến bảo mật.
  */
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-   
     private final UserDetailsService userDetailsService;
 
     /**
      * Cấu hình Security Filter Chain chính.
-     * Tắt CSRF, CORS (hiện tại), mở quyền truy cập (permitAll) cho toàn bộ API 
-     * và cấu hình theo cơ chế Stateless (vì ứng dụng dùng JWT).
+     * Bật CORS cho Frontend, tắt CSRF (vì dùng JWT stateless),
+     * mở quyền truy cập (permitAll) cho API auth và cấu hình Stateless session.
      */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
-                .cors(cors -> cors.disable())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/auth/**").permitAll()
                         .anyRequest().permitAll()
                 )
                 .sessionManagement(session -> session
@@ -51,8 +55,34 @@ public class SecurityConfig {
     }
 
     /**
-     * Đăng ký AuthenticationProvider (cụ thể là DaoAuthenticationProvider) 
-     * để Spring Security biết cách xác thực người dùng dựa trên Database.
+     * Cấu hình CORS cho phép Frontend gọi API Backend.
+     * Cho phép các origin từ localhost:3000 (React dev server).
+     */
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        // Allowed origins: Frontend dev server
+        configuration.setAllowedOrigins(Arrays.asList(
+                "http://localhost:3000",
+                "http://localhost:5173"
+        ));
+        // Allowed HTTP methods
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        // Allowed headers
+        configuration.setAllowedHeaders(List.of("*"));
+        // Allow credentials (cookies, authorization headers)
+        configuration.setAllowCredentials(true);
+        // Cache preflight response for 1 hour
+        configuration.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+
+    /**
+     * Đăng ký AuthenticationProvider (DaoAuthenticationProvider)
+     * để Spring Security xác thực người dùng dựa trên Database.
      */
     @Bean
     @SuppressWarnings("deprecation")
@@ -72,7 +102,7 @@ public class SecurityConfig {
     }
 
     /**
-     * Định nghĩa bean thuật toán mã hóa mật khẩu (BCrypt) để bảo mật thông tin mã hóa trong DB.
+     * Định nghĩa bean thuật toán mã hóa mật khẩu (BCrypt).
      */
     @Bean
     public PasswordEncoder passwordEncoder() {

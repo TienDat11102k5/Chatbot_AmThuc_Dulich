@@ -9,13 +9,19 @@ import com.bot.repository.OtpTokenRepository;
 import com.bot.repository.UserRepository;
 import com.bot.service.email.EmailService;
 import com.bot.security.JwtService;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.gson.GsonFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import java.util.Collections;
 
 /**
  * Service xử lý toàn bộ logic nghiệp vụ về xác thực (Authentication),
@@ -32,6 +38,9 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final OtpTokenRepository otpTokenRepository;
     private final EmailService emailService;
+
+    @Value("${google.client.id}")
+    private String googleClientId;
 
     /**
      * Đăng ký tài khoản người dùng mới vào hệ thống.
@@ -189,5 +198,65 @@ public class AuthService {
         // Xóa token sau khi sử dụng xong
         otpTokenRepository.delete(otpToken);
         log.info("Password updated successfully for email: {}", email);
+    }
+
+    /**
+     * Xác thực người dùng bằng Google Login.
+     * Sử dụng Google API Client để kiểm tra token từ phía client gửi lên.
+     * Nếu email khớp tài khoản đã có, tự động đăng nhập. Nếu chưa có, tạo tài khoản mới.
+     * @param idToken Chuỗi JWT do Google sinh ra.
+     * @return AuthResponse chứa access token của ứng dụng.
+     */
+    public AuthResponse googleLogin(String idToken) {
+        try {
+            GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(
+                    new NetHttpTransport(), GsonFactory.getDefaultInstance())
+                    .setAudience(Collections.singletonList(googleClientId))
+                    .build();
+
+            GoogleIdToken token = verifier.verify(idToken);
+            if (token == null) {
+                throw new RuntimeException("Mã xác thực Google không hợp lệ!");
+            }
+
+            GoogleIdToken.Payload payload = token.getPayload();
+            String email = payload.getEmail();
+            String name = (String) payload.get("name");
+
+            // Kiểm tra xem user đã tồn tại chưa
+            User user = userRepository.findByEmail(email).orElse(null);
+
+            if (user == null) {
+                // Đăng ký mới
+                user = User.builder()
+                        .username(email) // dùng tạm email làm username hoặc sinh tự động UUID
+                        .email(email)
+                        // mật khẩu tạo ngẫu nhiên do đăng nhập bằng Google không cần pass
+                        .passwordHash(passwordEncoder.encode(java.util.UUID.randomUUID().toString()))
+                        .role("USER")
+                        .createdAt(java.time.LocalDateTime.now())
+                        .build();
+                userRepository.save(user);
+            }
+
+            // Tạo token JWT của hệ thống
+            UserDetails userDetails = org.springframework.security.core.userdetails.User.builder()
+                    .username(user.getUsername())
+                    .password(user.getPasswordHash())
+                    .roles("USER")
+                    .build();
+            String jwtToken = jwtService.generateToken(userDetails);
+
+            return AuthResponse.builder()
+                    .token(jwtToken)
+                    .username(user.getUsername())
+                    .email(user.getEmail())
+                    .role(user.getRole())
+                    .build();
+
+        } catch (Exception e) {
+            log.error("Lỗi xác thực Google: ", e);
+            throw new RuntimeException("Lỗi đăng nhập Google: " + e.getMessage());
+        }
     }
 }
