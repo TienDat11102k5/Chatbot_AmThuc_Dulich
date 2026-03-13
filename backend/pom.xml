@@ -2,47 +2,88 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+
+	<!-- ================================================================= -->
+	<!-- PARENT: Spring Boot Starter Parent                                 -->
+	<!-- Kế thừa cấu hình mặc định từ Spring Boot 3.5.11:                 -->
+	<!--   - Quản lý phiên bản dependency (BOM) tự động                    -->
+	<!--   - Cấu hình plugin Maven mặc định (compiler, surefire...)        -->
+	<!--   - Các thuộc tính encoding, Java version mặc định                -->
+	<!-- ================================================================= -->
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>3.5.11</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<relativePath/> <!-- Tải parent POM từ Maven Central, không tìm local -->
 	</parent>
+
+	<!-- ================================================================= -->
+	<!-- THÔNG TIN DỰ ÁN                                                   -->
+	<!-- groupId: Nhóm tổ chức (com.chatbot)                               -->
+	<!-- artifactId: Tên module (backend)                                   -->
+	<!-- version: Phiên bản SNAPSHOT (đang phát triển, chưa release)        -->
+	<!-- ================================================================= -->
 	<groupId>com.chatbot</groupId>
 	<artifactId>backend</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>backend</name>
-	<description>Backend Core for AI Chatbot</description>
+	<description>Backend Core cho AI Chatbot Ẩm Thực &amp; Du Lịch Việt Nam</description>
+
+	<!-- ================================================================= -->
+	<!-- THUỘC TÍNH TOÀN CỤC                                               -->
+	<!-- java.version=21: Sử dụng Java 21 LTS (Virtual Threads, Records)   -->
+	<!-- ================================================================= -->
 	<properties>
 		<java.version>21</java.version>
 	</properties>
+
 	<dependencies>
-		<!-- Spring Web cho API REST -->
+
+		<!-- ============================================================= -->
+		<!-- NHÓM 1: CORE FRAMEWORK (Khung ứng dụng chính)                 -->
+		<!-- ============================================================= -->
+
+		<!-- Spring Web: Xây dựng REST API (Controller, RequestMapping)
+		     Bao gồm: Embedded Tomcat, Jackson JSON, Validation            -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 
-		<!-- Spring Data JPA để thao tác DB -->
+		<!-- Spring Data JPA: Tầng truy cập dữ liệu (Repository pattern)
+		     Bao gồm: Hibernate ORM, EntityManager, @Transactional
+		     Dùng để tương tác với PostgreSQL qua Entity/Repository         -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
 
-		<!-- PostgreSQL Driver -->
+		<!-- PostgreSQL JDBC Driver: Trình điều khiển kết nối PostgreSQL
+		     scope=runtime: Chỉ cần khi chạy ứng dụng, không cần khi compile
+		     Hỗ trợ: pgvector (vector search), JSONB, Full-text search     -->
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
 			<scope>runtime</scope>
 		</dependency>
 
-		<!-- Spring Security -->
+		<!-- ============================================================= -->
+		<!-- NHÓM 2: BẢO MẬT & XÁC THỰC (Security & Authentication)       -->
+		<!-- ============================================================= -->
+
+		<!-- Spring Security: Framework bảo mật toàn diện
+		     Cung cấp: Authentication, Authorization, CORS, CSRF protection
+		     Tích hợp: JWT Token, OAuth2/Google Sign-In                     -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
 
-		<!-- JSON Web Token (JWT) -->
+		<!-- JWT (JSON Web Token) — Bộ 3 thư viện JJWT:
+		     1. jjwt-api: Interface/API chính (tạo, parse, validate token)
+		     2. jjwt-impl: Triển khai thuật toán ký (RS256, HS256...)
+		     3. jjwt-jackson: Serialize/Deserialize JSON cho JWT payload
+		     Phiên bản 0.12.5 — Stable, hỗ trợ Java 21                     -->
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt-api</artifactId>
@@ -52,51 +93,115 @@
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt-impl</artifactId>
 			<version>0.12.5</version>
-			<scope>runtime</scope>
+			<scope>runtime</scope> <!-- Chỉ cần runtime, code chỉ gọi qua jjwt-api -->
 		</dependency>
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt-jackson</artifactId>
 			<version>0.12.5</version>
-			<scope>runtime</scope>
+			<scope>runtime</scope> <!-- Tự động đăng ký serializer khi runtime -->
 		</dependency>
 
-		<!-- Lombok -->
+		<!-- Google API Client: Xác thực đăng nhập bằng tài khoản Google
+		     Dùng để verify Google ID Token khi user chọn "Đăng nhập bằng Google"
+		     Phiên bản 2.7.0 — Stable                                      -->
+		<dependency>
+			<groupId>com.google.api-client</groupId>
+			<artifactId>google-api-client</artifactId>
+			<version>2.7.0</version>
+		</dependency>
+
+		<!-- ============================================================= -->
+		<!-- NHÓM 3: DATABASE & MIGRATION                                   -->
+		<!-- ============================================================= -->
+
+		<!-- Flyway Core: Quản lý phiên bản schema database tự động
+		     Thay thế Hibernate ddl-auto=update (không an toàn cho production)
+		     Đọc file SQL trong src/main/resources/db/migration/
+		     Áp dụng migration theo thứ tự V1__, V2__, V3__...              -->
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-core</artifactId>
+		</dependency>
+
+		<!-- Flyway PostgreSQL: Module mở rộng của Flyway cho PostgreSQL
+		     Hỗ trợ: Transactional DDL, stored procedures, extensions
+		     BẮT BUỘC khi dùng Flyway với PostgreSQL từ Flyway v10+        -->
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-database-postgresql</artifactId>
+		</dependency>
+
+		<!-- ============================================================= -->
+		<!-- NHÓM 4: CACHING & PERFORMANCE                                  -->
+		<!-- ============================================================= -->
+
+		<!-- Spring Data Redis: Tích hợp Redis làm bộ nhớ đệm (L2 Cache)
+		     Bao gồm: Lettuce client (non-blocking), CacheManager
+		     Dùng kết hợp với @Cacheable, @CacheEvict annotation
+		     Cấu hình chi tiết: xem RedisConfig.java                       -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-redis</artifactId>
+		</dependency>
+
+		<!-- ============================================================= -->
+		<!-- NHÓM 5: TIỆN ÍCH PHÁT TRIỂN (Developer Utilities)             -->
+		<!-- ============================================================= -->
+
+		<!-- Lombok: Tự động sinh code boilerplate (getter, setter, builder)
+		     optional=true: Chỉ dùng khi compile, không đóng gói vào JAR
+		     Annotation chính: @Data, @Builder, @RequiredArgsConstructor    -->
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
 		</dependency>
 
-		<!-- Spring Boot Test -->
+		<!-- Spring Dotenv: Tự động tải biến môi trường từ file .env
+		     Mục đích: KHÔNG hardcode mật khẩu, API key vào application.properties
+		     Cách dùng: ${DB_USERNAME}, ${JWT_SECRET}... sẽ được đọc từ .env -->
+		<dependency>
+			<groupId>me.paulschwarz</groupId>
+			<artifactId>spring-dotenv</artifactId>
+			<version>4.0.0</version>
+		</dependency>
+
+		<!-- ============================================================= -->
+		<!-- NHÓM 6: EMAIL                                                  -->
+		<!-- ============================================================= -->
+
+		<!-- Spring Mail: Gửi email qua SMTP (Gmail)
+		     Dùng cho tính năng: Gửi mã OTP khi "Quên mật khẩu"
+		     Cấu hình SMTP: xem application.properties                     -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-mail</artifactId>
+		</dependency>
+
+		<!-- ============================================================= -->
+		<!-- NHÓM 7: KIỂM THỬ (Testing)                                    -->
+		<!-- ============================================================= -->
+
+		<!-- Spring Boot Test: Framework kiểm thử tích hợp
+		     Bao gồm: JUnit 5, Mockito, AssertJ, MockMvc
+		     scope=test: Chỉ dùng khi chạy test, không đóng gói vào JAR   -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
 
-		<!-- Thư viện gửi email: Spring Boot Starter Mail -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-mail</artifactId>
-		</dependency>
-
-		<!-- Thư viện Google API Client để xác thực Token -->
-		<dependency>
-			<groupId>com.google.api-client</groupId>
-			<artifactId>google-api-client</artifactId>
-			<version>2.7.0</version>
-		</dependency>
-		<!-- Hỗ trợ load file .env -->
-		<dependency>
-			<groupId>me.paulschwarz</groupId>
-			<artifactId>spring-dotenv</artifactId>
-			<version>4.0.0</version>
-		</dependency>
 	</dependencies>
 
+	<!-- ================================================================= -->
+	<!-- BUILD CONFIGURATION                                                -->
+	<!-- ================================================================= -->
 	<build>
 		<plugins>
+			<!-- Spring Boot Maven Plugin: Đóng gói ứng dụng thành JAR chạy được
+			     Lệnh: mvn spring-boot:run (chạy dev) | mvn package (đóng gói)
+			     Loại trừ Lombok khỏi JAR cuối (chỉ cần khi compile)        -->
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>

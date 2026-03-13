@@ -43,9 +43,9 @@ public class Place {
     @Column(name = "price_range")
     private String priceRange;
 
-    // ID reference tới Vector Database (VD: Qdrant/Milvus) dùng để truy vấn AI
-    @Column(name = "vector_id")
-    private String vectorId;
+    // Vector embedding 768 chiều từ AI model, dùng cho Semantic Search (pgvector)
+    @Column(columnDefinition = "vector(768)")
+    private float[] embedding;
 
     // Trạng thái hoạt động (true = đang hiển thị, false = đã ẩn)
     @Column(name = "is_active", nullable = false)
