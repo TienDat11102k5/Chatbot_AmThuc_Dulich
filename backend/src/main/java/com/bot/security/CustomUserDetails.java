@@ -9,11 +9,18 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.List;
 
+/**
+ * Lớp bọc (Wrapper) cho Entity User của hệ thống để tương thích với 
+ * interface UserDetails của Spring Security.
+ */
 @AllArgsConstructor
 public class CustomUserDetails implements UserDetails {
 
     private final User user;
 
+    /**
+     * Cung cấp danh sách quyền (Roles/Authorities) của người dùng để Spring Security phân quyền.
+     */
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole()));

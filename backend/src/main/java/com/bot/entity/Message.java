@@ -7,6 +7,9 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+/**
+ * Thực thể lưu trữ các tin nhắn trong một phiên làm việc (ChatSession) giữa người dùng (USER) và hệ thống (BOT).
+ */
 @Entity
 @Table(name = "messages")
 @Getter
@@ -20,20 +23,24 @@ public class Message {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    // Phiên chat mà tin nhắn này thuộc về
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "session_id", nullable = false)
     private ChatSession session;
 
+    // Loại người gửi ("USER" hoặc "BOT")
     @Column(name = "sender_type", nullable = false)
     private String senderType; // ENUM: "USER", "BOT"
 
+    // Nội dung text của tin nhắn
     @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 
-    // Lưu trữ JSONB cho dữ liệu bổ sung như danh sách ID quán ăn (metadata)
+    // Lưu trữ JSONB cho dữ liệu bổ sung như danh sách ID quán ăn (metadata), action, intent
     @Column(columnDefinition = "jsonb")
     private String metadata;
 
+    // Thời gian gửi tin
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime timestamp;

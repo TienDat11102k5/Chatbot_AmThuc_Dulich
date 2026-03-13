@@ -14,6 +14,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+/**
+ * Service chuyên biệt để tạo mới (Generate), giải mã (Extract) và 
+ * kiểm tra tính hợp lệ (Validation) của Token JWT bằng thư viện io.jsonwebtoken.
+ */
 @Service
 public class JwtService {
 
@@ -23,6 +27,12 @@ public class JwtService {
     @Value("${jwt.expiration}")
     private long jwtExpiration;
 
+    /**
+     * Trích xuất thông tin định danh Username (Subject) được ký nạp bên trong JWT Payload.
+     *
+     * @param token Chuỗi mã JWT truyền chuyển từ lớp trên xuống.
+     * @return Tên đăng nhập nguyên bản dưới dạng String.
+     */
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
@@ -32,6 +42,12 @@ public class JwtService {
         return claimsResolver.apply(claims);
     }
 
+    /**
+     * Tạo ra (Generate) một chuỗi JWT cơ bản nhúng các giá trị claim chuẩn thông qua Profile của người dùng.
+     *
+     * @param userDetails Khung dữ liệu User tích hợp Spring Security đã qua quá trình xác thực.
+     * @return Chuỗi token JWT hợp chuẩn Base64.
+     */
     public String generateToken(UserDetails userDetails) {
         return generateToken(new HashMap<>(), userDetails);
     }
@@ -50,6 +66,14 @@ public class JwtService {
                 .compact();
     }
 
+    /**
+     * Tiến trình xác nhận một token còn dùng được hay không. 
+     * Cụ thể so sánh tên đăng nhập giải mã từ Token với UserDetails truyền từ request và đối soát mốc thời gian (Expiration).
+     *
+     * @param token Đoạn chuỗi Token trích xuất từ Header.
+     * @param userDetails Spring Security User tương ứng với JWT Subject khai báo.
+     * @return true giả định Token hợp lệ, không bị can thiệp và chưa ngưng hoạt động.
+     */
     public boolean isTokenValid(String token, UserDetails userDetails) {
         final String username = extractUsername(token);
         return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);

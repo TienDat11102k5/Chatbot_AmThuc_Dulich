@@ -16,6 +16,10 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+/**
+ * Bộ lọc (Filter) bắt mọi Request HTTP gửi đến Backend để kiểm tra xem 
+ * yêu cầu đó có chứa Token JWT hợp lệ trên Header hay không.
+ */
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -23,13 +27,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
 
+    /**
+     * Logic lõi của Filter: Phân tích Header 'Authorization', trích xuất mã Token JWT, 
+     * giải mã lấy Username và tiến hành xác thực lệ cùng UserDetailsService.
+     * Bỏ qua các đường dẫn truy cập tự do liên quan đến xác thực (auth).
+     *
+     * @param request Lớp HttpRequest đại diện cho gói tin HTTP truyền đến.
+     * @param response Lớp HttpResponse đóng gói luồng ra.
+     * @param filterChain Dây chuyền Filter chuyển tiếp request qua các chốt kiểm duyệt kế tiếp.
+     * @throws ServletException Bắn ra khi có lỗi phần xử lý tầng Servlet logic.
+     * @throws IOException Bắn ra khi có lỗi I/O đọc vi phân hoặc gửi đáp trả mạng.
+     */
     @Override
     protected void doFilterInternal(
             @NonNull HttpServletRequest request,
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
-        // Skip JWT validation for auth endpoints
+        // Bỏ qua việc kiểm tra JWT đối với các api đăng ký, đăng nhập
         if (request.getServletPath().startsWith("/api/auth/")) {
             filterChain.doFilter(request, response);
             return;
