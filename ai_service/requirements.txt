@@ -28,3 +28,10 @@ joblib==1.4.2
 # underthesea: Cắt từ (word segmentation) tiếng Việt chuẩn xác
 # VD: "Phở Hà Nội" -> ["Phở", "Hà_Nội"] thay vì ["Phở", "Hà", "Nội"]
 underthesea==1.3.5
+
+# --- Kết nối Redis (Phase 7 — Semantic Cache dùng chung) ---
+# redis-py: Python client kết nối Redis
+# Dùng để thay thế SemanticCache Python Dict (mất khi restart)
+# bằng Redis-backed cache (tồn tại sau restart, chia sẻ giữa nhiều instance)
+redis==5.0.0
+

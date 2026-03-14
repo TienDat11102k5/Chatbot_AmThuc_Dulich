@@ -8,7 +8,9 @@ import com.bot.entity.User;
 import com.bot.repository.OtpTokenRepository;
 import com.bot.repository.UserRepository;
 import com.bot.service.email.EmailService;
+import com.bot.service.email.EmailProducer;
 import com.bot.security.JwtService;
+import org.springframework.amqp.AmqpException;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
@@ -38,6 +40,9 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final OtpTokenRepository otpTokenRepository;
     private final EmailService emailService;
+    // EmailProducer: Thay thế gọi trực tiếp emailService.sendOtpEmail()
+    // bằng cách đẩy yêu cầu vào RabbitMQ queue — không blocking
+    private final EmailProducer emailProducer;
 
     @Value("${google.client.id}")
     private String googleClientId;
@@ -160,8 +165,16 @@ public class AuthService {
                 
         otpTokenRepository.save(otpToken);
         
-        // Gửi qua email
-        emailService.sendOtpEmail(email, otp);
+        // Gửi email OTP qua RabbitMQ (bất đồng bộ — không blocking)
+        // Nếu RabbitMQ không khả dụng → fallback gửi đồng bộ trực tiếp
+        // → Graceful Degradation: user luôn nhận được OTP dù queue có sập
+        try {
+            emailProducer.sendEmailRequest(email, otp);
+            log.info("Đã đẩy yêu cầu gửi OTP vào queue cho: {}", email);
+        } catch (AmqpException e) {
+            log.warn("RabbitMQ không khả dụng — fallback gửi email đồng bộ cho: {}", email);
+            emailService.sendOtpEmail(email, otp); // Fallback: gửi trực tiếp
+        }
     }
 
     /**

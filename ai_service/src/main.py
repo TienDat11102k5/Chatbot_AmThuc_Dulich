@@ -18,9 +18,11 @@ Sau khi chạy, truy cập:
 
 import sys
 import os
+import json
 from contextlib import asynccontextmanager  # Quản lý vòng đời server (khởi động/dừng)
 from functools import lru_cache             # Bộ nhớ đệm LRU (Least Recently Used)
 
+import redis as redis_lib                    # Redis client (Phase 7 — Semantic Cache dùng chung)
 from fastapi import FastAPI                 # Framework API chính
 from fastapi.middleware.cors import CORSMiddleware  # Middleware cho phép Cross-Origin requests
 
@@ -30,69 +32,126 @@ from src.core.intent_classifier import IntentClassifier  # Model phân loại ý
 from src.core.recommender import RecommenderSystem       # Hệ thống đề xuất
 
 # ==============================================================================
-# 1. SEMANTIC CACHE — BỘ NHỚ ĐỆM THÔNG MINH (LRU Cache)
+# 1. SEMANTIC CACHE — BỘ NHỚ ĐỆM THÔNG MINH (Redis-backed)
 # ==============================================================================
-# Tại sao cần Cache?
-# Nếu 100 người cùng hỏi "Phở Hà Nội ở đâu ngon?", hệ thống không cần 
-# chạy thuật toán AI 100 lần. Chỉ cần chạy lần đầu, rồi lưu kết quả lại.
-# Các lần sau trả kết quả ngay từ bộ nhớ → Nhanh gấp 10-50 lần.
+# [THAY ĐỔI Phase 7] Trước đây dùng Python Dict (mất khi restart).
+# Bây giờ dùng Redis để cache tồn tại giữa các lần restart và có thể chia sẻ
+# nếu AI Service được scale lên nhiều instance.
 #
-# maxsize=256: Lưu tối đa 256 câu hỏi gần nhất. Nếu đầy → tự xóa câu lâu không dùng.
-# LRU = Least Recently Used = Ít được dùng gần đây nhất sẽ bị xóa trước.
+# Key pattern: "chat:cache:{normalized_question}"
+# TTL: 1 giờ (3600 giây) — câu hỏi ít thay đổi trong 1 giờ
+#
+# Ví dụ:
+#   Hỏi "Phở Hà Nội ngon ở đâu?" → AI tính toán 200ms → Lưu vào Redis
+#   Restart AI Service
+#   Hỏi lại → Redis trả ngay < 5ms (không cần tính toán lại)
 
 class SemanticCache:
     """
-    Bộ nhớ đệm ngữ nghĩa đơn giản dùng Python Dict.
-    Key = câu hỏi đã chuẩn hóa (lowercase, bỏ dấu câu).
-    Value = kết quả JSON trả về.
+    Bộ nhớ đệm ngữ nghĩa dùng Redis làm backend lưu trữ.
+    
+    Key = câu hỏi đã chuẩn hóa (lowercase, strip).
+    Value = kết quả JSON serialize.
+    TTL = 1 giờ (tự xóa sau 3600 giây).
+    
+    Graceful Degradation: Nếu Redis bị sập, cache bị bỏ qua hoàn toàn —
+    AI vẫn hoạt động bình thường, chỉ chậm hơn vì phải tính toán lại.
     """
-    def __init__(self, max_size: int = 256):
+    
+    # Tiền tố cho mọi key trong Redis — tránh xung đột với key khác
+    KEY_PREFIX = "chat:cache:"
+    
+    # Thời gian sống của mỗi cache entry (1 giờ)
+    TTL_SECONDS = 3600
+
+    def __init__(self):
         """
-        Khởi tạo cache rỗng với kích thước tối đa.
+        Khởi tạo Redis client từ biến môi trường.
         
-        Tham số:
-            max_size (int): Số lượng tối đa câu hỏi lưu trong bộ nhớ đệm.
+        Biến môi trường:
+            REDIS_HOST: Host Redis (mặc định "localhost", Docker dùng "redis")
+            REDIS_PORT: Port Redis (mặc định 6379)
+        
+        Nếu không kết nối được Redis → self.redis_client = None
+        (Graceful Degradation — cache bị bỏ qua, AI vẫn chạy bình thường)
         """
-        self.cache = {}         # Dictionary lưu trữ: {key: value}
-        self.max_size = max_size
-        self.hit_count = 0      # Đếm số lần bắn trúng cache (dùng cho thống kê)
-        self.miss_count = 0     # Đếm số lần hụt cache
+        self.hit_count = 0   # Đếm số lần bắn trúng cache (dùng cho thống kê)
+        self.miss_count = 0  # Đếm số lần hụt cache
         
+        redis_host = os.getenv("REDIS_HOST", "localhost")
+        redis_port = int(os.getenv("REDIS_PORT", "6379"))
+        
+        try:
+            self.redis_client = redis_lib.Redis(
+                host=redis_host,
+                port=redis_port,
+                decode_responses=True,  # Tự động decode bytes → str
+                socket_timeout=2,       # Timeout 2 giây — tránh block lâu
+                socket_connect_timeout=2
+            )
+            # Ping để kiểm tra kết nối ngay lúc khởi động
+            self.redis_client.ping()
+            print(f"      ✅ Đã kết nối Redis tại {redis_host}:{redis_port}")
+        except Exception as e:
+            # Không kết nối được → Graceful Degradation
+            self.redis_client = None
+            print(f"      ⚠️  Không kết nối được Redis ({e}) — Bỏ qua Semantic Cache")
+
     def get(self, key: str):
         """
-        Tìm kết quả trong cache.
+        Tìm kết quả trong Redis cache.
         
         Tham số:
-            key (str): Câu hỏi đã chuẩn hóa.
+            key (str): Câu hỏi gốc (chưa cần chuẩn hóa).
             
         Trả về:
-            dict hoặc None: Kết quả cũ nếu tìm thấy, None nếu chưa hỏi bao giờ.
+            dict hoặc None: Kết quả cũ nếu tìm thấy, None nếu chưa có.
         """
-        normalized_key = key.lower().strip()
-        if normalized_key in self.cache:
-            self.hit_count += 1
-            print(f"[Cache] 🎯 HIT — Trả ngay kết quả cũ cho: '{key[:30]}...'")
-            return self.cache[normalized_key]
-        self.miss_count += 1
-        return None
-    
+        if self.redis_client is None:
+            self.miss_count += 1
+            return None  # Redis sập → luôn miss
+            
+        normalized_key = self.KEY_PREFIX + key.lower().strip()
+        
+        try:
+            data = self.redis_client.get(normalized_key)
+            if data:
+                self.hit_count += 1
+                print(f"[Cache] 🎯 HIT — Trả ngay kết quả từ Redis cho: '{key[:30]}...'")
+                return json.loads(data)  # Deserialize JSON → dict
+            self.miss_count += 1
+            return None
+        except Exception as e:
+            # Redis lỗi giữa chừng → bỏ qua cache, tiếp tục xử lý bình thường
+            self.miss_count += 1
+            print(f"[Cache] ⚠️ Redis lỗi khi đọc: {e}")
+            return None
+
     def set(self, key: str, value):
         """
-        Lưu kết quả mới vào cache.
-        Nếu cache đầy → Xóa phần tử cũ nhất (FIFO — First In First Out).
+        Lưu kết quả vào Redis cache với TTL tự động.
         
         Tham số:
-            key (str): Câu hỏi đã chuẩn hóa.
-            value: Kết quả cần lưu (dict/JSON).
+            key (str): Câu hỏi gốc (chưa cần chuẩn hóa).
+            value: Kết quả cần lưu (dict/JSON serializable).
         """
-        normalized_key = key.lower().strip()
-        
-        # Nếu đầy, xóa phần tử nhập vào sớm nhất
-        if len(self.cache) >= self.max_size:
-            oldest_key = next(iter(self.cache))
-            del self.cache[oldest_key]
+        if self.redis_client is None:
+            return  # Redis sập → bỏ qua, không lưu
             
-        self.cache[normalized_key] = value
+        normalized_key = self.KEY_PREFIX + key.lower().strip()
+        
+        try:
+            # SETEX = SET + EXPIRE trong 1 lệnh (atomic)
+            self.redis_client.setex(
+                name=normalized_key,
+                time=self.TTL_SECONDS,  # TTL: 1 giờ
+                value=json.dumps(value, ensure_ascii=False)  # Serialize dict → JSON
+            )
+        except Exception as e:
+            # Redis lỗi khi ghi → bỏ qua, không crash AI
+            print(f"[Cache] ⚠️ Redis lỗi khi ghi: {e}")
+
+
 
 
 # ==============================================================================
@@ -132,9 +191,9 @@ async def lifespan(app: FastAPI):
     app.state.recommender = RecommenderSystem()
     print("      ✅ Recommender đã sẵn sàng!")
     
-    # Khởi tạo Semantic Cache rỗng
-    print("[3/3] Đang thiết lập Semantic Cache (LRU, max=256)...")
-    app.state.cache = SemanticCache(max_size=256)
+    # Khởi tạo Semantic Cache kết nối Redis
+    print("[3/3] Đang thiết lập Semantic Cache (Redis-backed, TTL=1h)...")
+    app.state.cache = SemanticCache()  # Phase 7: Không còn max_size, dùng Redis TTL thay thế
     print("      ✅ Cache đã sẵn sàng!")
     
     print("\n" + "="*55)

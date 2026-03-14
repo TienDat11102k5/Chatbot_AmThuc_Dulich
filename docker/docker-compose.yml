@@ -6,8 +6,8 @@
 #   Frontend (ReactJS:3000) → Backend (Spring Boot:8080)
 #                                  ↓              ↓
 #                         AI Service (FastAPI:8000)  Redis (6379)
-#                                  ↓
-#                         PostgreSQL + pgvector (5432)
+#                                  ↓              ↓
+#                         PostgreSQL + pgvector  RabbitMQ (5672/15672)
 # =============================================================================
 version: '3.8'
 
@@ -32,10 +32,58 @@ services:
       - chatbot_network
 
   # ===========================================================================
-  # 2. AI SERVICE — Python FastAPI
+  # 2. REDIS — Bộ nhớ đệm Cache (In-Memory)
+  # Image: redis:7-alpine (bản gọn nhẹ ~5MB)
+  # Mục đích:
+  #   - Cache dữ liệu hay đọc (categories=30m, places=10m, users=5m)
+  #   - Cache phiên chat (chat_sessions=15m, chat_history=10m)
+  #   - Rate Limiter (đếm request theo IP, INCR + EXPIRE)
+  #   - [Phase 7] SemanticCache cho AI Service (chat:cache:* TTL=1h)
+  # Cấu hình:
+  #   --appendonly yes: Bật AOF persistence (cache không mất khi restart)
+  #   --maxmemory 256mb: Giới hạn RAM tối đa 256MB
+  #   --maxmemory-policy allkeys-lru: Tự xóa key ít dùng nhất khi đầy
+  # Port: 6379 (mặc định Redis)
+  # ===========================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: chatbot_redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    networks:
+      - chatbot_network
+
+  # ===========================================================================
+  # 3. RABBITMQ — Message Queue bất đồng bộ [THÊM MỚI Phase 6]
+  # Image: rabbitmq:3-management-alpine (tích hợp Management UI)
+  # Mục đích:
+  #   - email.queue: Hàng đợi gửi email OTP không blocking
+  #   - email.dlq: Dead Letter Queue chứa email thất bại để admin xem xét
+  # Ports:
+  #   - 5672: AMQP protocol (Backend kết nối vào đây để gửi/nhận message)
+  #   - 15672: Management UI (http://localhost:15672 — admin/password)
+  # Credentials: admin/password (đổi khi lên Production!)
+  # ===========================================================================
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: chatbot_rabbitmq
+    ports:
+      - "5672:5672"     # AMQP protocol — Backend dùng port này
+      - "15672:15672"   # Management Web UI — Truy cập trình duyệt xem queue
+    environment:
+      RABBITMQ_DEFAULT_USER: admin     # Tài khoản đăng nhập Management UI
+      RABBITMQ_DEFAULT_PASS: password  # Mật khẩu (đổi khi lên Production!)
+    networks:
+      - chatbot_network
+
+  # ===========================================================================
+  # 4. AI SERVICE — Python FastAPI
   # Mục đích: Xử lý AI/NLP (embedding, semantic search, sinh phản hồi chatbot)
   # Build từ thư mục ../ai_service (cần có Dockerfile)
   # Port: 8000
+  # Biến môi trường:
+  #   REDIS_HOST: Kết nối Redis để dùng Semantic Cache (không mất khi restart)
   # ===========================================================================
   ai_service:
     build:
@@ -43,15 +91,20 @@ services:
     container_name: ai_service
     ports:
       - "8000:8000"
+    environment:
+      - REDIS_HOST=redis    # [THÊM MỚI Phase 7] Kết nối Redis cho SemanticCache
+      - REDIS_PORT=6379
+    depends_on:
+      - redis               # Redis phải sẵn sàng trước AI Service (dùng Semantic Cache)
     networks:
       - chatbot_network
 
   # ===========================================================================
-  # 3. BACKEND — Spring Boot (Java 17)
+  # 5. BACKEND — Spring Boot (Java 21)
   # Mục đích: API server chính, xử lý nghiệp vụ, xác thực, cache
   # Port: 8080
   # Biến môi trường: Ghi đè application.properties khi chạy trong Docker
-  # depends_on: Chờ database + ai_service + redis khởi chạy trước
+  # depends_on: Chờ database + ai_service + redis + rabbitmq khởi chạy trước
   # ===========================================================================
   backend:
     build:
@@ -60,21 +113,26 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://database:5432/chatbot_db  # Kết nối DB qua tên container
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://database:5432/chatbot_db
       - SPRING_DATASOURCE_USERNAME=admin
       - SPRING_DATASOURCE_PASSWORD=password
-      - AI_SERVICE_URL=http://ai_service:8000    # URL AI Service trong mạng Docker
-      - SPRING_DATA_REDIS_HOST=redis             # Redis trong mạng Docker
+      - AI_SERVICE_URL=http://ai_service:8000     # URL AI Service trong mạng Docker
+      - SPRING_DATA_REDIS_HOST=redis              # Redis trong mạng Docker
       - SPRING_DATA_REDIS_PORT=6379
+      - RABBITMQ_HOST=rabbitmq                    # [THÊM MỚI Phase 6] RabbitMQ trong Docker
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=admin
+      - RABBITMQ_PASS=password
     depends_on:
       - database      # Database phải sẵn sàng trước Backend
       - ai_service    # AI Service phải sẵn sàng trước Backend
       - redis         # Redis phải sẵn sàng trước Backend
+      - rabbitmq      # [THÊM MỚI Phase 6] RabbitMQ phải sẵn sàng trước Backend
     networks:
       - chatbot_network
 
   # ===========================================================================
-  # 4. FRONTEND — ReactJS (Nginx)
+  # 6. FRONTEND — ReactJS (Nginx)
   # Mục đích: Giao diện người dùng (SPA)
   # Port: 3000 (map từ port 80 trong container Nginx)
   # depends_on: Chờ backend khởi chạy trước
@@ -90,29 +148,10 @@ services:
     networks:
       - chatbot_network
 
-  # ===========================================================================
-  # 5. REDIS — Bộ nhớ đệm Cache (In-Memory)
-  # Image: redis:7-alpine (bản gọn nhẹ ~5MB)
-  # Mục đích: Cache dữ liệu hay đọc (danh mục, địa điểm, thông tin user)
-  # Cấu hình:
-  #   --appendonly yes: Bật AOF persistence (dữ liệu cache không mất khi restart)
-  #   --maxmemory 256mb: Giới hạn RAM sử dụng tối đa 256MB
-  #   --maxmemory-policy allkeys-lru: Khi đầy RAM, tự động xóa key ít dùng nhất
-  # Port: 6379 (mặc định Redis)
-  # ===========================================================================
-  redis:
-    image: redis:7-alpine
-    container_name: chatbot_redis
-    ports:
-      - "6379:6379"
-    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
-    networks:
-      - chatbot_network
-
 # =============================================================================
 # NETWORKS — Mạng nội bộ Docker
 # driver: bridge (mặc định) — cho phép các container giao tiếp qua tên container
-# VD: Backend gọi "database:5432" thay vì IP cụ thể
+# VD: Backend gọi "database:5432", "rabbitmq:5672", "redis:6379"
 # =============================================================================
 networks:
   chatbot_network:

@@ -145,6 +145,16 @@
 			<artifactId>spring-boot-starter-data-redis</artifactId>
 		</dependency>
 
+		<!-- Spring AMQP / RabbitMQ: Hàng đợi tin nhắn bất đồng bộ (Message Queue)
+		     Bao gồm: RabbitTemplate (gửi), @RabbitListener (nhận), Jackson converter
+		     Dùng cho: Gửi email OTP không blocking, xử lý tác vụ nền
+		     Cấu hình Queue/Exchange: xem RabbitMQConfig.java                  -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-amqp</artifactId>
+		</dependency>
+
+
 		<!-- ============================================================= -->
 		<!-- NHÓM 5: TIỆN ÍCH PHÁT TRIỂN (Developer Utilities)             -->
 		<!-- ============================================================= -->

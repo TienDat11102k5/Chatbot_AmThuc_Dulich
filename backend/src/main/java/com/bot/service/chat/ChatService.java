@@ -9,6 +9,9 @@ import com.bot.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -84,6 +87,11 @@ public class ChatService {
      * @return Đối tượng ChatSession đã được lưu thành công vào database.
      * @throws IllegalArgumentException Nếu không tìm thấy User với UUID đã cung cấp.
      */
+    // Xóa cache danh sách session của user ngay khi tạo session mới
+    // → Lần đọc tiếp theo sẽ lấy dữ liệu mới nhất từ DB thay vì cache cũ
+    @Caching(evict = {
+            @CacheEvict(value = "chat_sessions", key = "#userId")
+    })
     @Transactional
     public ChatSession createSession(UUID userId, String initialMessage) {
         // Bước 1: Xác minh User tồn tại trong hệ thống
@@ -113,6 +121,10 @@ public class ChatService {
      * @param userId Mã UUID đại diện cho User cần truy vấn.
      * @return Danh sách ChatSession sắp xếp giảm dần theo thời gian. Nếu chưa có phiên nào, trả về danh sách rỗng.
      */
+    // Cache danh sách phiên chat của user vào Redis (TTL 15 phút)
+    // Key = userId → Mỗi user có vùng cache riêng biệt
+    // Khi tạo session mới → @CacheEvict ở createSession() tự xóa cache này
+    @Cacheable(value = "chat_sessions", key = "#userId")
     public List<ChatSession> getUserSessions(UUID userId) {
         return chatSessionRepository.findAllByUserIdOrderByStartTimeDesc(userId);
     }
@@ -130,6 +142,10 @@ public class ChatService {
      * @param sessionId Định danh UUID của phiên Chat cần lấy lịch sử.
      * @return Danh sách Message theo thứ tự thời gian tăng dần.
      */
+    // Cache lịch sử tin nhắn của một phiên vào Redis (TTL 10 phút)
+    // Key = sessionId → Mỗi phiên chat có vùng cache riêng biệt
+    // Khi có tin nhắn mới → @CacheEvict ở saveMessage() tự xóa cache này
+    @Cacheable(value = "chat_history", key = "#sessionId")
     public List<Message> getSessionMessages(UUID sessionId) {
         return messageRepository.findAllBySessionIdOrderByTimestampAsc(sessionId);
     }
@@ -154,6 +170,9 @@ public class ChatService {
      * @return Đối tượng Message đã được lưu thành công, bao gồm ID và timestamp tự sinh.
      * @throws IllegalArgumentException Nếu không tìm thấy phiên Chat với sessionId đã cung cấp.
      */
+    // Xóa cache lịch sử tin nhắn của session ngay khi lưu tin nhắn mới
+    // → Lần đọc tiếp theo sẽ trả về đầy đủ dữ liệu bao gồm tin nhắn vừa lưu
+    @CacheEvict(value = "chat_history", key = "#sessionId")
     @Transactional
     public Message saveMessage(UUID sessionId, String senderType, String content, String metadata) {
         // Bước 1: Xác minh phiên Chat tồn tại
