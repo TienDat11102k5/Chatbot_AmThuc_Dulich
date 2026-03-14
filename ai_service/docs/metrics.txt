@@ -1,0 +1,24 @@
+========================================
+ BÁO CÁO KẾT QUẢ HUẤN LUYỆN MÔ HÌNH AI
+ (Môn học: Trí Tuệ Nhân Tạo)
+========================================
+
+1. Tổng quan độ chính xác (Accuracy): 92.86 %
+
+2. Bảng phân tích chi tiết nhãn phân loại (Precision, Recall, F1-Score):
+               precision    recall  f1-score   support
+
+giao_tiep_bot       1.00      1.00      1.00         1
+hoi_thoi_tiet       1.00      1.00      1.00         6
+ tim_dia_diem       0.90      0.90      0.90        10
+   tim_mon_an       0.91      0.91      0.91        11
+
+     accuracy                           0.93        28
+    macro avg       0.95      0.95      0.95        28
+ weighted avg       0.93      0.93      0.93        28
+
+
+3. Thiết lập hệ thống (Configuration):
+   - Model Core: Support Vector Machine (SVC)
+   - Vectorizer: TF-IDF (TfidfVectorizer)
+   - NLP Preprocessor: Underthesea + Custom Stopwords
