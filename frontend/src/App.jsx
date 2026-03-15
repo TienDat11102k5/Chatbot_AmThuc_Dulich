@@ -1,11 +1,16 @@
 import React from 'react';
-import ChatBox from './components/ChatBox';
+import { BrowserRouter as Router } from 'react-router-dom';
+import AppRoutes from './routes/AppRoutes';
 
+/**
+ * Root component của ứng dụng SavoryTrip.
+ * Bọc tầng Router để cung cấp context điều hướng cho toàn bộ app.
+ */
 function App() {
   return (
-    <div className='App'>
-      <ChatBox />
-    </div>
+    <Router>
+      <AppRoutes />
+    </Router>
   );
 }
 
