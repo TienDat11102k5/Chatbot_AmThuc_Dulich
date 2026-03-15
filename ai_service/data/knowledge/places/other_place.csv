@@ -1,0 +1,29 @@
+id,name,type,description,location,tags
+# Nha Trang
+DIA_NT001,Vinpearl Nha Trang,place,Khu nghỉ dưỡng cao cấp trên đảo Hòn Tre. Công viên nước và trò chơi giải trí đa dạng. Bãi biển riêng tuyệt đẹp.,Nha Trang,"vinpearl, nha trang, nghỉ dưỡng, biển, công viên"
+DIA_NT002,Đảo Hòn Mun,place,Đảo với rạn san hô đẹp nhất Nha Trang. Lặn biển ngắm san hô và cá nhiệt đới. Nước biển trong xanh tuyệt đẹp.,Nha Trang,"hòn mun, nha trang, đảo, lặn biển, san hô"
+DIA_NT003,Tháp Bà Ponagar,place,Tháp Chăm cổ kính với kiến trúc độc đáo. Nằm trên đồi nhìn ra biển. Di tích lịch sử quan trọng của Nha Trang.,Nha Trang,"tháp bà, ponagar, nha trang, chăm, di tích"
+
+# Đà Lạt
+DIA_DL001,Hồ Xuân Hương,place,Hồ nước ngọt ở trung tâm Đà Lạt với cảnh quan thơ mộng. Đạp vịt và dạo quanh hồ. Biểu tượng của thành phố ngàn hoa.,Đà Lạt,"hồ xuân hương, đà lạt, hồ, thơ mộng"
+DIA_DL002,Thác Datanla,place,Thác nước đẹp với trò chơi cảm giác mạnh. Xe trượt alpine coaster độc đáo. Không gian mát mẻ trong rừng thông.,Đà Lạt,"thác datanla, đà lạt, thác, trò chơi, rừng thông"
+DIA_DL003,Đồi Chè Cầu Đất,place,Đồi chè xanh mướt với cảnh quan tuyệt đẹp. Điểm chụp ảnh nổi tiếng của Đà Lạt. Không khí trong lành mát mẻ.,Đà Lạt,"đồi chè, cầu đất, đà lạt, chè, chụp ảnh"
+
+# Phú Quốc
+DIA_PQ001,Bãi Sao Phú Quốc,place,Bãi biển với cát trắng mịn như bột và nước biển trong xanh. Hoàng hôn tuyệt đẹp. Bãi biển đẹp nhất Phú Quốc.,Phú Quốc,"bãi sao, phú quốc, bãi biển, cát trắng, hoàng hôn"
+DIA_PQ002,Vinpearl Safari,place,Vườn thú bán hoang dã lớn nhất Việt Nam. Động vật quý hiếm từ nhiều châu lục. Trải nghiệm safari độc đáo.,Phú Quốc,"vinpearl safari, phú quốc, vườn thú, động vật, safari"
+DIA_PQ003,Dinh Cậu,place,Đền thờ thần biển của ngư dân. Nằm trên mỏm đá nhìn ra biển. Điểm tâm linh nổi tiếng của Phú Quốc.,Phú Quốc,"dinh cậu, phú quốc, đền, tâm linh, biển"
+
+# Vũng Tàu
+DIA_VT001,Tượng Chúa Kitô,place,Tượng Chúa Kitô cao 32m trên núi Nhỏ. Tầm nhìn toàn cảnh thành phố biển. Điểm tham quan tâm linh nổi tiếng.,Vũng Tàu,"tượng chúa, vũng tàu, núi nhỏ, tâm linh"
+DIA_VT002,Bãi Sau,place,Bãi biển dài và đẹp của Vũng Tàu. Nước biển trong xanh và sóng nhẹ. Điểm tắm biển yêu thích của du khách.,Vũng Tàu,"bãi sau, vũng tàu, bãi biển, biển, tắm biển"
+
+# Cần Thơ
+DIA_CT001,Chợ Nổi Cái Răng,place,Chợ nổi lớn nhất miền Tây trên sông Hậu. Buôn bán trái cây và nông sản từ thuyền. Nét văn hóa độc đáo của vùng sông nước.,Cần Thơ,"chợ nổi, cái răng, cần thơ, miền tây, sông nước"
+DIA_CT002,Vườn Cò Bằng Lăng,place,Vườn cò với hàng nghìn con cò trắng. Cảnh quan thiên nhiên yên bình. Điểm sinh thái độc đáo của Cần Thơ.,Cần Thơ,"vườn cò, bằng lăng, cần thơ, sinh thái, cò"
+
+# Các tỉnh khác
+DIA_HL001,Vịnh Hạ Long,place,Di sản thiên nhiên thế giới với hàng nghìn đảo đá vôi. Cảnh quan hùng vĩ và thơ mộng. Du thuyền qua đêm và khám phá hang động.,Quảng Ninh,"hạ long, vịnh, di sản, đảo, biển, hang động"
+DIA_SP001,Sa Pa,place,Thị trấn miền núi với ruộng bậc thang tuyệt đẹp. Khí hậu mát mẻ quanh năm có tuyết rơi mùa đông. Văn hóa dân tộc thiểu số đa dạng.,Sa Pa,"sa pa, miền núi, ruộng bậc thang, tuyết, dân tộc"
+DIA_NB001,Tràng An Ninh Bình,place,Quần thể danh thắng với núi đá vôi và sông nước. Chèo thuyền qua hang động tuyệt đẹp. Di sản thiên nhiên và văn hóa thế giới.,Ninh Bình,"tràng an, ninh bình, núi đá, sông, hang động, di sản"
+DIA_MN001,Đồi Cát Mũi Né,place,Đồi cát vàng và đỏ tuyệt đẹp. Trượt cát và chụp ảnh hoàng hôn. Cảnh quan sa mạc độc đáo ở Việt Nam.,Mũi Né,"đồi cát, mũi né, cát, sa mạc, hoàng hôn"

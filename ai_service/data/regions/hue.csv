@@ -1,0 +1,26 @@
+text,intent,region
+# Món ăn Huế
+Bún bò Huế chính gốc ở đâu,tim_mon_an,hue
+Bánh bèo Huế ở đâu,tim_mon_an,hue
+Nem lụi Huế thử chưa,tim_mon_an,hue
+Chè Huế nào ngon,tim_mon_an,hue
+Cơm hến Huế,tim_mon_an,hue
+Bánh khoái Huế,tim_mon_an,hue
+Bánh nậm Huế,tim_mon_an,hue
+Bánh lọc Huế,tim_mon_an,hue
+
+# Địa điểm Huế
+Huế có di tích gì,tim_dia_diem,hue
+Hoàng Thành Huế tham quan,tim_dia_diem,hue
+Lăng Khải Định đẹp không,tim_dia_diem,hue
+Lăng Tự Đức ở đâu,tim_dia_diem,hue
+Chùa Thiên Mụ Huế,tim_dia_diem,hue
+Sông Hương du thuyền,tim_dia_diem,hue
+Đại Nội Huế,tim_dia_diem,hue
+
+# Thời tiết Huế
+Huế có mưa không,hoi_thoi_tiet,hue
+Huế có mưa không nhỉ,hoi_thoi_tiet,hue
+Huế mưa nhiều không,hoi_thoi_tiet,hue
+Huế nóng không,hoi_thoi_tiet,hue
+Huế thời tiết thế nào,hoi_thoi_tiet,hue

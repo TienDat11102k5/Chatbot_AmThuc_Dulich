@@ -1,0 +1,17 @@
+text,intent,region
+# Món ăn Vũng Tàu
+Bánh khọt Vũng Tàu,tim_mon_an,vung_tau
+Hải sản Vũng Tàu,tim_mon_an,vung_tau
+Lẩu cá đuối Vũng Tàu,tim_mon_an,vung_tau
+Bánh bông lan trứng muối Vũng Tàu,tim_mon_an,vung_tau
+
+# Địa điểm Vũng Tàu
+Vũng Tàu đi biển ở đâu,tim_dia_diem,vung_tau
+Bãi Sau Vũng Tàu,tim_dia_diem,vung_tau
+Tượng Chúa Kitô Vũng Tàu,tim_dia_diem,vung_tau
+Ngọn Hải Đăng Vũng Tàu,tim_dia_diem,vung_tau
+
+# Thời tiết Vũng Tàu
+Vũng Tàu có mưa không,hoi_thoi_tiet,vung_tau
+Vũng Tàu nắng không,hoi_thoi_tiet,vung_tau
+Vũng Tàu thời tiết thế nào,hoi_thoi_tiet,vung_tau

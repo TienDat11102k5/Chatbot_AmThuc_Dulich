@@ -1,0 +1,24 @@
+text,intent,region
+# Món ăn Nha Trang
+Nem nướng Nha Trang ngon quá,tim_mon_an,nha_trang
+Bún thịt nướng Nha Trang,tim_mon_an,nha_trang
+Hải sản Nha Trang tươi không,tim_mon_an,nha_trang
+Quán hải sản Nha Trang nào tươi,tim_mon_an,nha_trang
+Bún cá Nha Trang,tim_mon_an,nha_trang
+Bánh căn Nha Trang,tim_mon_an,nha_trang
+Bún sứa Nha Trang,tim_mon_an,nha_trang
+
+# Địa điểm Nha Trang
+Nha Trang đi chơi ở đâu,tim_dia_diem,nha_trang
+Nha Trang có bãi biển nào đẹp,tim_dia_diem,nha_trang
+Vinpearl Nha Trang vui không,tim_dia_diem,nha_trang
+Đảo Hòn Mun lặn biển,tim_dia_diem,nha_trang
+Tháp Bà Ponagar Nha Trang,tim_dia_diem,nha_trang
+Suối khoáng nóng Tháp Bà,tim_dia_diem,nha_trang
+Đảo Khỉ Nha Trang,tim_dia_diem,nha_trang
+
+# Thời tiết Nha Trang
+Nha Trang nắng không,hoi_thoi_tiet,nha_trang
+Nha Trang nắng đẹp không,hoi_thoi_tiet,nha_trang
+Nha Trang có mưa không,hoi_thoi_tiet,nha_trang
+Nha Trang thời tiết thế nào,hoi_thoi_tiet,nha_trang

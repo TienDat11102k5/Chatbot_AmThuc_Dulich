@@ -1,0 +1,13 @@
+id,name,type,description,location,address,tags
+MON_SG001,Bánh Mì Huỳnh Hoa,food,"Bánh mì thịt nguội đầy đặn, vỏ giòn ruột mềm",Sài Gòn,"26 Lê Thị Riêng, P.Bến Thành, Q.1",bánh mì
+MON_SG002,Bánh Mì Hòa Mã,food,Bánh mì pate gan tự làm đặc biệt,Sài Gòn,"53 Cao Thắng, P.3, Q.3",bánh mì
+MON_SG003,Bánh Mì Như Lan,food,Bánh mì thập cẩm từ năm 1968,Sài Gòn,"50 Hàm Nghi, Q.1",bánh mì
+MON_SG004,Bánh Mì 37 Nguyễn Trãi,food,Bánh mì xíu mại nổi tiếng,Sài Gòn,"37 Nguyễn Trãi, Q.1",bánh mì
+MON_SG005,Bánh Mì Bà Lệ,food,Bánh mì chả cá đặc sản,Sài Gòn,Khu vực Q.1,bánh mì
+MON_SG006,Phở Hòa Pasteur,food,Phở bò truyền thống từ 1968,Sài Gòn,"260C Pasteur, P.8, Q.3",phở bò
+MON_SG007,Phở Lệ,food,Phở bò nước dùng đậm đà,Sài Gòn,"413-415 Nguyễn Trãi, P.7, Q.5",phở bò
+MON_SG008,Phở Quỳnh,food,Phở bò lâu đời,Sài Gòn,"323 Phạm Ngũ Lão, Q.1",phở bò
+MON_SG009,Phở Hùng,food,Phở bò truyền thống,Sài Gòn,Khu vực Q.1,phở bò
+MON_SG010,Phở 2000,food,Phở bò nổi tiếng,Sài Gòn,Khu vực Q.1,phở bò
+
+# Updated data

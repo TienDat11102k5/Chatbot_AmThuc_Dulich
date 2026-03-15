@@ -1,0 +1,505 @@
+text,intent
+Bánh xèo miền Tây ăn ở đâu,tim_mon_an
+Bún mắm miền Tây,tim_mon_an
+Lẩu mắm Cà Mau ngon không,tim_mon_an
+Hủ tiếu Mỹ Tho nào ngon,tim_mon_an
+Bánh cống Cần Thơ,tim_mon_an
+Cá lóc nướng trui,tim_mon_an
+Cần Thơ có chợ nổi không,tim_dia_diem
+Cần Thơ chợ nổi ở đâu,tim_dia_diem
+Chợ nổi Cái Răng,tim_dia_diem
+Vườn cò Bằng Lăng,tim_dia_diem
+Chùa Khmer Cần Thơ,tim_dia_diem
+Cần Thơ nóng không,hoi_thoi_tiet
+Cần Thơ có mưa không,hoi_thoi_tiet
+Cần Thơ thời tiết thế nào,hoi_thoi_tiet
+Lẩu bò Đà Lạt ngon không,tim_mon_an
+Bánh tráng trộn Đà Lạt,tim_mon_an
+Sinh tố bơ Đà Lạt,tim_mon_an
+Kem bơ Đà Lạt ở đâu,tim_mon_an
+Sữa chua nếp cẩm Đà Lạt,tim_mon_an
+Cà phê Đà Lạt nào ngon,tim_mon_an
+Dâu tây Đà Lạt,tim_mon_an
+Bánh mì xíu mại Đà Lạt,tim_mon_an
+Địa điểm du lịch Đà Lạt,tim_dia_diem
+Đà Lạt có gì hay,tim_dia_diem
+Hồ Xuân Hương Đà Lạt,tim_dia_diem
+Thác Datanla Đà Lạt,tim_dia_diem
+Đồi chè Cầu Đất,tim_dia_diem
+Ga Đà Lạt cổ kính,tim_dia_diem
+Thiền viện Trúc Lâm,tim_dia_diem
+Đà Lạt lạnh không,hoi_thoi_tiet
+Đà Lạt sương mù không,hoi_thoi_tiet
+Đà Lạt sương mù nhiều không,hoi_thoi_tiet
+Đà Lạt thời tiết thế nào,hoi_thoi_tiet
+Mì Quảng Đà Nẵng chính gốc,tim_mon_an
+Bún mắm nêm Đà Nẵng,tim_mon_an
+Bánh tráng cuốn thịt heo Đà Nẵng,tim_mon_an
+Bê thui Đà Nẵng ở đâu,tim_mon_an
+Bánh xèo Đà Nẵng,tim_mon_an
+Hải sản Đà Nẵng tươi không,tim_mon_an
+Cơm gà Đà Nẵng,tim_mon_an
+Bánh canh cá lóc Đà Nẵng,tim_mon_an
+Đà Nẵng du lịch ở đâu,tim_dia_diem
+Đà Nẵng nên đi chơi ở đâu,tim_dia_diem
+Cầu Rồng Đà Nẵng đẹp,tim_dia_diem
+Bà Nà Hills có gì,tim_dia_diem
+Cầu Vàng Đà Nẵng đẹp,tim_dia_diem
+Ngũ Hành Sơn leo núi,tim_dia_diem
+Bãi biển Mỹ Khê đẹp không,tim_dia_diem
+Sơn Trà bán đảo khỉ,tim_dia_diem
+Cầu Tình Yêu Đà Nẵng,tim_dia_diem
+Bảo tàng Chăm Đà Nẵng,tim_dia_diem
+Đà Nẵng thời tiết ra sao,hoi_thoi_tiet
+Đà Nẵng có bão không,hoi_thoi_tiet
+Đà Nẵng nắng không,hoi_thoi_tiet
+Đà Nẵng có mưa không,hoi_thoi_tiet
+Chào bạn,giao_tiep_bot
+Xin chào,giao_tiep_bot
+Xin chào bạn,giao_tiep_bot
+Hello,giao_tiep_bot
+Hi bot,giao_tiep_bot
+Bạn khỏe không,giao_tiep_bot
+Bạn là ai,giao_tiep_bot
+Bạn tên gì,giao_tiep_bot
+Bạn tên là gì,giao_tiep_bot
+Bạn có thể giúp gì,giao_tiep_bot
+Bạn làm được gì,giao_tiep_bot
+Bạn có thể tư vấn không,giao_tiep_bot
+Bạn biết không,giao_tiep_bot
+Cảm ơn bạn,giao_tiep_bot
+Cảm ơn bạn nhiều nhé,giao_tiep_bot
+Cảm ơn bạn rất nhiều,giao_tiep_bot
+Thanks,giao_tiep_bot
+Tạm biệt,giao_tiep_bot
+Tạm biệt nhé bot,giao_tiep_bot
+Bye,giao_tiep_bot
+Hẹn gặp lại,giao_tiep_bot
+Hẹn gặp lại bạn,giao_tiep_bot
+Bạn giỏi quá,giao_tiep_bot
+Bạn giỏi thật đấy,giao_tiep_bot
+Tuyệt vời,giao_tiep_bot
+Hay quá,giao_tiep_bot
+Không hiểu,giao_tiep_bot
+Bạn nói gì,giao_tiep_bot
+Giải thích lại đi,giao_tiep_bot
+Bạn có thể nói rõ hơn không,giao_tiep_bot
+Tôi không rõ,giao_tiep_bot
+Giúp tôi với,giao_tiep_bot
+Tôi cần hỗ trợ,giao_tiep_bot
+Hướng dẫn tôi đi,giao_tiep_bot
+Tôi muốn hỏi,giao_tiep_bot
+Cho tôi biết,giao_tiep_bot
+Có thông tin gì không,giao_tiep_bot
+Gợi ý món ăn đặc sản miền Bắc,tim_mon_an
+Tìm quán cà phê view đẹp,tim_mon_an
+Món ăn vặt có gì,tim_mon_an
+Tìm cho tôi quán ăn ngon,tim_mon_an
+Bạn có thể giúp tôi tìm món ăn không,tim_mon_an
+Giúp tôi tìm quán ăn,tim_mon_an
+Gợi ý địa điểm du lịch,tim_dia_diem
+Nên đi du lịch ở đâu,tim_dia_diem
+Địa điểm nào đẹp,tim_dia_diem
+Tìm quán phở ngon ở Hà Nội,tim_mon_an
+Phở bò Hà Nội ăn ở đâu,tim_mon_an
+Quán bún chả Hà Nội nào ngon nhất,tim_mon_an
+Phở cuốn Hà Nội ở đâu,tim_mon_an
+Bún riêu cua Hà Nội nào ngon,tim_mon_an
+Chả cá Lã Vọng có ngon không,tim_mon_an
+Bánh cuốn Thanh Trì ở đâu,tim_mon_an
+Bún đậu mắm tôm Hà Nội quán nào,tim_mon_an
+Cà phê sữa đá Hà Nội,tim_mon_an
+Bánh tôm Hồ Tây ngon không,tim_mon_an
+Nên đi đâu ở Hà Nội,tim_dia_diem
+Hồ Hoàn Kiếm đẹp không,tim_dia_diem
+Hồ Gươm Hà Nội có gì hay,tim_dia_diem
+Chùa Một Cột ở đâu,tim_dia_diem
+Lăng Bác có mở cửa không,tim_dia_diem
+Văn Miếu Quốc Tử Giám tham quan,tim_dia_diem
+Phố cổ Hà Nội đi bộ,tim_dia_diem
+Hồ Tây có gì vui,tim_dia_diem
+Cầu Long Biên đẹp không,tim_dia_diem
+Hoàng Thành Thăng Long,tim_dia_diem
+Hôm nay Hà Nội thời tiết thế nào,hoi_thoi_tiet
+Hà Nội rét không,hoi_thoi_tiet
+Hà Nội lạnh không,hoi_thoi_tiet
+Hà Nội có mưa không,hoi_thoi_tiet
+Hà Nội nắng không,hoi_thoi_tiet
+Cao lầu Hội An quán nào,tim_mon_an
+Cao lầu Hội An thử chưa,tim_mon_an
+Bánh mì Hội An ở đâu,tim_mon_an
+Cơm gà Hội An,tim_mon_an
+Bánh vạc Hội An,tim_mon_an
+Hoành thánh Hội An,tim_mon_an
+Hội An có gì hay,tim_dia_diem
+Hội An phố cổ đi bộ,tim_dia_diem
+Hội An phố cổ có gì hay,tim_dia_diem
+Hội An chụp ảnh đẹp,tim_dia_diem
+Rừng dừa Bảy Mẫu,tim_dia_diem
+Cù Lao Chàm lặn biển,tim_dia_diem
+Chùa Cầu Hội An,tim_dia_diem
+Phố cổ Hội An đêm,tim_dia_diem
+Hội An có nắng không,hoi_thoi_tiet
+Hội An thời tiết ra sao,hoi_thoi_tiet
+Hội An có mưa không,hoi_thoi_tiet
+Bún bò Huế chính gốc ở đâu,tim_mon_an
+Bánh bèo Huế ở đâu,tim_mon_an
+Nem lụi Huế thử chưa,tim_mon_an
+Chè Huế nào ngon,tim_mon_an
+Cơm hến Huế,tim_mon_an
+Bánh khoái Huế,tim_mon_an
+Bánh nậm Huế,tim_mon_an
+Bánh lọc Huế,tim_mon_an
+Huế có di tích gì,tim_dia_diem
+Hoàng Thành Huế tham quan,tim_dia_diem
+Lăng Khải Định đẹp không,tim_dia_diem
+Lăng Tự Đức ở đâu,tim_dia_diem
+Chùa Thiên Mụ Huế,tim_dia_diem
+Sông Hương du thuyền,tim_dia_diem
+Đại Nội Huế,tim_dia_diem
+Huế có mưa không,hoi_thoi_tiet
+Huế có mưa không nhỉ,hoi_thoi_tiet
+Huế mưa nhiều không,hoi_thoi_tiet
+Huế nóng không,hoi_thoi_tiet
+Huế thời tiết thế nào,hoi_thoi_tiet
+Nem nướng Nha Trang ngon quá,tim_mon_an
+Bún thịt nướng Nha Trang,tim_mon_an
+Hải sản Nha Trang tươi không,tim_mon_an
+Quán hải sản Nha Trang nào tươi,tim_mon_an
+Bún cá Nha Trang,tim_mon_an
+Bánh căn Nha Trang,tim_mon_an
+Bún sứa Nha Trang,tim_mon_an
+Nha Trang đi chơi ở đâu,tim_dia_diem
+Nha Trang có bãi biển nào đẹp,tim_dia_diem
+Vinpearl Nha Trang vui không,tim_dia_diem
+Đảo Hòn Mun lặn biển,tim_dia_diem
+Tháp Bà Ponagar Nha Trang,tim_dia_diem
+Suối khoáng nóng Tháp Bà,tim_dia_diem
+Đảo Khỉ Nha Trang,tim_dia_diem
+Nha Trang nắng không,hoi_thoi_tiet
+Nha Trang nắng đẹp không,hoi_thoi_tiet
+Nha Trang có mưa không,hoi_thoi_tiet
+Nha Trang thời tiết thế nào,hoi_thoi_tiet
+Vịnh Hạ Long đẹp không,tim_dia_diem
+Hạ Long có động nào đẹp,tim_dia_diem
+Hạ Long có nắng không,hoi_thoi_tiet
+Sa Pa có gì hay,tim_dia_diem
+Sa Pa có đẹp không,tim_dia_diem
+Sa Pa lạnh lắm không,hoi_thoi_tiet
+Ninh Bình nên đi đâu,tim_dia_diem
+Ninh Bình thời tiết ra sao,hoi_thoi_tiet
+Mũi Né có bãi biển nào,tim_dia_diem
+Mũi Né có gì đẹp,tim_dia_diem
+Mũi Né gió to không,hoi_thoi_tiet
+Phong Nha Kẻ Bàng thế nào,tim_dia_diem
+Đảo Bình Ba hải sản,tim_dia_diem
+Hòn Sơn Kiên Giang,tim_dia_diem
+Bánh canh cua Phú Quốc,tim_mon_an
+Hải sản Phú Quốc tươi,tim_mon_an
+Ghẹ hấp Phú Quốc,tim_mon_an
+Nhum biển Phú Quốc,tim_mon_an
+Gỏi cá trích Phú Quốc,tim_mon_an
+Phú Quốc nên đi đâu,tim_dia_diem
+Phú Quốc có gì vui,tim_dia_diem
+Bãi Sao Phú Quốc,tim_dia_diem
+Vinpearl Safari Phú Quốc,tim_dia_diem
+Dinh Cậu Phú Quốc,tim_dia_diem
+Chợ đêm Phú Quốc,tim_dia_diem
+Phú Quốc thời tiết thế nào,hoi_thoi_tiet
+Phú Quốc có mưa không,hoi_thoi_tiet
+Phú Quốc nắng không,hoi_thoi_tiet
+Bánh mì Sài Gòn quán nào ngon,tim_mon_an
+Cơm tấm Sài Gòn quán nào ngon,tim_mon_an
+Bánh mì pate Sài Gòn,tim_mon_an
+Bánh mì thịt nguội Sài Gòn,tim_mon_an
+Bánh mì chả cá Sài Gòn,tim_mon_an
+Bánh mì xíu mại Sài Gòn,tim_mon_an
+Bánh mì ốp la Sài Gòn,tim_mon_an
+Quán bánh mì ngon Sài Gòn,tim_mon_an
+Bánh mì Huỳnh Hoa ở đâu,tim_mon_an
+Bánh mì Hòa Mã ngon không,tim_mon_an
+Cơm tấm sườn bì chả,tim_mon_an
+Cơm tấm Mộc quán nào,tim_mon_an
+Cơm tấm Phúc Lộc Thọ,tim_mon_an
+Cơm tấm Ba Ghiền ở đâu,tim_mon_an
+Cơm tấm sườn nướng ngon,tim_mon_an
+Cơm tấm trứng ốp la,tim_mon_an
+Quán cơm tấm ngon Sài Gòn,tim_mon_an
+Cơm tấm bì chả Sài Gòn,tim_mon_an
+Cơm tấm Kiều Giang,tim_mon_an
+Cơm tấm Sài Gòn đặc sản,tim_mon_an
+Hủ tiếu Nam Vang ở đâu,tim_mon_an
+Hủ tiếu khô Sài Gòn,tim_mon_an
+Hủ tiếu Mỹ Tho ngon,tim_mon_an
+Hủ tiếu Sa Đéc quán nào,tim_mon_an
+Hủ tiếu gõ Sài Gòn,tim_mon_an
+Hủ tiếu bò viên ngon,tim_mon_an
+Quán hủ tiếu ngon Sài Gòn,tim_mon_an
+Hủ tiếu Thanh Xuân ở đâu,tim_mon_an
+Hủ tiếu Lệ quán nào,tim_mon_an
+Hủ tiếu tôm cua Sài Gòn,tim_mon_an
+Bún thịt nướng Sài Gòn,tim_mon_an
+Bún mắm Sài Gòn ngon,tim_mon_an
+Bún riêu cua Sài Gòn,tim_mon_an
+Bún bò Huế Sài Gòn,tim_mon_an
+Bún chả Hà Nội ở Sài Gòn,tim_mon_an
+Bún đậu mắm tôm Sài Gòn,tim_mon_an
+Bún mọc Sài Gòn quán nào,tim_mon_an
+Bún ốc Sài Gòn ngon,tim_mon_an
+Bún cá Sài Gòn ở đâu,tim_mon_an
+Bún măng vịt Sài Gòn,tim_mon_an
+Phở bò Sài Gòn ngon,tim_mon_an
+Phở gà Sài Gòn quán nào,tim_mon_an
+Phở Hòa Pasteur ở đâu,tim_mon_an
+Phở Lệ quán nào ngon,tim_mon_an
+Phở tái lăn Sài Gòn,tim_mon_an
+Phở bò viên Sài Gòn,tim_mon_an
+Phở gà Tân Bình,tim_mon_an
+Quán phở ngon Sài Gòn,tim_mon_an
+Phở Hùng quán nào,tim_mon_an
+Phở Quỳnh Sài Gòn,tim_mon_an
+Gỏi cuốn Sài Gòn,tim_mon_an
+Gỏi cuốn tôm thịt ngon,tim_mon_an
+Gỏi cuốn chả giò Sài Gòn,tim_mon_an
+Gỏi cuốn bò nướng,tim_mon_an
+Gỏi cuốn hải sản Sài Gòn,tim_mon_an
+Quán gỏi cuốn ngon Sài Gòn,tim_mon_an
+Gỏi cuốn rau sống Sài Gòn,tim_mon_an
+Gỏi cuốn chay Sài Gòn,tim_mon_an
+Gỏi cuốn tôm nướng,tim_mon_an
+Gỏi cuốn thịt nướng Sài Gòn,tim_mon_an
+Bánh xèo Sài Gòn ở đâu,tim_mon_an
+Bánh xèo miền Tây Sài Gòn,tim_mon_an
+Bánh xèo tôm thịt ngon,tim_mon_an
+Bánh xèo giòn Sài Gòn,tim_mon_an
+Quán bánh xèo ngon Sài Gòn,tim_mon_an
+Bánh xèo Mười Xiềng,tim_mon_an
+Bánh xèo Bà Dưỡng ở đâu,tim_mon_an
+Bánh xèo chay Sài Gòn,tim_mon_an
+Bánh xèo hải sản Sài Gòn,tim_mon_an
+Bánh xèo bò nướng,tim_mon_an
+Lẩu Thái Sài Gòn ngon,tim_mon_an
+Lẩu bò Sài Gòn quán nào,tim_mon_an
+Lẩu hải sản Sài Gòn,tim_mon_an
+Lẩu nấm Sài Gòn ở đâu,tim_mon_an
+Lẩu cá Sài Gòn ngon,tim_mon_an
+Lẩu gà lá é Sài Gòn,tim_mon_an
+Lẩu riêu cua Sài Gòn,tim_mon_an
+Quán lẩu ngon Sài Gòn,tim_mon_an
+Lẩu Phan ở đâu,tim_mon_an
+Lẩu bò nhúng dấm Sài Gòn,tim_mon_an
+Bánh canh cua Sài Gòn,tim_mon_an
+Bánh canh chả cá ngon,tim_mon_an
+Bánh canh giò heo Sài Gòn,tim_mon_an
+Bánh canh Trảng Bàng,tim_mon_an
+Quán bánh canh ngon Sài Gòn,tim_mon_an
+Bánh canh bột lọc Sài Gòn,tim_mon_an
+Bánh canh hải sản,tim_mon_an
+Bánh canh tôm cua Sài Gòn,tim_mon_an
+Bánh canh gà Sài Gòn,tim_mon_an
+Bánh canh bò viên,tim_mon_an
+Cháo lòng Sài Gòn ngon,tim_mon_an
+Cháo vịt Sài Gòn quán nào,tim_mon_an
+Cháo cá Sài Gòn ở đâu,tim_mon_an
+Cháo gà Sài Gòn ngon,tim_mon_an
+Cháo hải sản Sài Gòn,tim_mon_an
+Quán cháo ngon Sài Gòn,tim_mon_an
+Cháo sườn Sài Gòn,tim_mon_an
+Cháo bò Sài Gòn quán nào,tim_mon_an
+Cháo trai Sài Gòn,tim_mon_an
+Cháo ếch Singapore Sài Gòn,tim_mon_an
+Mì Quảng Sài Gòn ngon,tim_mon_an
+Mì vịt tiềm Sài Gòn,tim_mon_an
+Mì hoành thánh Sài Gòn,tim_mon_an
+Mì xào giòn Sài Gòn,tim_mon_an
+Mì gà tần Sài Gòn,tim_mon_an
+Quán mì ngon Sài Gòn,tim_mon_an
+Mì Ý Sài Gòn ở đâu,tim_mon_an
+Mì cay Sài Gòn quán nào,tim_mon_an
+Mì hải sản Sài Gòn,tim_mon_an
+Mì trộn Sài Gòn ngon,tim_mon_an
+Chè Sài Gòn ngon,tim_mon_an
+Chè thập cẩm Sài Gòn,tim_mon_an
+Chè bưởi Sài Gòn quán nào,tim_mon_an
+Chè khúc bạch Sài Gòn,tim_mon_an
+Chè đậu đỏ Sài Gòn,tim_mon_an
+Quán chè ngon Sài Gòn,tim_mon_an
+Chè sương sa hạt lựu,tim_mon_an
+Chè ba màu Sài Gòn,tim_mon_an
+Chè bà ba Sài Gòn,tim_mon_an
+Chè Thái Sài Gòn ở đâu,tim_mon_an
+Ốc Sài Gòn quán nào ngon,tim_mon_an
+Ốc hấp sả Sài Gòn,tim_mon_an
+Ốc xào dừa Sài Gòn,tim_mon_an
+Ốc nhồi thịt Sài Gòn,tim_mon_an
+Ốc len xào Sài Gòn,tim_mon_an
+Quán ốc ngon Sài Gòn,tim_mon_an
+Ốc móng tay Sài Gòn,tim_mon_an
+Ốc hương Sài Gòn ở đâu,tim_mon_an
+Ốc bươu nướng tiêu,tim_mon_an
+Ốc gạo Sài Gòn ngon,tim_mon_an
+Thịt nướng Sài Gòn ngon,tim_mon_an
+Sườn nướng Sài Gòn quán nào,tim_mon_an
+Bò nướng lá lốt Sài Gòn,tim_mon_an
+Gà nướng Sài Gòn ở đâu,tim_mon_an
+Hải sản nướng Sài Gòn,tim_mon_an
+Quán nướng ngon Sài Gòn,tim_mon_an
+Cá nướng Sài Gòn,tim_mon_an
+Mực nướng Sài Gòn quán nào,tim_mon_an
+Tôm nướng Sài Gòn,tim_mon_an
+Sườn nướng BBQ Sài Gòn,tim_mon_an
+Xôi Sài Gòn ngon,tim_mon_an
+Bánh cuốn Sài Gòn quán nào,tim_mon_an
+Bánh bột lọc Sài Gòn,tim_mon_an
+Bánh bèo Sài Gòn ở đâu,tim_mon_an
+Bánh ít trần Sài Gòn,tim_mon_an
+Nem nướng Sài Gòn ngon,tim_mon_an
+Chả giò Sài Gòn quán nào,tim_mon_an
+Bánh khọt Sài Gòn,tim_mon_an
+Bánh tráng trộn Sài Gòn,tim_mon_an
+Bánh flan Sài Gòn ngon,tim_mon_an
+Chợ Bến Thành mua gì,tim_dia_diem
+Chợ Bình Tây có gì,tim_dia_diem
+Chợ An Đông Sài Gòn,tim_dia_diem
+Chợ Tân Định ở đâu,tim_dia_diem
+Chợ Cũ Sài Gòn,tim_dia_diem
+Chợ Hoa Hồ Thị Kỷ,tim_dia_diem
+Chợ Lớn Sài Gòn,tim_dia_diem
+Chợ Thủ Đức ở đâu,tim_dia_diem
+Chợ Gò Vấp Sài Gòn,tim_dia_diem
+Chợ đêm Sài Gòn quận nào,tim_dia_diem
+Nhà thờ Đức Bà đẹp không,tim_dia_diem
+Nhà thờ Tân Định Sài Gòn,tim_dia_diem
+Nhà thờ Cha Tam ở đâu,tim_dia_diem
+Nhà thờ Huyện Sỹ Sài Gòn,tim_dia_diem
+Nhà thờ Thủ Thiêm,tim_dia_diem
+Nhà thờ Chợ Quán Sài Gòn,tim_dia_diem
+Nhà thờ Bùi Chu ở đâu,tim_dia_diem
+Nhà thờ Hòn Đất Sài Gòn,tim_dia_diem
+Nhà thờ Phú Nhuận,tim_dia_diem
+Nhà thờ Thánh Thất Cao Đài,tim_dia_diem
+Bảo tàng Chứng tích chiến tranh,tim_dia_diem
+Bảo tàng Lịch sử Việt Nam,tim_dia_diem
+Bảo tàng Mỹ thuật Sài Gòn,tim_dia_diem
+Bảo tàng Áo dài ở đâu,tim_dia_diem
+Bảo tàng Hồ Chí Minh,tim_dia_diem
+Bảo tàng Thành phố Sài Gòn,tim_dia_diem
+Bảo tàng Tôn Đức Thắng,tim_dia_diem
+Bảo tàng Phụ nữ Nam Bộ,tim_dia_diem
+Bảo tàng Lịch sử quân sự,tim_dia_diem
+Bảo tàng Văn hóa các dân tộc,tim_dia_diem
+Công viên Tao Đàn,tim_dia_diem
+Công viên Gia Định Sài Gòn,tim_dia_diem
+Công viên 23/9 ở đâu,tim_dia_diem
+Công viên Lê Văn Tám,tim_dia_diem
+Công viên Hoàng Văn Thụ,tim_dia_diem
+Công viên Văn hóa Đầm Sen,tim_dia_diem
+Công viên Thảo Cầm Viên,tim_dia_diem
+Công viên Phú Lâm ở đâu,tim_dia_diem
+Công viên Ấn Tượng Hội An,tim_dia_diem
+Công viên Vinhomes Central Park,tim_dia_diem
+Phố đi bộ Nguyễn Huệ,tim_dia_diem
+Phố đi bộ Bùi Viện Sài Gòn,tim_dia_diem
+Phố sách Nguyễn Văn Bình,tim_dia_diem
+Phố ẩm thực Nguyễn Trãi,tim_dia_diem
+Phố Tây Bùi Viện ở đâu,tim_dia_diem
+Phố đi bộ Thủ Đức,tim_dia_diem
+Phố ẩm thực Vĩnh Khánh,tim_dia_diem
+Phố Nhật Lê Thánh Tôn,tim_dia_diem
+Phố Hàn Quốc Sài Gòn,tim_dia_diem
+Phố cổ Sài Gòn ở đâu,tim_dia_diem
+Suối Tiên Sài Gòn vui không,tim_dia_diem
+Đầm Sen Sài Gòn ở đâu,tim_dia_diem
+Thảo Cầm Viên Sài Gòn,tim_dia_diem
+Công viên nước Đầm Sen,tim_dia_diem
+Khu du lịch Bình Quới,tim_dia_diem
+Khu du lịch Cần Giờ,tim_dia_diem
+Landmark 81 Sài Gòn,tim_dia_diem
+Bitexco Financial Tower,tim_dia_diem
+Saigon Zoo ở đâu,tim_dia_diem
+Khu vui chơi Giga Mall,tim_dia_diem
+Dinh Độc Lập tham quan,tim_dia_diem
+Địa đạo Củ Chi tham quan,tim_dia_diem
+Bưu điện Sài Gòn cổ kính,tim_dia_diem
+Nhà hát Thành phố Sài Gòn,tim_dia_diem
+Dinh Thống Nhất ở đâu,tim_dia_diem
+Hội trường Thống Nhất,tim_dia_diem
+Bến Nhà Rồng Sài Gòn,tim_dia_diem
+Căn cứ Củ Chi ở đâu,tim_dia_diem
+Lăng Ông Bổn Sài Gòn,tim_dia_diem
+Chùa Vĩnh Nghiêm Sài Gòn,tim_dia_diem
+Chùa Vĩnh Nghiêm Sài Gòn,tim_dia_diem
+Chùa Giác Lâm ở đâu,tim_dia_diem
+Chùa Xá Lợi Sài Gòn,tim_dia_diem
+Chùa Bà Thiên Hậu,tim_dia_diem
+Chùa Ông Bổn Sài Gòn,tim_dia_diem
+Chùa Phước Hải ở đâu,tim_dia_diem
+Chùa Pháp Hoa Sài Gòn,tim_dia_diem
+Chùa Ngọc Hoàng,tim_dia_diem
+Chùa Quan Âm Sài Gòn,tim_dia_diem
+Chùa Bửu Long ở đâu,tim_dia_diem
+Sông Sài Gòn du thuyền,tim_dia_diem
+Bến Bạch Đằng Sài Gòn,tim_dia_diem
+Kênh Nhiêu Lộc ở đâu,tim_dia_diem
+Rạch Bến Nghé Sài Gòn,tim_dia_diem
+Cầu Ánh Sao Sài Gòn,tim_dia_diem
+Cầu Thủ Thiêm ở đâu,tim_dia_diem
+Cầu Phú Mỹ Sài Gòn,tim_dia_diem
+Bến Ninh Kiều Sài Gòn,tim_dia_diem
+Cảng Nhà Rồng ở đâu,tim_dia_diem
+Sông Vàm Cỏ Đông,tim_dia_diem
+Sài Gòn có địa điểm nào đẹp,tim_dia_diem
+Sài Gòn đi đâu chơi,tim_dia_diem
+Sài Gòn tham quan gì,tim_dia_diem
+Sài Gòn có gì vui,tim_dia_diem
+Sài Gòn check in đâu đẹp,tim_dia_diem
+Sài Gòn chụp ảnh ở đâu,tim_dia_diem
+Sài Gòn hẹn hò đâu,tim_dia_diem
+Sài Gòn đi chơi cuối tuần,tim_dia_diem
+Sài Gòn du lịch 1 ngày,tim_dia_diem
+Sài Gòn về đêm đi đâu,tim_dia_diem
+Hôm nay Sài Gòn có mưa không,hoi_thoi_tiet
+Hôm nay Sài Gòn thời tiết thế nào,hoi_thoi_tiet
+Sài Gòn có mưa không,hoi_thoi_tiet
+Sài Gòn nóng quá,hoi_thoi_tiet
+Sài Gòn nắng không,hoi_thoi_tiet
+Sài Gòn mưa to không,hoi_thoi_tiet
+Sài Gòn nhiệt độ bao nhiêu,hoi_thoi_tiet
+Sài Gòn trời mát không,hoi_thoi_tiet
+Sài Gòn có nắng không,hoi_thoi_tiet
+Sài Gòn thời tiết hôm nay,hoi_thoi_tiet
+Sài Gòn có bão không,hoi_thoi_tiet
+Sài Gòn mưa dông không,hoi_thoi_tiet
+Sài Gòn oi bức không,hoi_thoi_tiet
+Sài Gòn có lạnh không,hoi_thoi_tiet
+Sài Gòn thời tiết tuần này,hoi_thoi_tiet
+Địa điểm ăn bánh mì Sài Gòn,tim_mon_an
+Địa điểm ăn cơm tấm Sài Gòn,tim_mon_an
+Địa điểm ăn phở Sài Gòn,tim_mon_an
+Địa điểm ăn bánh xèo Sài Gòn,tim_mon_an
+Địa điểm ăn hủ tiếu Sài Gòn,tim_mon_an
+Địa điểm ăn bún thịt nướng,tim_mon_an
+Địa điểm ăn bánh canh,tim_mon_an
+Quán bánh mì ngon Sài Gòn,tim_mon_an
+Quán cơm tấm ngon Sài Gòn,tim_mon_an
+Quán phở ngon Sài Gòn,tim_mon_an
+Quán hủ tiếu ngon Sài Gòn,tim_mon_an
+Quán bánh xèo ngon Sài Gòn,tim_mon_an
+Ăn bánh mì ở đâu Sài Gòn,tim_mon_an
+Ăn cơm tấm ở đâu Sài Gòn,tim_mon_an
+Ăn phở ở đâu Sài Gòn,tim_mon_an
+Ăn hủ tiếu ở đâu Sài Gòn,tim_mon_an
+Ăn bánh canh ở đâu Sài Gòn,tim_mon_an
+Bánh khọt Vũng Tàu,tim_mon_an
+Hải sản Vũng Tàu,tim_mon_an
+Lẩu cá đuối Vũng Tàu,tim_mon_an
+Bánh bông lan trứng muối Vũng Tàu,tim_mon_an
+Vũng Tàu đi biển ở đâu,tim_dia_diem
+Bãi Sau Vũng Tàu,tim_dia_diem
+Tượng Chúa Kitô Vũng Tàu,tim_dia_diem
+Ngọn Hải Đăng Vũng Tàu,tim_dia_diem
+Vũng Tàu có mưa không,hoi_thoi_tiet
+Vũng Tàu nắng không,hoi_thoi_tiet
+Vũng Tàu thời tiết thế nào,hoi_thoi_tiet
+
+# Updated

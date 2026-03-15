@@ -1,0 +1,28 @@
+text,intent,region
+# Món ăn Đà Nẵng
+Mì Quảng Đà Nẵng chính gốc,tim_mon_an,da_nang
+Bún mắm nêm Đà Nẵng,tim_mon_an,da_nang
+Bánh tráng cuốn thịt heo Đà Nẵng,tim_mon_an,da_nang
+Bê thui Đà Nẵng ở đâu,tim_mon_an,da_nang
+Bánh xèo Đà Nẵng,tim_mon_an,da_nang
+Hải sản Đà Nẵng tươi không,tim_mon_an,da_nang
+Cơm gà Đà Nẵng,tim_mon_an,da_nang
+Bánh canh cá lóc Đà Nẵng,tim_mon_an,da_nang
+
+# Địa điểm Đà Nẵng
+Đà Nẵng du lịch ở đâu,tim_dia_diem,da_nang
+Đà Nẵng nên đi chơi ở đâu,tim_dia_diem,da_nang
+Cầu Rồng Đà Nẵng đẹp,tim_dia_diem,da_nang
+Bà Nà Hills có gì,tim_dia_diem,da_nang
+Cầu Vàng Đà Nẵng đẹp,tim_dia_diem,da_nang
+Ngũ Hành Sơn leo núi,tim_dia_diem,da_nang
+Bãi biển Mỹ Khê đẹp không,tim_dia_diem,da_nang
+Sơn Trà bán đảo khỉ,tim_dia_diem,da_nang
+Cầu Tình Yêu Đà Nẵng,tim_dia_diem,da_nang
+Bảo tàng Chăm Đà Nẵng,tim_dia_diem,da_nang
+
+# Thời tiết Đà Nẵng
+Đà Nẵng thời tiết ra sao,hoi_thoi_tiet,da_nang
+Đà Nẵng có bão không,hoi_thoi_tiet,da_nang
+Đà Nẵng nắng không,hoi_thoi_tiet,da_nang
+Đà Nẵng có mưa không,hoi_thoi_tiet,da_nang

@@ -146,6 +146,7 @@ class RecommenderSystem:
                 "type": row['type'],
                 "description": row['description'],
                 "location": row['location'],
+                "address": row.get('address', ''),  # Lấy địa chỉ nếu có
                 "tags": row['tags'],
                 "score": round(float(score), 4)  # Làm tròn 4 chữ số thập phân
             })

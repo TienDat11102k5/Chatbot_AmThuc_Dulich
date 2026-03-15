@@ -1,0 +1,23 @@
+id,name,type,description,location,address,tags
+DIA_SG001,Chợ Bến Thành,place,Chợ truyền thống lớn nhất Sài Gòn với hàng nghìn gian hàng. Mua sắm đồ lưu niệm và thưởng thức ẩm thực đường phố. Biểu tượng của thành phố.,Sài Gòn,"Lê Lợi, P. Bến Thành, Q.1, TP.HCM","chợ, mua sắm, quận 1"
+DIA_SG002,Nhà Thờ Đức Bà,place,Nhà thờ cổ kính với kiến trúc Gothic Pháp. Hai tháp chuông cao 58m. Được xây dựng từ năm 1863-1880. Điểm check-in nổi tiếng.,Sài Gòn,"01 Công xã Paris, P. Bến Nghé, Q.1, TP.HCM","nhà thờ, kiến trúc, quận 1"
+DIA_SG003,Bưu Điện Trung Tâm Sài Gòn,place,Bưu điện cổ kính với kiến trúc Pháp đẹp mắt. Nội thất gỗ sang trọng và bản đồ cổ. Được xây dựng từ năm 1886-1891.,Sài Gòn,"02 Công xã Paris, P. Bến Nghé, Q.1, TP.HCM","bưu điện, kiến trúc, quận 1"
+DIA_SG004,Dinh Độc Lập,place,Dinh Độc Lập với kiến trúc hiện đại độc đáo. Nơi diễn ra sự kiện lịch sử 30/4/1975. Bảo tàng và di tích quan trọng.,Sài Gòn,"135 Nam Kỳ Khởi Nghĩa, P. Bến Thành, Q.1, TP.HCM","di tích, lịch sử, quận 1"
+DIA_SG005,Phố Đi Bộ Nguyễn Huệ,place,Phố đi bộ hiện đại ở trung tâm Sài Gòn. Không gian văn hóa và giải trí sôi động. Điểm hẹn yêu thích của giới trẻ.,Sài Gòn,"Đường Nguyễn Huệ, P. Bến Nghé, Q.1, TP.HCM","phố đi bộ, giải trí, quận 1"
+DIA_SG006,Bitexco Financial Tower,place,Tòa nhà cao 262m với đài quan sát Saigon Skydeck ở tầng 49. Tầm nhìn 360 độ toàn thành phố. Điểm check-in nổi tiếng.,Sài Gòn,"36 Hồ Tùng Mậu, P. Bến Nghé, Q.1, TP.HCM","tòa nhà, quan sát, quận 1"
+DIA_SG007,Landmark 81,place,Tòa nhà cao nhất Việt Nam với 81 tầng cao 461m. Trung tâm thương mại Vincom Center. Tầm nhìn tuyệt đẹp từ đài quan sát SkyView.,Sài Gòn,"720A Điện Biên Phủ, P.22, Bình Thạnh, TP.HCM","tòa nhà, cao nhất, bình thạnh"
+DIA_SG008,Thảo Cầm Viên Sài Gòn,place,Vườn thú và vườn thực vật lâu đời nhất Việt Nam từ năm 1865. Nhiều loài động vật quý hiếm. Không gian xanh mát giữa thành phố.,Sài Gòn,"2 Nguyễn Bỉnh Khiêm, P. Bến Nghé, Q.1, TP.HCM","vườn thú, động vật, quận 1"
+DIA_SG009,Bảo Tàng Chứng Tích Chiến Tranh,place,Bảo tàng lưu giữ hiện vật chiến tranh Việt Nam. Tài liệu và hình ảnh lịch sử. Điểm tham quan giáo dục quan trọng.,Sài Gòn,"28 Võ Văn Tần, P.6, Q.3, TP.HCM","bảo tàng, lịch sử, quận 3"
+DIA_SG010,Chùa Vĩnh Nghiêm,place,Chùa lớn nhất Sài Gòn với kiến trúc Nhật Bản. Tượng Phật cao 1.4m và trang nghiêm. Được xây dựng từ năm 1964-1971.,Sài Gòn,"339 Nam Kỳ Khởi Nghĩa, P.7, Q.3, TP.HCM","chùa, phật giáo, quận 3"
+DIA_SG011,Nhà Hát Thành Phố,place,Nhà hát cổ kính với kiến trúc Pháp từ năm 1900. Biểu diễn nghệ thuật đẳng cấp. Điểm check-in đẹp về đêm với đèn led.,Sài Gòn,"07 Công Trường Lam Sơn, P. Bến Nghé, Q.1, TP.HCM","nhà hát, nghệ thuật, quận 1"
+DIA_SG012,Bến Nhà Rồng,place,Bến cảng lịch sử nơi Chủ tịch Hồ Chí Minh ra đi tìm đường cứu nước năm 1911. Bảo tàng Hồ Chí Minh. Di tích lịch sử quan trọng.,Sài Gòn,"01 Nguyễn Tất Thành, P.12, Q.4, TP.HCM","bến cảng, lịch sử, quận 4"
+DIA_SG013,Địa Đạo Củ Chi,place,Hệ thống địa đạo lịch sử thời chiến tranh dài 250km. Trải nghiệm bò trong hầm hào. Di tích lịch sử quan trọng được UNESCO công nhận.,Sài Gòn,"Phú Mỹ Hưng, Củ Chi, TP.HCM","địa đạo, lịch sử, củ chi"
+DIA_SG014,Công Viên Tao Đàn,place,Công viên xanh mát ở trung tâm thành phố. Không gian tập thể dục và thư giãn. Nơi tập trung của người chơi chim cảnh.,Sài Gòn,"Trương Định, P. Bến Thành, Q.1, TP.HCM","công viên, thư giãn, quận 1"
+DIA_SG015,Chợ Bình Tây,place,Chợ Hoa lớn nhất Sài Gòn với kiến trúc Trung Hoa. Buôn bán sầm uất và đa dạng. Văn hóa Hoa kiều đặc sắc.,Sài Gòn,"57A Thập Tự, P.2, Q.6, TP.HCM","chợ, hoa kiều, quận 6"
+DIA_SG016,Phố Sách Nguyễn Văn Bình,place,Phố sách với nhiều hiệu sách và quán cà phê. Không gian văn hóa yên tĩnh. Điểm đến của người yêu sách.,Sài Gòn,"Đường Nguyễn Văn Bình, P. Bến Nghé, Q.1, TP.HCM","phố sách, văn hóa, quận 1"
+DIA_SG017,Khu Phố Tây Bùi Viện,place,Phố Tây sôi động với bar và nhà hàng quốc tế. Âm nhạc và giải trí về đêm. Điểm hẹn của du khách quốc tế.,Sài Gòn,"Đường Bùi Viện, P. Phạm Ngũ Lão, Q.1, TP.HCM","phố tây, bar, quận 1"
+DIA_SG018,Chùa Giác Lâm,place,Chùa cổ nhất Sài Gòn được xây dựng từ năm 1744. Cây đa cổ thụ hàng trăm năm tuổi. Di tích lịch sử văn hóa quan trọng.,Sài Gòn,"118 Lạc Long Quân, P.10, Tân Bình, TP.HCM","chùa cổ, lịch sử, tân bình"
+DIA_SG019,Bảo Tàng Áo Dài,place,Bảo tàng trưng bày áo dài truyền thống Việt Nam. Các mẫu áo dài qua các thời kỳ lịch sử. Không gian văn hóa độc đáo.,Sài Gòn,"206 Đường 61, P. Thảo Điền, Q.2, TP.HCM","bảo tàng, áo dài, quận 2"
+DIA_SG020,Cầu Thủ Thiêm,place,Cầu dây văng hiện đại bắc qua sông Sài Gòn. Đèn led đổi màu về đêm. Biểu tượng mới của thành phố nối Q.1 và Q.2.,Sài Gòn,"Nối Q.1 và Q.2, TP.HCM","cầu, hiện đại, sông sài gòn"
+
+# Data updated

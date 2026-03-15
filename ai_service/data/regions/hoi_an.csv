@@ -1,0 +1,23 @@
+text,intent,region
+# Món ăn Hội An
+Cao lầu Hội An quán nào,tim_mon_an,hoi_an
+Cao lầu Hội An thử chưa,tim_mon_an,hoi_an
+Bánh mì Hội An ở đâu,tim_mon_an,hoi_an
+Cơm gà Hội An,tim_mon_an,hoi_an
+Bánh vạc Hội An,tim_mon_an,hoi_an
+Hoành thánh Hội An,tim_mon_an,hoi_an
+
+# Địa điểm Hội An
+Hội An có gì hay,tim_dia_diem,hoi_an
+Hội An phố cổ đi bộ,tim_dia_diem,hoi_an
+Hội An phố cổ có gì hay,tim_dia_diem,hoi_an
+Hội An chụp ảnh đẹp,tim_dia_diem,hoi_an
+Rừng dừa Bảy Mẫu,tim_dia_diem,hoi_an
+Cù Lao Chàm lặn biển,tim_dia_diem,hoi_an
+Chùa Cầu Hội An,tim_dia_diem,hoi_an
+Phố cổ Hội An đêm,tim_dia_diem,hoi_an
+
+# Thời tiết Hội An
+Hội An có nắng không,hoi_thoi_tiet,hoi_an
+Hội An thời tiết ra sao,hoi_thoi_tiet,hoi_an
+Hội An có mưa không,hoi_thoi_tiet,hoi_an

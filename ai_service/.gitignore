@@ -164,5 +164,5 @@ models/
 *.pkl
 *.model
 
-# Thư mục dữ liệu ảo
-data/
+# Chỉ ignore file .data, giữ lại CSV
+data/*.data

@@ -10,13 +10,13 @@
 
 ```bash
 # 1. Cài đặt thư viện (chỉ cần chạy 1 lần)
-py -3.11 -m pip install -r requirements.txt
+pip install -r requirements.txt
 
 # 2. Huấn luyện Model AI (chỉ cần chạy 1 lần hoặc khi thay đổi dataset)
-set PYTHONPATH=. && py -3.11 -m src.core.intent_classifier
+train_model.bat
 
 # 3. Khởi động Server
-set PYTHONPATH=. && py -3.11 -m uvicorn src.main:app --reload --port 8000
+run_server.bat
 ```
 
 - **Swagger UI (Tài liệu API tự động):** http://localhost:8000/docs
@@ -50,32 +50,49 @@ Nhận Request JSON → Kiểm tra Cache → Cắt từ tiếng Việt (Underthe
 
 ```text
 ai_service/
-├── requirements.txt              # Thư viện Python (FastAPI, scikit-learn, underthesea, pandas)
-├── Dockerfile                    # Đóng gói Docker cho Production
+├── requirements.txt              # Thư viện Python
+├── Dockerfile                    # Đóng gói Docker
+├── train_model.bat               # Script train model
+├── run_server.bat                # Script chạy server
+├── merge_data.py                 # Script gộp dữ liệu
 │
-├── data/                         # 📦 DỮ LIỆU THÔ
-│   ├── intent_dataset.csv        #   Dataset train AI (180+ câu, 4 nhóm ý định)
-│   └── knowledge_base.csv        #   Tri thức món ăn/địa điểm (30 record, 3 miền Bắc-Trung-Nam)
+├── data/                         # 📦 DỮ LIỆU
+│   ├── regions/                  #   Dữ liệu chia theo tỉnh thành
+│   │   ├── ha_noi.csv           #   Hà Nội (25 câu)
+│   │   ├── sai_gon.csv          #   Sài Gòn (25 câu)
+│   │   ├── da_nang.csv          #   Đà Nẵng (22 câu)
+│   │   ├── hue.csv              #   Huế (20 câu)
+│   │   ├── hoi_an.csv           #   Hội An (17 câu)
+│   │   ├── nha_trang.csv        #   Nha Trang (18 câu)
+│   │   ├── da_lat.csv           #   Đà Lạt (19 câu)
+│   │   ├── phu_quoc.csv         #   Phú Quốc (14 câu)
+│   │   ├── vung_tau.csv         #   Vũng Tàu (11 câu)
+│   │   ├── can_tho.csv          #   Cần Thơ (14 câu)
+│   │   ├── other_regions.csv    #   Các tỉnh khác (14 câu)
+│   │   ├── general.csv          #   Câu hỏi chung (46 câu)
+│   │   └── README.md            #   Hướng dẫn quản lý dữ liệu
+│   ├── intent_dataset.csv        #   Dataset gộp (245 câu, tự động tạo)
+│   └── knowledge_base.csv        #   Tri thức món ăn/địa điểm (30 record)
 │
 ├── models/                       # 🧠 MODEL ĐÃ HUẤN LUYỆN
-│   └── intent_model.pkl          #   File nhị phân Model SVM (Accuracy: 92.86%)
+│   └── intent_model.pkl          #   File Model SVM (Accuracy: 91.84%)
 │
-├── docs/                         # 📝 BÁO CÁO ĐỒ ÁN
-│   └── metrics.txt               #   Bảng điểm chi tiết (Accuracy, Precision, Recall, F1-Score)
+├── docs/                         # 📝 BÁO CÁO
+│   └── metrics.txt               #   Bảng điểm chi tiết
 │
-└── src/                          # 💻 MÃ NGUỒN CHÍNH
-    ├── main.py                   #   Entry point FastAPI (Lifespan In-Memory + Cache + CORS)
-    ├── validate_data.py          #   Script kiểm tra toàn vẹn dữ liệu CSV
+└── src/                          # 💻 MÃ NGUỒN
+    ├── main.py                   #   Entry point FastAPI
+    ├── validate_data.py          #   Script kiểm tra dữ liệu
     │
-    ├── core/                     # 🔬 LÕI THUẬT TOÁN AI
-    │   ├── nlp_utils.py          #   Tiền xử lý NLP: Cắt từ, Stop words, chuẩn hóa text
-    │   ├── intent_classifier.py  #   Huấn luyện & Dự đoán ý định (TF-IDF + SVM Pipeline)
-    │   ├── ner.py                #   Trích xuất thực thể: 63 tỉnh thành + 50+ món ăn
-    │   └── recommender.py        #   Tìm kiếm ngữ nghĩa: Cosine Similarity trên TF-IDF
+    ├── core/                     # 🔬 THUẬT TOÁN AI
+    │   ├── nlp_utils.py          #   Tiền xử lý NLP
+    │   ├── intent_classifier.py  #   Huấn luyện & Dự đoán ý định
+    │   ├── ner.py                #   Trích xuất thực thể
+    │   └── recommender.py        #   Tìm kiếm ngữ nghĩa
     │
     └── api/                      # 🌐 API GATEWAY
-        ├── schemas.py            #   Pydantic Schema (ChatRequest, ChatResponse, RecommendationItem)
-        └── router.py             #   Endpoint POST /api/v1/ai/chat (Pipeline 4 bước)
+        ├── schemas.py            #   Pydantic Schema
+        └── router.py             #   Endpoint POST /api/v1/ai/chat
 ```
 
 ---
@@ -84,7 +101,8 @@ ai_service/
 
 | Metric | Giá trị |
 |---|---|
-| **Accuracy** | **92.86%** |
+| **Accuracy** | **91.84%** |
+| Tổng câu hỏi | 245 câu |
 | Model | SVM (SVC kernel='linear') |
 | Vectorizer | TF-IDF (TfidfVectorizer) |
 | NLP Tokenizer | Underthesea + Custom Stop Words |
@@ -92,12 +110,18 @@ ai_service/
 
 ### 4 Nhóm Ý Định (Intent) được AI nhận diện:
 
-| Intent | Mô tả | Ví dụ câu hỏi |
-|---|---|---|
-| `tim_mon_an` | Tìm kiếm món ăn | "Phở Hà Nội ăn ở đâu ngon?" |
-| `tim_dia_diem` | Tìm kiếm địa điểm du lịch | "Nên đi đâu ở Đà Lạt?" |
-| `hoi_thoi_tiet` | Hỏi về thời tiết | "Hôm nay Sài Gòn có mưa không?" |
-| `giao_tiep_bot` | Giao tiếp với chatbot | "Chào bạn, giúp mình với" |
+| Intent | Mô tả | Số câu | Ví dụ |
+|---|---|---|---|
+| `tim_mon_an` | Tìm kiếm món ăn | 78 | "Phở Hà Nội ăn ở đâu ngon?" |
+| `tim_dia_diem` | Tìm địa điểm du lịch | 87 | "Nên đi đâu ở Đà Lạt?" |
+| `hoi_thoi_tiet` | Hỏi về thời tiết | 43 | "Hôm nay Sài Gòn có mưa không?" |
+| `giao_tiep_bot` | Giao tiếp với chatbot | 37 | "Chào bạn, giúp mình với" |
+
+### Dữ liệu theo Tỉnh thành:
+
+12 tỉnh thành phố: Hà Nội, Sài Gòn, Đà Nẵng, Huế, Hội An, Nha Trang, Đà Lạt, Phú Quốc, Vũng Tàu, Cần Thơ, và các tỉnh khác.
+
+**Xem chi tiết:** `data/regions/README.md`
 
 ---
 
