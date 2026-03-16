@@ -84,6 +84,16 @@ function Navbar() {
           {/* =================== MENU DESKTOP (Ẩn trên Mobile) =================== */}
           <nav className="hidden md:flex items-center gap-1">
             <NavLink
+              to="/" end
+              className={({ isActive }) =>
+                `px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150 ${
+                  isActive ? 'text-primary-600 bg-primary-50' : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100'
+                }`
+              }
+            >
+              Trang Chủ
+            </NavLink>
+            <NavLink
               to="/explore"
               className={({ isActive }) =>
                 `px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150 ${
@@ -91,7 +101,7 @@ function Navbar() {
                 }`
               }
             >
-              Khám phá
+              Khám Phá
             </NavLink>
             <NavLink
               to="/blog"
@@ -101,29 +111,23 @@ function Navbar() {
                 }`
               }
             >
-              Cẩm nang
+              Blog
             </NavLink>
             <NavLink
-              to="/planner"
+              to="/about"
               className={({ isActive }) =>
                 `px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150 ${
                   isActive ? 'text-primary-600 bg-primary-50' : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100'
                 }`
               }
             >
-              Lên kế hoạch
+              Về chúng tôi
             </NavLink>
           </nav>
 
           {/* =================== PHẦN PHẢI: Auth / User =================== */}
           <div className="hidden md:flex items-center gap-3">
-            {/* Nút AI Planner nổi bật - pill style, màu xanh biển (theo Stitch) */}
-            <Link
-              to="/ai-planner"
-              className="hidden sm:flex items-center gap-1 px-5 py-2 bg-primary-600 text-white text-sm font-bold rounded-full shadow-lg shadow-primary-600/20 hover:bg-primary-700 transition-all"
-            >
-              ✨ Try AI Planner
-            </Link>
+
             {user ? (
               /* Đã đăng nhập: Hiển thị Avatar và Dropdown */
               <div className="relative" ref={dropdownRef}>
@@ -195,17 +199,21 @@ function Navbar() {
       {/* =================== MENU MOBILE (Mở ra phía dưới) =================== */}
       {isMobileMenuOpen && (
         <div className="md:hidden border-t border-neutral-200 bg-white px-4 py-3 space-y-1">
+          <NavLink to="/" end onClick={() => setIsMobileMenuOpen(false)}
+            className={({ isActive }) => `block px-4 py-2.5 rounded-lg text-sm font-medium ${isActive ? 'text-primary-600 bg-primary-50' : 'text-neutral-700 hover:bg-neutral-100'}`}>
+            Trang Chủ
+          </NavLink>
           <NavLink to="/explore" onClick={() => setIsMobileMenuOpen(false)}
-            className="block px-4 py-2.5 rounded-lg text-sm font-medium text-neutral-700 hover:bg-neutral-100">
-            Khám phá
+            className={({ isActive }) => `block px-4 py-2.5 rounded-lg text-sm font-medium ${isActive ? 'text-primary-600 bg-primary-50' : 'text-neutral-700 hover:bg-neutral-100'}`}>
+            Khám Phá
           </NavLink>
           <NavLink to="/blog" onClick={() => setIsMobileMenuOpen(false)}
-            className="block px-4 py-2.5 rounded-lg text-sm font-medium text-neutral-700 hover:bg-neutral-100">
-            Cẩm nang
+            className={({ isActive }) => `block px-4 py-2.5 rounded-lg text-sm font-medium ${isActive ? 'text-primary-600 bg-primary-50' : 'text-neutral-700 hover:bg-neutral-100'}`}>
+            Blog
           </NavLink>
-          <NavLink to="/planner" onClick={() => setIsMobileMenuOpen(false)}
-            className="block px-4 py-2.5 rounded-lg text-sm font-medium text-neutral-700 hover:bg-neutral-100">
-            Lên kế hoạch
+          <NavLink to="/about" onClick={() => setIsMobileMenuOpen(false)}
+            className={({ isActive }) => `block px-4 py-2.5 rounded-lg text-sm font-medium ${isActive ? 'text-primary-600 bg-primary-50' : 'text-neutral-700 hover:bg-neutral-100'}`}>
+            Về chúng tôi
           </NavLink>
           <div className="border-t border-neutral-200 pt-3 mt-2 flex flex-col gap-2">
             {user ? (

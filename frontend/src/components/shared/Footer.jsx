@@ -47,13 +47,13 @@ function Footer() {
                 </Link>
               </li>
               <li>
-                <Link to="/planner" className="text-sm hover:text-white transition-colors duration-150">
-                  Lên kế hoạch AI
+                <Link to="/about" className="text-sm hover:text-white transition-colors duration-150">
+                  Về chúng tôi
                 </Link>
               </li>
               <li>
                 <Link to="/blog" className="text-sm hover:text-white transition-colors duration-150">
-                  Cẩm nang du lịch
+                  Blog
                 </Link>
               </li>
             </ul>
@@ -65,11 +65,7 @@ function Footer() {
               Công ty
             </h3>
             <ul className="space-y-2.5">
-              <li>
-                <Link to="/about" className="text-sm hover:text-white transition-colors duration-150">
-                  Về chúng tôi
-                </Link>
-              </li>
+
               <li>
                 <Link to="/contact" className="text-sm hover:text-white transition-colors duration-150">
                   Liên hệ

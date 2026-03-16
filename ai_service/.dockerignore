@@ -1,0 +1,3 @@
+# Ignore file môi trường chứa key bảo mật
+.env
+.env.*

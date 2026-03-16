@@ -47,6 +47,19 @@ import AdminDashboard from '@/pages/admin/AdminDashboard';
 import UserManagement from '@/pages/admin/UserManagement';
 import ContentManagement from '@/pages/admin/ContentManagement';
 import AILogsPage from '@/pages/admin/AILogsPage';
+import AnalyticsPage from '@/pages/admin/AnalyticsPage';
+import AdminSettings from '@/pages/admin/AdminSettings';
+import BlogList from '@/pages/admin/cms/BlogList';
+import BlogEditor from '@/pages/admin/cms/BlogEditor';
+import StaticPageEditor from '@/pages/admin/cms/StaticPageEditor';
+import { useParams } from 'react-router-dom';
+
+// Wrapper component forces remount when pageType changes,
+// preventing stale state / blank screen when navigating between static pages
+function StaticPageEditorWrapper() {
+  const { pageType } = useParams();
+  return <StaticPageEditor key={pageType} />;
+}
 
 // --- Import Pages: Legal ---
 import TermsPage from '@/pages/legal/TermsPage';
@@ -118,9 +131,16 @@ function AppRoutes() {
       <Route element={<ProtectedRoute requireAdmin />}>
         <Route element={<AdminLayout />}>
           <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/analytics" element={<AnalyticsPage />} />
           <Route path="/admin/users" element={<UserManagement />} />
-          <Route path="/admin/content" element={<ContentManagement />} />
           <Route path="/admin/ai-logs" element={<AILogsPage />} />
+          <Route path="/admin/settings" element={<AdminSettings />} />
+          
+          {/* CMS Routes */}
+          <Route path="/admin/content" element={<ContentManagement />} />
+          <Route path="/admin/content/blog" element={<BlogList />} />
+          <Route path="/admin/content/blog/:id" element={<BlogEditor />} />
+          <Route path="/admin/content/:pageType" element={<StaticPageEditorWrapper />} />
         </Route>
       </Route>
 

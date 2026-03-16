@@ -113,16 +113,23 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://database:5432/chatbot_db
-      - SPRING_DATASOURCE_USERNAME=admin
-      - SPRING_DATASOURCE_PASSWORD=password
-      - AI_SERVICE_URL=http://ai_service:8000     # URL AI Service trong mạng Docker
-      - SPRING_DATA_REDIS_HOST=redis              # Redis trong mạng Docker
-      - SPRING_DATA_REDIS_PORT=6379
-      - RABBITMQ_HOST=rabbitmq                    # [THÊM MỚI Phase 6] RabbitMQ trong Docker
-      - RABBITMQ_PORT=5672
-      - RABBITMQ_USER=admin
-      - RABBITMQ_PASS=password
+      JWT_SECRET: ${JWT_SECRET:-your_jwt_secret_here}
+      MAIL_USERNAME: ${MAIL_USERNAME:-your_gmail_address@gmail.com}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-your_gmail_app_password}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-your_google_client_id.apps.googleusercontent.com}
+      
+      SPRING_DATASOURCE_URL: jdbc:postgresql://database:5432/chatbot_db
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME:-admin}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-password}
+      
+      AI_SERVICE_URL: http://ai_service:8000     # URL AI Service trong mạng Docker
+      SPRING_DATA_REDIS_HOST: redis              # Redis trong mạng Docker
+      SPRING_DATA_REDIS_PORT: 6379
+      
+      RABBITMQ_HOST: rabbitmq                    # [THÊM MỚI Phase 6] RabbitMQ trong Docker
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: admin
+      RABBITMQ_PASS: password
     depends_on:
       - database      # Database phải sẵn sàng trước Backend
       - ai_service    # AI Service phải sẵn sàng trước Backend
@@ -133,20 +140,37 @@ services:
 
   # ===========================================================================
   # 6. FRONTEND — ReactJS (Nginx)
-  # Mục đích: Giao diện người dùng (SPA)
-  # Port: 3000 (map từ port 80 trong container Nginx)
+  # Mục đích: Giao diện người dùng (SPA) phục vụ qua Nginx
+  # Build: Multi-stage (Node.js build → Nginx serve static files)
+  # Port: 3000 (host) → 80 (Nginx trong container)
+  # Nginx proxy /api/* → backend:8080 (không cần CORS khi dùng proxy)
   # depends_on: Chờ backend khởi chạy trước
   # ===========================================================================
   frontend:
     build:
       context: ../frontend
+      dockerfile: Dockerfile
     container_name: frontend_web
     ports:
       - "3000:80"
+    environment:
+      - NODE_ENV=production          # Môi trường production (Vite build đã tối ưu bundle)
     depends_on:
-      - backend
+      - backend                      # Backend phải sẵn sàng trước khi Frontend lên
     networks:
       - chatbot_network
+    restart: unless-stopped          # Tự khởi động lại trừ khi dừng thủ công
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]  # Kiểm tra Nginx đang chạy
+      interval: 30s                  # Kiểm tra mỗi 30 giây
+      timeout: 10s                   # Timeout 10 giây
+      retries: 3                     # Thử lại 3 lần trước khi báo unhealthy
+      start_period: 15s              # Cho 15 giây để container khởi động trước khi check
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"              # Log tối đa 10MB/file
+        max-file: "3"               # Giữ tối đa 3 file log cũ
 
 # =============================================================================
 # NETWORKS — Mạng nội bộ Docker

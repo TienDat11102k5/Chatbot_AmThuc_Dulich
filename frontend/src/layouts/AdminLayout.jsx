@@ -12,11 +12,12 @@
  * - Responsive: sidebar ẩn trên mobile, toggle bằng nút hamburger
  */
 
-import { useState } from 'react';
-import { Outlet, NavLink, Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Outlet, NavLink, Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Users, FileText, BrainCircuit,
   Settings, Menu, X, LogOut, Bell, Search, ChefHat,
+  BarChart2, ChevronDown, ChevronRight
 } from 'lucide-react';
 
 // ─── Các mục menu sidebar ────────────────────────────────────────────────────
@@ -24,13 +25,32 @@ const ADMIN_MENU = [
   { path: '/admin',          label: 'Tổng quan',           icon: LayoutDashboard },
   { path: '/admin/users',    label: 'Quản lý User',         icon: Users           },
   { path: '/admin/ai-logs',  label: 'AI Center (Prompt & Logs)', icon: BrainCircuit },
-  { path: '/admin/content',  label: 'Quản lý trang (CMS)', icon: FileText        },
-  { path: '/settings',       label: 'Cài đặt',              icon: Settings        },
+  { 
+    label: 'Quản lý trang (CMS)', 
+    icon: FileText,
+    isSubmenu: true,
+    subItems: [
+      { path: '/admin/content/blog', label: 'Blog / Tin tức' },
+      { path: '/admin/content/about', label: 'Về chúng tôi' },
+      { path: '/admin/content/terms', label: 'Điều khoản dịch vụ' },
+      { path: '/admin/content/privacy', label: 'Chính sách bảo mật' }
+    ]
+  },
+  { path: '/admin/analytics', label: 'Báo Cáo & Thống Kê', icon: BarChart2 },
+  { path: '/admin/settings',  label: 'Cài đặt HT',          icon: Settings },
 ];
 
 function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [cmsOpen, setCmsOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.pathname.startsWith('/admin/content')) {
+      setCmsOpen(true);
+    }
+  }, [location.pathname]);
 
   const handleLogout = () => {
     localStorage.removeItem('savorytrip_user');
@@ -75,6 +95,50 @@ function AdminLayout() {
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
           {ADMIN_MENU.map((item) => {
             const Icon = item.icon;
+            
+            if (item.isSubmenu) {
+              const isActiveParent = location.pathname.startsWith('/admin/content');
+              return (
+                <div key={item.label} className="space-y-1">
+                  <button
+                    onClick={() => setCmsOpen(!cmsOpen)}
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all duration-150 ${
+                      isActiveParent
+                        ? 'bg-slate-800 text-white' 
+                        : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Icon size={18} />
+                      <span>{item.label}</span>
+                    </div>
+                    {cmsOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                  </button>
+                  
+                  {cmsOpen && (
+                    <div className="pl-4 pr-2 space-y-1 mt-1 border-l-2 border-slate-800 ml-6">
+                      {item.subItems.map((sub) => (
+                        <NavLink
+                          key={sub.path}
+                          to={sub.path}
+                          onClick={() => setSidebarOpen(false)}
+                          className={({ isActive }) =>
+                            `block px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150 ${
+                              isActive
+                                ? 'bg-primary-600 text-white shadow-md shadow-primary-600/20'
+                                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                            }`
+                          }
+                        >
+                          {sub.label}
+                        </NavLink>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
             return (
               <NavLink
                 key={item.path}

@@ -11,9 +11,10 @@
  * - Divider "Hoặc"
  * - Google + Facebook buttons
  */
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const LoginPage = () => {
   const [formData, setFormData]         = useState({ email: '', password: '' });
@@ -21,7 +22,17 @@ const LoginPage = () => {
   const [rememberMe, setRememberMe]     = useState(false);
   const [isLoading, setIsLoading]       = useState(false);
   const [error, setError]               = useState('');
-  const navigate = useNavigate();
+  const navigate   = useNavigate();
+  const location   = useLocation();
+
+  // Hiển thị toast khi được redirect từ ResetPasswordPage
+  useEffect(() => {
+    if (location.state?.message) {
+      toast.success(location.state.message);
+      // Xóa state tránh hiển thị lại khi refresh
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

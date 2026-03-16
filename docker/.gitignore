@@ -1,0 +1,8 @@
+# Bỏ qua file cấu hình môi trường chứa biến bảo mật (tránh lộ API keys lên Git)
+.env
+
+# Bỏ qua các file logs không cần thiết sinh ra trong quá trình debug
+*.log
+backend_logs.txt
+frontend_logs.txt
+ai_logs.txt

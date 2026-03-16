@@ -32,46 +32,41 @@ function AuthLayout() {
           ============================================= */}
       <header className="bg-white/80 backdrop-blur border-b border-slate-200 sticky top-0 z-30">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-              <span className="text-white text-sm font-bold">✦</span>
-            </div>
-            <span className="text-slate-900 font-bold text-lg tracking-tight">SavoryTrip</span>
+          {/* Logo - Giống Main Navbar */}
+          <Link to="/" className="flex items-center gap-2 shrink-0">
+            <span className="text-primary-600 font-bold text-xl tracking-tight">
+              SavoryTrip
+            </span>
           </Link>
 
           {/* Nav links giữa */}
           <nav className="hidden md:flex items-center gap-6 text-sm text-slate-600 font-medium">
-            <Link to="/explore"  className="hover:text-primary-600 transition-colors">Khám phá</Link>
-            <Link to="/planner"  className="hover:text-primary-600 transition-colors">Lên kế hoạch</Link>
-            <Link to="/about"    className="hover:text-primary-600 transition-colors">Hướng dẫn</Link>
+            <Link to="/"         className="hover:text-primary-600 transition-colors">Trang Chủ</Link>
+            <Link to="/explore"  className="hover:text-primary-600 transition-colors">Khám Phá</Link>
+            <Link to="/blog"     className="hover:text-primary-600 transition-colors">Blog</Link>
+            <Link to="/about"    className="hover:text-primary-600 transition-colors">Về chúng tôi</Link>
           </nav>
 
-          {/* CTA button phải: Đăng ký nếu đang ở Login, Đăng nhập nếu đang ở Register */}
-          {isLoginPage && (
-            <Link
-              to="/register"
-              className="px-5 py-2 bg-primary-600 text-white rounded-xl font-semibold text-sm hover:bg-primary-700 transition-colors"
-            >
-              Đăng ký
-            </Link>
-          )}
-          {isRegisterPage && (
-            <Link
-              to="/login"
-              className="px-5 py-2 bg-primary-600 text-white rounded-xl font-semibold text-sm hover:bg-primary-700 transition-colors"
-            >
-              Đăng nhập
-            </Link>
-          )}
-          {!isLoginPage && !isRegisterPage && (
-            <Link
-              to="/login"
-              className="px-5 py-2 bg-primary-600 text-white rounded-xl font-semibold text-sm hover:bg-primary-700 transition-colors"
-            >
-              Đăng nhập
-            </Link>
-          )}
+          {/* CTA button phải */}
+          <div className="flex items-center gap-3">
+
+
+            {isLoginPage ? (
+              <Link
+                to="/register"
+                className="flex items-center justify-center min-w-[100px] px-5 py-2 bg-slate-100 text-slate-900 text-sm font-bold rounded-full hover:bg-slate-200 transition-all border border-slate-200"
+              >
+                Đăng ký
+              </Link>
+            ) : (
+              <Link
+                to="/login"
+                className="flex items-center justify-center min-w-[100px] px-5 py-2 bg-slate-100 text-slate-900 text-sm font-bold rounded-full hover:bg-slate-200 transition-all border border-slate-200"
+              >
+                Đăng nhập
+              </Link>
+            )}
+          </div>
         </div>
       </header>
 

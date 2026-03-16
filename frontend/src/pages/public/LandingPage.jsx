@@ -11,7 +11,7 @@
  * 3. DestinationsSection - Grid điểm đến nổi bật kết hợp bản đồ
  * 4. FoodCategorySection - Các loại hình ẩm thực (Street Food, Nhà hàng, Cafe, Chợ đêm)
  * 5. AIChatDemoSection   - Demo giao diện chat tối màu với ví dụ hội thoại
- * 6. BlogSection         - Các bài viết/cẩm nang du lịch nổi bật
+ * 6. BlogSection         - Các bài viết/blog nổi bật
  */
 
 import { Link } from 'react-router-dom';
@@ -49,12 +49,12 @@ const HeroSection = () => (
       {/* Nhóm nút CTA */}
       <div className="flex flex-wrap gap-4 justify-center mt-4">
         {/* Nút chính - màu xanh biển */}
-        <Link
-          to="/ai-planner"
+        <button
+          onClick={() => window.dispatchEvent(new Event('openAIChatWidget'))}
           className="flex items-center gap-2 px-8 py-4 bg-primary-600 text-white rounded-xl font-bold text-lg shadow-xl shadow-primary-600/30 hover:scale-105 hover:bg-primary-700 transition-all"
         >
-          ✨ Tạo lịch trình với AI
-        </Link>
+          ✨ Hỏi SavoryAI ngay
+        </button>
 
         {/* Nút phụ - viền xám */}
         <Link
@@ -387,12 +387,12 @@ const AIChatDemoSection = () => {
             ))}
           </ul>
           {/* Nút thử ngay */}
-          <Link
-            to="/ai-planner"
+          <button
+            onClick={() => window.dispatchEvent(new Event('openAIChatWidget'))}
             className="inline-flex items-center gap-2 px-8 py-4 bg-primary-600 text-white rounded-xl font-bold text-lg hover:bg-primary-700 transition-colors"
           >
             🤖 Thử SavoryAI ngay
-          </Link>
+          </button>
         </div>
 
         {/* Cột phải: Widget chat demo */}

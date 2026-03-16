@@ -12,13 +12,12 @@
 
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { User, Lock, UtensilsCrossed, Bell, Trash2, Camera, ChevronRight, Info, AlertTriangle } from 'lucide-react';
+import { User, Lock, Bell, Trash2, Camera, ChevronRight, Info, AlertTriangle, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
 
 // ─── Mục sidebar ─────────────────────────────────────────────────────────────
 const SIDEBAR_ITEMS = [
   { id: 'profile', label: 'Thông tin cá nhân', icon: User },
   { id: 'password', label: 'Đổi mật khẩu', icon: Lock },
-  { id: 'food', label: 'Sở thích ẩm thực', icon: UtensilsCrossed },
   { id: 'notification', label: 'Thông báo', icon: Bell },
 ];
 
@@ -177,6 +176,225 @@ const PersonalInfoForm = () => {
   );
 };
 
+// ─── Form Đổi mật khẩu ────────────────────────────────────────────────────────
+const ChangePasswordForm = () => {
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2500);
+  };
+
+  return (
+    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-8">
+      <div className="p-6 md:p-8 border-b border-slate-100">
+        <h2 className="text-xl font-bold text-slate-900">Đổi mật khẩu</h2>
+        <p className="text-slate-500 text-sm mt-1">
+          Giữ tài khoản của bạn an toàn bằng cách sử dụng mật khẩu mạnh.
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="p-6 md:p-8 space-y-6">
+        <div className="space-y-4 max-w-xl">
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-slate-700">Mật khẩu hiện tại</label>
+            <div className="relative">
+              <input
+                type={showCurrent ? "text" : "password"}
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-900 focus:ring-2 focus:ring-primary-600/20 focus:border-primary-600 outline-none transition-all bg-transparent"
+                placeholder="Nhập mật khẩu hiện tại"
+              />
+              <button 
+                type="button" 
+                onClick={() => setShowCurrent(!showCurrent)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+              >
+                {showCurrent ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+            <p className="text-xs text-primary-600 font-medium cursor-pointer hover:underline text-right mt-1">Quên mật khẩu?</p>
+          </div>
+
+          <hr className="border-slate-100 my-4" />
+
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-slate-700">Mật khẩu mới</label>
+            <div className="relative">
+              <input
+                type={showNew ? "text" : "password"}
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-900 focus:ring-2 focus:ring-primary-600/20 focus:border-primary-600 outline-none transition-all bg-transparent"
+                placeholder="Nhập mật khẩu mới"
+              />
+              <button 
+                type="button" 
+                onClick={() => setShowNew(!showNew)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+              >
+                {showNew ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-slate-700">Xác nhận mật khẩu mới</label>
+            <input
+              type="password"
+              className="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-900 focus:ring-2 focus:ring-primary-600/20 focus:border-primary-600 outline-none transition-all bg-transparent"
+              placeholder="Nhập lại mật khẩu mới"
+            />
+          </div>
+
+          <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-sm text-slate-600 mt-4 space-y-2">
+            <p className="font-semibold text-slate-700">Yêu cầu mật khẩu:</p>
+            <ul className="list-disc pl-5 space-y-1">
+              <li>Độ dài tối thiểu 8 ký tự.</li>
+              <li>Chứa ít nhất một số (0-9) và một chữ cái.</li>
+              <li>Nên chứa một ký tự đặc biệt (!@#$%^&*).</li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="pt-6 border-t border-slate-100 flex justify-end gap-4">
+          <button type="button" className="px-6 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-semibold hover:bg-slate-50 transition-colors">
+            Huỷ
+          </button>
+          <button
+            type="submit"
+            className={`px-8 py-2.5 rounded-xl font-bold transition-all shadow-md ${
+              saved
+                ? 'bg-emerald-500 text-white shadow-emerald-500/20'
+                : 'bg-primary-600 text-white hover:bg-primary-700 shadow-primary-600/20'
+            }`}
+          >
+            {saved ? '✓ Đã cập nhật!' : 'Cập nhật mật khẩu'}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+};
+
+// ─── Form Cài đặt thông báo ───────────────────────────────────────────────────
+const NotificationSettingsForm = () => {
+  const [saved, setSaved] = useState(false);
+  const [settings, setSettings] = useState({
+    emailPromos: false,
+    emailBooking: true,
+    pushAlerts: true,
+    smsAlerts: false
+  });
+
+  const toggleSetting = (key) => setSettings(prev => ({ ...prev, [key]: !prev[key] }));
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2500);
+  };
+
+  const ToggleSwitch = ({ checked, onChange }) => (
+    <div 
+      onClick={onChange}
+      className={`relative w-11 h-6 rounded-full cursor-pointer transition-colors duration-200 ease-in-out ${checked ? 'bg-primary-600' : 'bg-slate-200'}`}
+    >
+      <div 
+        className={`absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200 ease-in-out ${checked ? 'translate-x-5' : 'translate-x-0'}`}
+      />
+    </div>
+  );
+
+  return (
+    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-8">
+      <div className="p-6 md:p-8 border-b border-slate-100">
+        <h2 className="text-xl font-bold text-slate-900">Cài đặt thông báo</h2>
+        <p className="text-slate-500 text-sm mt-1">
+          Lựa chọn cách bạn muốn nhận cập nhật từ SavoryTrip.
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="p-6 md:p-8 space-y-8">
+        
+        {/* Email Notifications */}
+        <div>
+          <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+            📧 Thông báo qua Email
+          </h3>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-4 rounded-xl border border-slate-100 bg-slate-50 hover:bg-slate-100/50 transition-colors">
+              <div>
+                <p className="font-semibold text-slate-800">Cập nhật đặt chỗ & Lịch trình</p>
+                <p className="text-sm text-slate-500 mt-0.5">Xác nhận, thay đổi và nhắc nhở về chuyến đi của bạn.</p>
+              </div>
+              <ToggleSwitch checked={settings.emailBooking} onChange={() => toggleSetting('emailBooking')} />
+            </div>
+            
+            <div className="flex items-center justify-between p-4 rounded-xl border border-slate-100 bg-slate-50 hover:bg-slate-100/50 transition-colors">
+              <div>
+                <p className="font-semibold text-slate-800">Tin tức & Khuyến mãi</p>
+                <p className="text-sm text-slate-500 mt-0.5">Nhận thông tin về các địa điểm mới, mã giảm giá độc quyền.</p>
+              </div>
+              <ToggleSwitch checked={settings.emailPromos} onChange={() => toggleSetting('emailPromos')} />
+            </div>
+          </div>
+        </div>
+
+        {/* Push Notifications */}
+        <div>
+          <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+            🔔 Thông báo Đẩy (Push)
+          </h3>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-4 rounded-xl border border-slate-100 bg-slate-50 hover:bg-slate-100/50 transition-colors">
+              <div>
+                <p className="font-semibold text-slate-800">Cảnh báo trực tiếp</p>
+                <p className="text-sm text-slate-500 mt-0.5">Nhận thông báo ngay trên trình duyệt khi có hoạt động mới.</p>
+              </div>
+              <ToggleSwitch checked={settings.pushAlerts} onChange={() => toggleSetting('pushAlerts')} />
+            </div>
+          </div>
+        </div>
+
+        {/* Security Notifications */}
+        <div>
+          <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+            🛡️ Cảnh báo Bảo mật
+          </h3>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-4 rounded-xl border border-emerald-100 bg-emerald-50">
+              <div>
+                <p className="font-semibold text-emerald-900">Thông báo đăng nhập mới</p>
+                <p className="text-sm text-emerald-700 mt-0.5">Luôn gửi email khi tài khoản đăng nhập từ thiết bị lạ.</p>
+              </div>
+              <div className="flex items-center gap-1.5 text-emerald-600 font-semibold bg-emerald-100 px-3 py-1.5 rounded-lg text-sm">
+                <CheckCircle2 size={16} /> Luôn bật
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="pt-6 border-t border-slate-100 flex justify-end gap-4">
+          <button type="button" className="px-6 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-semibold hover:bg-slate-50 transition-colors">
+            Khôi phục mặc định
+          </button>
+          <button
+            type="submit"
+            className={`px-8 py-2.5 rounded-xl font-bold transition-all shadow-md ${
+              saved
+                ? 'bg-emerald-500 text-white shadow-emerald-500/20'
+                : 'bg-primary-600 text-white hover:bg-primary-700 shadow-primary-600/20'
+            }`}
+          >
+            {saved ? '✓ Đã lưu!' : 'Lưu cài đặt'}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+};
+
 const SettingsPage = () => {
   const [activeSection, setActiveSection] = useState('profile');
 
@@ -245,7 +463,10 @@ const SettingsPage = () => {
           {/* Form chính bên phải */}
           <section className="lg:col-span-9">
             {activeSection === 'profile' && <PersonalInfoForm />}
-            {activeSection !== 'profile' && (
+            {activeSection === 'password' && <ChangePasswordForm />}
+            {activeSection === 'notification' && <NotificationSettingsForm />}
+            
+            {activeSection !== 'profile' && activeSection !== 'password' && activeSection !== 'notification' && (
               <div className="bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col items-center justify-center py-24 text-center">
                 <div className="text-5xl mb-4">🚧</div>
                 <h3 className="text-xl font-bold text-slate-700 mb-2">Đang phát triển</h3>

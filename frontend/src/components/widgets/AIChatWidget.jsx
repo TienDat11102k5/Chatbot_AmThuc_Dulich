@@ -59,6 +59,13 @@ function AIChatWidget() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isLoading]);
 
+  // Lắng nghe event mở chat từ các nút khác (ví dụ LandingPage)
+  useEffect(() => {
+    const handleOpenChat = () => setIsOpen(true);
+    window.addEventListener('openAIChatWidget', handleOpenChat);
+    return () => window.removeEventListener('openAIChatWidget', handleOpenChat);
+  }, []);
+
   // Gửi tin nhắn
   function handleSend(text = inputText) {
     const trimmed = text.trim();

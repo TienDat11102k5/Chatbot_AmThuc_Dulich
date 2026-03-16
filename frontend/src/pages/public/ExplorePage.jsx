@@ -37,16 +37,18 @@ const RATINGS = ['Tất cả', '4.9+', '4.5+', '4.0+'];
 
 // ─── Component Card địa điểm ─────────────────────────────────────────────────
 const PlaceCard = ({ place, onToggleLike }) => (
-  <div className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-100">
+  <div className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-100 relative flex flex-col">
+    <Link to={`/place/${place.id}`} className="absolute inset-0 z-0" aria-label={`Xem chi tiết ${place.name}`}></Link>
+    
     {/* Ảnh (dùng gradient + emoji làm placeholder) */}
     <div className={`relative aspect-[4/3] overflow-hidden bg-gradient-to-br ${place.bg}`}>
-      <div className="w-full h-full flex items-center justify-center text-6xl group-hover:scale-110 transition-transform duration-500">
+      <div className="w-full h-full flex items-center justify-center text-6xl group-hover:scale-110 transition-transform duration-500 pointer-events-none">
         {place.emoji}
       </div>
       {/* Nút like (heart) */}
       <button
-        onClick={() => onToggleLike(place.id)}
-        className={`absolute top-3 right-3 p-2 rounded-full transition-all ${
+        onClick={(e) => { e.preventDefault(); onToggleLike(place.id); }}
+        className={`absolute top-3 right-3 p-2 rounded-full transition-all z-10 ${
           place.liked
             ? 'bg-red-500 text-white'
             : 'bg-white/90 text-slate-400 hover:text-red-500'
@@ -56,14 +58,14 @@ const PlaceCard = ({ place, onToggleLike }) => (
         <Heart size={18} fill={place.liked ? 'currentColor' : 'none'} />
       </button>
       {/* Rating badge góc dưới trái */}
-      <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur px-2 py-1 rounded-lg flex items-center gap-1">
+      <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur px-2 py-1 rounded-lg flex items-center gap-1 z-10 pointer-events-none">
         <Star size={12} className="text-accent-500" fill="currentColor" />
         <span className="text-xs font-bold">{place.rating}</span>
       </div>
     </div>
 
     {/* Nội dung card */}
-    <div className="p-4">
+    <div className="p-4 relative z-10 pointer-events-none">
       <h3 className="text-base font-bold mb-1 group-hover:text-primary-600 transition-colors leading-tight">
         {place.name}
       </h3>
