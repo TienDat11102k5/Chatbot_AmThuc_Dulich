@@ -1,0 +1,224 @@
+﻿id,name,domain,category_vi,latitude,longitude,address,district,description,search_text
+DIA_NA00001,Phasala Hotel ,Du lịch,khách sạn,18.5022498,104.456,"Route 1D, Viengthong, Bolikhamxai, 11050, LAO",,Phasala Hotel  là khách sạn tại TP.HCM.,Phasala Hotel  Du lịchkhách sạn
+DIA_NA00002,Noy Chalern Houng Heaung Hotel,Du lịch,khách sạn,18.5201038,104.4456675,"Route 1D, Viengthong, Bolikhamxai, 11050, LAO",,Noy Chalern Houng Heaung Hotel là khách sạn tại TP.HCM.,Noy Chalern Houng Heaung Hotel Du lịchkhách sạn
+DIA_NA00003,Chill Chill Café,Ẩm thực,quán cà phê,18.3013402,104.1120432,"Route 13, Pakkading, Bolikhamxai, 11020, LAO",,Chill Chill Café là quán cà phê tại TP.HCM.,Chill Chill Café Ẩm thựcquán cà phê
+DIA_NA00004,Simple,Ẩm thực,nhà hàng,18.7639969,103.913389,"Route 1D, Bolikhanh, Bolikhamxai, 11011, LAO",,Simple là nhà hàng tại TP.HCM.,Simple Ẩm thựcnhà hàng
+DIA_NA00005,Small,Ẩm thực,nhà hàng,18.6941696,104.0301268,"Route 1D, Bolikhanh, Bolikhamxai, 09050, LAO",,Small là nhà hàng tại TP.HCM.,Small Ẩm thựcnhà hàng
+DIA_NA00006,ຮ້ານອາຫານໂສເຈ້ງ,Ẩm thực,nhà hàng,18.3244752,103.8842499,"Route 13, Pakxan, Bolikhamxai, 11020, LAO",,ຮ້ານອາຫານໂສເຈ້ງ là nhà hàng tại TP.HCM.,ຮ້ານອາຫານໂສເຈ້ງ Ẩm thựcnhà hàng
+DIA_NA00007,ຮ້ານອາຫານ ເຮືອນໄມ້ The Wooden House Restaurant,Ẩm thực,nhà hàng,18.3523303,103.9681757,"Pakkading, Bolikhamxai, LAO",,ຮ້ານອາຫານ ເຮືອນໄມ້ The Wooden House Restaurant là nhà hàng tại TP.HCM.,ຮ້ານອາຫານ ເຮືອນໄມ້ The Wooden House Restaurant Ẩm thựcnhà hàng
+DIA_NA00008,Bach Dai Dong,Du lịch,khách sạn,18.5085969,105.4237962,"Quốc Lộ 8, Phố Châu, Hương Sơn, Hà Tĩnh, 45806",,Bach Dai Dong là khách sạn tại TP.HCM.,Bach Dai Dong Du lịchkhách sạn
+DIA_NA00009,Backpackers  Hotel,Du lịch,khách sạn,18.5066359,105.4244142,"Phố Châu, Hương Sơn, Hà Tĩnh",,Backpackers  Hotel là khách sạn tại TP.HCM.,Backpackers  Hotel Du lịchkhách sạn
+DIA_NA00010,Khách sạn Ngàn Phố,Du lịch,khách sạn,18.5091285,105.4242855,"Quốc Lộ 8, Phố Châu, Hương Sơn, Hà Tĩnh, 45806",,Khách sạn Ngàn Phố là khách sạn tại TP.HCM.,Khách sạn Ngàn Phố Du lịchkhách sạn
+DIA_NA00011,Vu Quang,Du lịch,khách sạn,18.3823458,105.4977136,"Đường Hồ Chí Minh, Vũ Quang, Hà Tĩnh, 45906",,Vu Quang là khách sạn tại TP.HCM.,Vu Quang Du lịchkhách sạn
+DIA_NA00012,Vu Quang Hotel,Du lịch,khách sạn,18.3804113,105.4980784,"Vũ Quang, Hà Tĩnh",,Vu Quang Hotel là khách sạn tại TP.HCM.,Vu Quang Hotel Du lịchkhách sạn
+DIA_NA00013,Vuvuzela,Ẩm thực,quán bar,18.6753014,105.6742114,"47 Đường Quang Trung, Quang Trung, Vinh, Nghệ An, 43112",,Vuvuzela là quán bar tại TP.HCM.,Vuvuzela Ẩm thựcquán bar
+DIA_NA00014,Viet thai hotel,Du lịch,khách sạn,18.5293893,105.7069392,"16 Đường Quang Trung, Nam Hồng, Hồng Lĩnh, Hà Tĩnh",,Viet thai hotel là khách sạn tại TP.HCM.,Viet thai hotel Du lịchkhách sạn
+DIA_NA00015,Bún bò đò trai,Ẩm thực,quán thức ăn nhanh,18.5363538,105.666025,"Đường Trần Phú, Thái Yên, Đức Thọ, Hà Tĩnh, 45719",,Bún bò đò trai là quán thức ăn nhanh tại TP.HCM.,Bún bò đò trai Ẩm thựcquán thức ăn nhanh
+DIA_NA00016,Chicken Restaurant,Ẩm thực,nhà hàng,18.684655,105.68095,"Đường Đốc Thiết, Hưng Bình, Vinh, Nghệ An, 43111",,Chicken Restaurant là nhà hàng tại TP.HCM.,Chicken Restaurant Ẩm thựcnhà hàng
+DIA_NA00017,Minh Tu,Du lịch,khách sạn,18.536332,105.43155,"Đường Hồ Chí Minh, Sơn Trung, Hương Sơn, Hà Tĩnh, 45807",,Minh Tu là khách sạn tại TP.HCM.,Minh Tu Du lịchkhách sạn
+DIA_NA00018,Bún Bò Đò Trai - Bún Đen Đức Thọ,Ẩm thực,nhà hàng,18.6581706,105.7000921,"72 Đường Nguyễn Văn Trỗi, Bến Thủy, Vinh, Nghệ An, 43108",,Bún Bò Đò Trai - Bún Đen Đức Thọ là nhà hàng tại TP.HCM.,Bún Bò Đò Trai - Bún Đen Đức Thọ Ẩm thựcnhà hàng
+DIA_NA00019,ks huu nghi,Du lịch,khách sạn,18.6860274,105.6751278,"Đường Lê Lợi, Hưng Bình, Vinh, Nghệ An",,ks huu nghi là khách sạn tại TP.HCM.,ks huu nghi Du lịchkhách sạn
+DIA_NA00020,Linh BBM,Ẩm thực,quán cà phê,18.630608,105.65049,"Hưng Mỹ, Hưng Nguyên, Nghệ An",,Linh BBM là quán cà phê tại TP.HCM.,Linh BBM Ẩm thựcquán cà phê
+DIA_NA00021,Sky Vape Coffee,Ẩm thực,quán cà phê,18.6629422,105.6822463,"Quán Hàu Sữa 68, Vinh Tân, Vinh, Nghệ An, 43129",,Sky Vape Coffee là quán cà phê tại TP.HCM.,Sky Vape Coffee Ẩm thựcquán cà phê
+DIA_NA00022,phở cười 2,Ẩm thực,nhà hàng,18.6855439,105.6927643,"Đường V.I.Lê-Nin, Hưng Dũng, Vinh, Nghệ An, 43109",,phở cười 2 là nhà hàng tại TP.HCM.,phở cười 2 Ẩm thựcnhà hàng
+DIA_NA00023,karaoke và khách sạn hoa cỏ may,Du lịch,khách sạn,18.5301911,105.5851906,"Quốc Lộ 8, Đức Thọ, Hà Tĩnh, 45706",,karaoke và khách sạn hoa cỏ may là khách sạn tại TP.HCM.,karaoke và khách sạn hoa cỏ may Du lịchkhách sạn
+DIA_NA00024,FIFA,Ẩm thực,quán bar,18.6301228,105.6499037,"Hưng Mỹ, Hưng Nguyên, Nghệ An",,FIFA là quán bar tại TP.HCM.,FIFA Ẩm thựcquán bar
+DIA_NA00025,Hoàng Vu,Du lịch,khách sạn,18.9777451,105.6045197,"Đường Quốc Lộ 7, Diễn Thành, Diễn Châu, Nghệ An, 43407",,Hoàng Vu là khách sạn tại TP.HCM.,Hoàng Vu Du lịchkhách sạn
+DIA_NA00026,Hoang Son,Du lịch,khách sạn,18.9826033,105.6001415,"Đường Quốc Lộ 1, Diễn Châu, Nghệ An, 43406",,Hoang Son là khách sạn tại TP.HCM.,Hoang Son Du lịchkhách sạn
+DIA_NA00027,Nha hang dai moc,Ẩm thực,nhà hàng,18.3807,105.5005025,"Đường Hồ Chí Minh, Vũ Quang, Hà Tĩnh, 45906",,Nha hang dai moc là nhà hàng tại TP.HCM.,Nha hang dai moc Ẩm thựcnhà hàng
+DIA_NA00028,Tuong Hotel,Du lịch,khách sạn,19.0450493,105.2687758,"Đường Hồ Chí Minh, Tân Kỳ, Nghệ An, 43806",,Tuong Hotel là khách sạn tại TP.HCM.,Tuong Hotel Du lịchkhách sạn
+DIA_NA00029,Vonga Tang Hotel,Du lịch,khách sạn,19.0493402,105.2744292,"Đường Hồ Chí Minh, Tân Kỳ, Nghệ An, 43806",,Vonga Tang Hotel là khách sạn tại TP.HCM.,Vonga Tang Hotel Du lịchkhách sạn
+DIA_NA00030,Pizza Thao Nguyen,Ẩm thực,nhà hàng,18.9723532,105.600992,"Đường Quốc Lộ 1, Diễn Châu, Nghệ An, 43406",,Pizza Thao Nguyen là nhà hàng tại TP.HCM.,Pizza Thao Nguyen Ẩm thựcnhà hàng
+DIA_NA00031,Coffee shop,Ẩm thực,quán cà phê,18.663518,105.6891431,"Ngõ 107 Nguyễn Thiếp, Trung Đô, Vinh, Nghệ An, 43130",,Coffee shop là quán cà phê tại TP.HCM.,Coffee shop Ẩm thựcquán cà phê
+DIA_NA00032,Student accommodation,Du lịch,khách sạn,18.6539938,105.6902772,"Đường Phượng Hoàng, Trung Đô, Vinh, Nghệ An, 43130",,Student accommodation là khách sạn tại TP.HCM.,Student accommodation Du lịchkhách sạn
+DIA_NA00033,Lá Dò Hotel,Du lịch,khách sạn,18.6813077,105.6842908,"Đường Nguyễn Văn Cừ, Hưng Phúc, Vinh, Nghệ An, 43110",,Lá Dò Hotel là khách sạn tại TP.HCM.,Lá Dò Hotel Du lịchkhách sạn
+DIA_NA00034,Virus cybercafe,Ẩm thực,quán cà phê,18.6846479,105.68107,"20 Đường Đốc Thiết, Hưng Bình, Vinh, Nghệ An, 43111",,Virus cybercafe là quán cà phê tại TP.HCM.,Virus cybercafe Ẩm thựcquán cà phê
+DIA_NA00035,Mộc Vân,Ẩm thực,quán cà phê,18.686799,105.6682921,"Đường Nguyễn Đình Chiểu, Lê Lợi, Vinh, Nghệ An, 43116",,Mộc Vân là quán cà phê tại TP.HCM.,Mộc Vân Ẩm thựcquán cà phê
+DIA_NA00036,Sao Việt,Du lịch,khách sạn,18.6475803,105.6665943,"Đường Phạm Hồng Thái, Hưng Thịnh, Hưng Nguyên, Nghệ An, 43129",,Sao Việt là khách sạn tại TP.HCM.,Sao Việt Du lịchkhách sạn
+DIA_NA00037,Nhà Hàng Hổng Xuyên,Ẩm thực,nhà hàng,18.602511,105.6915646,"Đường Quốc Lộ 1, Xuân Hồng, Nghi Xuân, Hà Tĩnh, 45521",,Nhà Hàng Hổng Xuyên là nhà hàng tại TP.HCM.,Nhà Hàng Hổng Xuyên Ẩm thựcnhà hàng
+DIA_NA00038,We pub,Ẩm thực,quán bar,18.674162,105.6787695,"56 Đường Nguyễn Tuấn Thiện, Lê Mao, Vinh, Nghệ An, 43106",,We pub là quán bar tại TP.HCM.,We pub Ẩm thựcquán bar
+DIA_NA00039,Ngầu Coffee & Store,Ẩm thực,quán cà phê,18.6814369,105.6746863,"127 Đường Lê Lợi, Lê Lợi, Vinh, Nghệ An, 43116",,Ngầu Coffee & Store là quán cà phê tại TP.HCM.,Ngầu Coffee & Store Ẩm thựcquán cà phê
+DIA_NA00040,cafe saphire,Ẩm thực,quán cà phê,18.974842,105.6008384,"Đường Quốc Lộ 1, Diễn Châu, Nghệ An, 43406",,cafe saphire là quán cà phê tại TP.HCM.,cafe saphire Ẩm thựcquán cà phê
+DIA_NA00041,Cường Tống Quan,Ẩm thực,nhà hàng,18.4936907,105.4263425,"Phố Châu, Hương Sơn, Hà Tĩnh",,Cường Tống Quan là nhà hàng tại TP.HCM.,Cường Tống Quan Ẩm thựcnhà hàng
+DIA_NA00042,Commercial Hotel,Du lịch,khách sạn,18.9766447,105.5996123,"Đường Quốc Lộ 7, Diễn Thành, Diễn Châu, Nghệ An, 43407",,Commercial Hotel là khách sạn tại TP.HCM.,Commercial Hotel Du lịchkhách sạn
+DIA_NA00043,KFC,Ẩm thực,quán thức ăn nhanh,18.6665185,105.6744647,"Đường Quang Trung, Quang Trung, Vinh, Nghệ An, 43112",,KFC là quán thức ăn nhanh tại TP.HCM.,KFC Ẩm thựcquán thức ăn nhanh
+DIA_NA00044,Sura BBQ,Ẩm thực,nhà hàng,18.6659471,105.6763162,"Nhà Phân Phối Điện Gia Dụng Điện Trang Trí Hòa Vinh, 5 Đường Trần Phú, Lê Mao, Vinh, Nghệ An, 43106",,Sura BBQ là nhà hàng tại TP.HCM.,Sura BBQ Ẩm thựcnhà hàng
+DIA_NA00045,Highlands Coffee,Ẩm thực,quán cà phê,18.6659317,105.6742315,"Đường Quang Trung, Quang Trung, Vinh, Nghệ An, 43112",,Highlands Coffee là quán cà phê tại TP.HCM.,Highlands Coffee Ẩm thựcquán cà phê
+DIA_NA00046,The Pizza Company,Ẩm thực,quán thức ăn nhanh,18.6689899,105.6739832,"15 Đường Quang Trung, Quang Trung, Vinh, Nghệ An",,The Pizza Company là quán thức ăn nhanh tại TP.HCM.,The Pizza Company Ẩm thựcquán thức ăn nhanh
+DIA_NA00047,Cannabis Coffee,Ẩm thực,quán cà phê,18.6708996,105.6827269,"21 Đường Nguyễn Thị Minh Khai, Lê Mao, Vinh, Nghệ An, 43106",,Cannabis Coffee là quán cà phê tại TP.HCM.,Cannabis Coffee Ẩm thựcquán cà phê
+DIA_NA00048,Ba Tan,Ẩm thực,nhà hàng,18.6746597,105.6726623,"191 Đường Phan Chu Trinh, Quang Trung, Vinh, Nghệ An, 43112",,Ba Tan là nhà hàng tại TP.HCM.,Ba Tan Ẩm thựcnhà hàng
+DIA_NA00049,Ta Mon,Du lịch,địa điểm du lịch,18.6714375,105.6716163,"Đường Đào Tấn, Cửa Nam, Vinh, Nghệ An, 43114",,Ta Mon là địa điểm du lịch tại TP.HCM.,Ta Mon Du lịchđịa điểm du lịch
+DIA_NA00050,Nguyen Thi Minh Khai,Du lịch,địa điểm du lịch,18.6715989,105.6745844,"Đường Quang Trung, Quang Trung, Vinh, Nghệ An, 43112",,Nguyen Thi Minh Khai là địa điểm du lịch tại TP.HCM.,Nguyen Thi Minh Khai Du lịchđịa điểm du lịch
+DIA_NA00051,Tien Mon,Du lịch,địa điểm du lịch,18.6676968,105.6693082,"Ngõ 1 Đặng Thái Thân, Cửa Nam, Vinh, Nghệ An, 43114",,Tien Mon là địa điểm du lịch tại TP.HCM.,Tien Mon Du lịchđịa điểm du lịch
+DIA_NA00052,Kien Cuong Bat Nhuat Vinh Quang Doi Doi,Du lịch,địa điểm du lịch,18.6716725,105.6690426,"Ngõ 2 Đào Tấn, Cửa Nam, Vinh, Nghệ An, 43114",,Kien Cuong Bat Nhuat Vinh Quang Doi Doi là địa điểm du lịch tại TP.HCM.,Kien Cuong Bat Nhuat Vinh Quang Doi Doi Du lịchđịa điểm du lịch
+DIA_NA00053,Tien Vao Nha Chua,Du lịch,địa điểm du lịch,18.3195813,105.6024533,"Đường Hồ Chí Minh, Phương Mỹ, Hương Khê, Hà Tĩnh, 46012",,Tien Vao Nha Chua là địa điểm du lịch tại TP.HCM.,Tien Vao Nha Chua Du lịchđịa điểm du lịch
+DIA_NA00054,Noi Quy,Du lịch,địa điểm du lịch,18.6716046,105.6748134,"18 Đường Quang Trung, Quang Trung, Vinh, Nghệ An, 43112",,Noi Quy là địa điểm du lịch tại TP.HCM.,Noi Quy Du lịchđịa điểm du lịch
+DIA_NA00055,King BBQ,Ẩm thực,nhà hàng,18.6876241,105.6658683,"Quán Bàu, Vinh, Nghệ An",,King BBQ là nhà hàng tại TP.HCM.,King BBQ Ẩm thựcnhà hàng
+DIA_NA00056,Highlands Coffee,Ẩm thực,quán cà phê,18.6876757,105.6655497,"1 Đường Lê Ninh, Quán Bàu, Vinh, Nghệ An, 43120",,Highlands Coffee là quán cà phê tại TP.HCM.,Highlands Coffee Ẩm thựcquán cà phê
+DIA_NA00057,Toc Do Cao,Khác,địa điểm,18.6872598,105.6671165,"7A Đường Phan Bội Châu, Lê Lợi, Vinh, Nghệ An",,Toc Do Cao là địa điểm tại TP.HCM.,Toc Do Cao Khácđịa điểm
+DIA_NA00058,Cong Phu,Ẩm thực,nhà hàng,18.6768479,105.6742575,"Đường Lê Lợi, Lê Lợi, Vinh, Nghệ An, 43116",,Cong Phu là nhà hàng tại TP.HCM.,Cong Phu Ẩm thựcnhà hàng
+DIA_NA00059,Café Gold,Ẩm thực,quán cà phê,18.6866384,105.6722651,"50B Đường Phan Bội Châu, Lê Lợi, Vinh, Nghệ An, 43116",,Café Gold là quán cà phê tại TP.HCM.,Café Gold Ẩm thựcquán cà phê
+DIA_NA00060,Tanh Vinh Hotel,Du lịch,khách sạn,18.6841769,105.6743881,"213 Đường Lê Lợi, Lê Lợi, Vinh, Nghệ An",,Tanh Vinh Hotel là khách sạn tại TP.HCM.,Tanh Vinh Hotel Du lịchkhách sạn
+DIA_NA00061,Nuoc Mia,Ẩm thực,quán cà phê,18.7793708,105.4158061,"Đường Quốc Lộ 15, Nam Hưng, Nam Đàn, Nghệ An, 44629",,Nuoc Mia là quán cà phê tại TP.HCM.,Nuoc Mia Ẩm thựcquán cà phê
+DIA_NA00062,Goong Coffee,Ẩm thực,quán cà phê,18.6728787,105.6940861,"Đường Trường Thi, Vinh, Nghệ An, 43107",,Goong Coffee là quán cà phê tại TP.HCM.,Goong Coffee Ẩm thựcquán cà phê
+DIA_NA00063,Espérer,Ẩm thực,quán bar,18.6773836,105.6863978,"125 Đường Nguyễn Văn Cừ, Hưng Bình, Vinh, Nghệ An, 43111",,Espérer là quán bar tại TP.HCM.,Espérer Ẩm thựcquán bar
+DIA_NA00064,Ruby Hotel,Du lịch,khách sạn,18.4719226,105.3193601,"Quốc Lộ 8, Sơn Tây, Hương Sơn, Hà Tĩnh, 45833",,Ruby Hotel là khách sạn tại TP.HCM.,Ruby Hotel Du lịchkhách sạn
+DIA_NA00065,Anh Quan,Du lịch,khách sạn,18.7031407,105.670998,43120,,Anh Quan là khách sạn tại TP.HCM.,Anh Quan Du lịchkhách sạn
+DIA_NA00066,ESPÉRER 138 Nguyễn Văn Cừ,Ẩm thực,quán bar,18.6767544,105.6866316,"Đường Nguyễn Văn Cừ, Hưng Bình, Vinh, Nghệ An, 43111",,ESPÉRER 138 Nguyễn Văn Cừ là quán bar tại TP.HCM.,ESPÉRER 138 Nguyễn Văn Cừ Ẩm thựcquán bar
+DIA_NA00067,Ngọc Minh Huế,Ẩm thực,nhà hàng,18.6793188,105.6825658,"92 Đường Kim Đồng, Hưng Bình, Vinh, Nghệ An, 43111",,Ngọc Minh Huế là nhà hàng tại TP.HCM.,Ngọc Minh Huế Ẩm thựcnhà hàng
+DIA_NA00068,Cơm Gà Tam Kì,Ẩm thực,nhà hàng,18.6778999,105.6778305,"Đường Kim Đồng, Hưng Bình, Vinh, Nghệ An, 43111",,Cơm Gà Tam Kì là nhà hàng tại TP.HCM.,Cơm Gà Tam Kì Ẩm thựcnhà hàng
+DIA_NA00069,Pho,Ẩm thực,nhà hàng,18.6763753,105.6721037,"Đường Nguyễn Thái Học, Quang Trung, Vinh, Nghệ An, 43112",,Pho là nhà hàng tại TP.HCM.,Pho Ẩm thựcnhà hàng
+DIA_NA00070,Hoa Thu Homestay,Du lịch,khách sạn,19.0142497,104.8879461,"Yên Khê, Con Cuông, Nghệ An",,Hoa Thu Homestay là khách sạn tại TP.HCM.,Hoa Thu Homestay Du lịchkhách sạn
+DIA_NA00071,Cầu Thọ Tương,Du lịch,địa điểm du lịch,18.5422722,105.5892024,"Quốc Lộ 15, Đức Thọ, Hà Tĩnh, 45706",,Cầu Thọ Tương là địa điểm du lịch tại TP.HCM.,Cầu Thọ Tương Du lịchđịa điểm du lịch
+DIA_NA00072,Pho Bo Bia Hoi,Ẩm thực,nhà hàng,18.9772772,105.6104199,"Đường Quốc Lộ 7, Diễn Thành, Diễn Châu, Nghệ An, 43407",,Pho Bo Bia Hoi là nhà hàng tại TP.HCM.,Pho Bo Bia Hoi Ẩm thựcnhà hàng
+DIA_NA00073,Tokyo 2 Hotel,Du lịch,khách sạn,18.6752656,105.6963119,43107,,Tokyo 2 Hotel là khách sạn tại TP.HCM.,Tokyo 2 Hotel Du lịchkhách sạn
+DIA_NA00074,Ngha,Du lịch,khách sạn,18.5457585,105.7016339,"Bắc Hồng, Hồng Lĩnh, Hà Tĩnh",,Ngha là khách sạn tại TP.HCM.,Ngha Du lịchkhách sạn
+DIA_NA00075,Nha Nghi Vuon Che,Du lịch,khách sạn,18.6250692,105.3726677,"Đường Hồ Chí Minh, Thanh Mai, Thanh Chương, Nghệ An, 44743",,Nha Nghi Vuon Che là khách sạn tại TP.HCM.,Nha Nghi Vuon Che Du lịchkhách sạn
+DIA_NA00076,Bao La Hotel,Du lịch,khách sạn,18.8131848,105.1917038,"Hạnh Lâm, Thanh Chương, Nghệ An",,Bao La Hotel là khách sạn tại TP.HCM.,Bao La Hotel Du lịchkhách sạn
+DIA_NA00077,Gin's pizza,Ẩm thực,nhà hàng,18.6663277,105.7019807,"94 Đường Phong Định Cảng, Hưng Dũng, Vinh, Nghệ An, 43107",,Gin's pizza là nhà hàng tại TP.HCM.,Gin's pizza Ẩm thựcnhà hàng
+DIA_NA00078,Green House Coffee,Ẩm thực,quán cà phê,18.5081805,105.4236841,"Quốc Lộ 8, Phố Châu, Hương Sơn, Hà Tĩnh, 45806",,Green House Coffee là quán cà phê tại TP.HCM.,Green House Coffee Ẩm thựcquán cà phê
+DIA_NA00079,"Số 57, Đường, Nguyễn Viết Xuân, Hưng Dũng, Thành phố Vinh, Nghệ An 460000, Vietnam",Ẩm thực,nhà hàng,18.6719732,105.7034895,"Ngõ 55 Nguyễn Viết Xuân, Hưng Dũng, Vinh, Nghệ An, 43109",,"Số 57, Đường, Nguyễn Viết Xuân, Hưng Dũng, Thành phố Vinh, Nghệ An 460000, Vietnam là nhà hàng tại TP.HCM.","Số 57, Đường, Nguyễn Viết Xuân, Hưng Dũng, Thành phố Vinh, Nghệ An 460000, Vietnam Ẩm thựcnhà hàng"
+DIA_NA00080,Che me nghe,Ẩm thực,quán cà phê,18.6667579,105.6792644,"Đường Ngư Hải, Lê Mao, Vinh, Nghệ An, 43106",,Che me nghe là quán cà phê tại TP.HCM.,Che me nghe Ẩm thựcquán cà phê
+DIA_NA00081,Local food,Ẩm thực,quán thức ăn nhanh,19.0505366,105.2760987,"Đường Hồ Chí Minh, Tân Kỳ, Nghệ An, 43806",,Local food là quán thức ăn nhanh tại TP.HCM.,Local food Ẩm thựcquán thức ăn nhanh
+DIA_NA00082,Local food,Ẩm thực,quán thức ăn nhanh,18.9335392,105.1621932,"Đường Hồ Chí Minh, Khai Sơn, Anh Sơn, Nghệ An, 44208",,Local food là quán thức ăn nhanh tại TP.HCM.,Local food Ẩm thựcquán thức ăn nhanh
+DIA_NA00083,Banh mi,Ẩm thực,nhà hàng,18.7495587,105.2656491,"Thanh Thịnh, Thanh Chương, Nghệ An",,Banh mi là nhà hàng tại TP.HCM.,Banh mi Ẩm thựcnhà hàng
+DIA_NA00084,Caffee tra sua,Ẩm thực,quán cà phê,18.7274551,105.2852984,"Thanh An, Thanh Chương, Nghệ An",,Caffee tra sua là quán cà phê tại TP.HCM.,Caffee tra sua Ẩm thựcquán cà phê
+DIA_NA00085,Lo banh my lap vinh,Ẩm thực,quán thức ăn nhanh,18.694434,105.6648438,"Đường Lê Ninh, Quán Bàu, Vinh, Nghệ An, 43120",,Lo banh my lap vinh là quán thức ăn nhanh tại TP.HCM.,Lo banh my lap vinh Ẩm thựcquán thức ăn nhanh
+DIA_NA00086,Nhà anh Ten,Du lịch,khách sạn,18.6693677,105.700205,43107,,Nhà anh Ten là khách sạn tại TP.HCM.,Nhà anh Ten Du lịchkhách sạn
+DIA_NA00087,Goong coffee,Ẩm thực,quán bar,18.6738743,105.6965213,43107,,Goong coffee là quán bar tại TP.HCM.,Goong coffee Ẩm thựcquán bar
+DIA_NA00088,Moc coffee,Ẩm thực,quán cà phê,18.3768799,105.5036788,"Đường Hồ Chí Minh, Vũ Quang, Hà Tĩnh, 45906",,Moc coffee là quán cà phê tại TP.HCM.,Moc coffee Ẩm thựcquán cà phê
+DIA_NA00089,Đạt Thuần Chay,Ẩm thực,nhà hàng,18.6689129,105.6644635,"53 Đường Trần Hưng Đạo, Đội Cung, Vinh, Nghệ An, 43115",,Đạt Thuần Chay là nhà hàng tại TP.HCM.,Đạt Thuần Chay Ẩm thựcnhà hàng
+DIA_NA00090,Dance sport coffee,Ẩm thực,quán cà phê,18.6722196,105.694076,"1 Đường Phan Đăng Lưu, Vinh, Nghệ An, 43107",,Dance sport coffee là quán cà phê tại TP.HCM.,Dance sport coffee Ẩm thựcquán cà phê
+DIA_NA00091,Hoàng Vũ Bánh Mì,Ẩm thực,quán cà phê,18.5135561,105.4944429,"Quốc Lộ 8, Sơn Châu, Hương Sơn, Hà Tĩnh, 45814",,Hoàng Vũ Bánh Mì là quán cà phê tại TP.HCM.,Hoàng Vũ Bánh Mì Ẩm thựcquán cà phê
+DIA_NA00092,Dông quê,Ẩm thực,nhà hàng,18.6913463,105.6658933,"Đường Lê Ninh, Quán Bàu, Vinh, Nghệ An, 43120",,Dông quê là nhà hàng tại TP.HCM.,Dông quê Ẩm thựcnhà hàng
+DIA_NA00093,"Unlike the rest, not a love hotel!",Du lịch,khách sạn,18.9021489,105.3117496,"Đô Lương, Nghệ An",,"Unlike the rest, not a love hotel! là khách sạn tại TP.HCM.","Unlike the rest, not a love hotel! Du lịchkhách sạn"
+DIA_NA00094,Good restaurant with veggie option,Ẩm thực,nhà hàng,19.1814482,105.3905183,"Đường Hồ Chí Minh, Nghĩa Bình, Tân Kỳ, Nghệ An, 43814",,Good restaurant with veggie option là nhà hàng tại TP.HCM.,Good restaurant with veggie option Ẩm thựcnhà hàng
+DIA_NA00095,Xúp Niêu Cá Tràu - Lươn Đồng Hồng Lĩnh,Ẩm thực,nhà hàng,18.5307658,105.7093201,"Đường Nguyễn Nghiễm, Bắc Hồng, Hồng Lĩnh, Hà Tĩnh, 45607",,Xúp Niêu Cá Tràu - Lươn Đồng Hồng Lĩnh là nhà hàng tại TP.HCM.,Xúp Niêu Cá Tràu - Lươn Đồng Hồng Lĩnh Ẩm thựcnhà hàng
+DIA_NA00096,Chợ Hôm Thị Trấn Đức Thọ,Du lịch,trung tâm thương mại,18.5402199,105.5886193,"Quốc Lộ 15, Đức Thọ, Hà Tĩnh, 45706",,Chợ Hôm Thị Trấn Đức Thọ là trung tâm thương mại tại TP.HCM.,Chợ Hôm Thị Trấn Đức Thọ Du lịchtrung tâm thương mại
+DIA_NA00097,Quán lươn Bà Đức cơ sở 2,Ẩm thực,nhà hàng,18.5399402,105.587171,"Quốc Lộ 15, Đức Thọ, Hà Tĩnh, 45706",,Quán lươn Bà Đức cơ sở 2 là nhà hàng tại TP.HCM.,Quán lươn Bà Đức cơ sở 2 Ẩm thựcnhà hàng
+DIA_NA00098,Duy Khánh,Ẩm thực,nhà hàng,18.5329214,105.5857387,"Quốc Lộ 8, Đức Thọ, Hà Tĩnh, 45706",,Duy Khánh là nhà hàng tại TP.HCM.,Duy Khánh Ẩm thựcnhà hàng
+DIA_NA00099,Cà phê 102,Ẩm thực,quán cà phê,18.5316905,105.585347,"Quốc Lộ 8, Đức Thọ, Hà Tĩnh, 45706",,Cà phê 102 là quán cà phê tại TP.HCM.,Cà phê 102 Ẩm thựcquán cà phê
+DIA_NA00100,"Quán cháo gà, miến gà",Ẩm thực,nhà hàng,18.531604,105.5848106,"Quốc Lộ 8, Đức Thọ, Hà Tĩnh, 45706",,"Quán cháo gà, miến gà là nhà hàng tại TP.HCM.","Quán cháo gà, miến gà Ẩm thựcnhà hàng"
+DIA_NA00101,Gà Phê Coffee,Ẩm thực,quán cà phê,18.5319092,105.584081,"Đức Thọ, Hà Tĩnh",,Gà Phê Coffee là quán cà phê tại TP.HCM.,Gà Phê Coffee Ẩm thựcquán cà phê
+DIA_NA00102,Ông Tú Triệu Đô,Ẩm thực,nhà hàng,18.5317261,105.5838128,"Đức Thọ, Hà Tĩnh",,Ông Tú Triệu Đô là nhà hàng tại TP.HCM.,Ông Tú Triệu Đô Ẩm thựcnhà hàng
+DIA_NA00103,Cột mốc km số 0 - Đường mòn Hồ Chí Minh,Du lịch,địa điểm du lịch,19.0445629,105.2689487,"Đường Hồ Chí Minh, Tân Kỳ, Nghệ An, 43806",,Cột mốc km số 0 - Đường mòn Hồ Chí Minh là địa điểm du lịch tại TP.HCM.,Cột mốc km số 0 - Đường mòn Hồ Chí Minh Du lịchđịa điểm du lịch
+DIA_NA00104,Làng nồi đất Trù Sơn,Du lịch,địa điểm du lịch,18.8163324,105.4346092,"Trù Sơn, Đô Lương, Nghệ An",,Làng nồi đất Trù Sơn là địa điểm du lịch tại TP.HCM.,Làng nồi đất Trù Sơn Du lịchđịa điểm du lịch
+DIA_NA00105,Làng nồi đất Trù Sơn,Du lịch,địa điểm du lịch,18.8165847,105.4334968,"Trù Sơn, Đô Lương, Nghệ An",,Làng nồi đất Trù Sơn là địa điểm du lịch tại TP.HCM.,Làng nồi đất Trù Sơn Du lịchđịa điểm du lịch
+DIA_NA00106,Làng bánh đa nem Diễn Ngọc,Du lịch,địa điểm du lịch,18.9972885,105.6030469,"Diễn Ngọc, Diễn Châu, Nghệ An",,Làng bánh đa nem Diễn Ngọc là địa điểm du lịch tại TP.HCM.,Làng bánh đa nem Diễn Ngọc Du lịchđịa điểm du lịch
+DIA_NA00107,Làng bánh đa Việt Xuyên,Du lịch,địa điểm du lịch,18.3901989,105.7960947,"Phù Việt, Thạch Hà, Hà Tĩnh",,Làng bánh đa Việt Xuyên là địa điểm du lịch tại TP.HCM.,Làng bánh đa Việt Xuyên Du lịchđịa điểm du lịch
+DIA_NA00108,Làng cá nướng Diễn Vạn,Du lịch,địa điểm du lịch,19.0234613,105.5992261,"Diễn Vạn, Diễn Châu, Nghệ An",,Làng cá nướng Diễn Vạn là địa điểm du lịch tại TP.HCM.,Làng cá nướng Diễn Vạn Du lịchđịa điểm du lịch
+DIA_NA00109,Nước mắm Vạn Phần,Du lịch,địa điểm du lịch,19.0219698,105.5994131,"Diễn Vạn, Diễn Châu, Nghệ An",,Nước mắm Vạn Phần là địa điểm du lịch tại TP.HCM.,Nước mắm Vạn Phần Du lịchđịa điểm du lịch
+DIA_NA00110,Làng rèn Trung Lương,Du lịch,địa điểm du lịch,18.5593971,105.6735825,"Trung Lương, Hồng Lĩnh, Hà Tĩnh",,Làng rèn Trung Lương là địa điểm du lịch tại TP.HCM.,Làng rèn Trung Lương Du lịchđịa điểm du lịch
+DIA_NA00111,Sai gon Kim Lien,Du lịch,khách sạn,18.6709665,105.6739416,"25 Đường Quang Trung, Quang Trung, Vinh, Nghệ An, 43112",,Sai gon Kim Lien là khách sạn tại TP.HCM.,Sai gon Kim Lien Du lịchkhách sạn
+DIA_NA00112,Mường Thanh Luxury Song Lam Hotel,Du lịch,khách sạn,18.6680204,105.6737567,"11 Đường Quang Trung, Quang Trung, Vinh, Nghệ An, 43112",,Mường Thanh Luxury Song Lam Hotel là khách sạn tại TP.HCM.,Mường Thanh Luxury Song Lam Hotel Du lịchkhách sạn
+DIA_NA00113,Tecco sky hotel and spa,Du lịch,khách sạn,18.6849272,105.6752888,"1 Ngõ 2 Nguyễn Đức Cảnh, Hưng Bình, Vinh, Nghệ An, 43111",,Tecco sky hotel and spa là khách sạn tại TP.HCM.,Tecco sky hotel and spa Du lịchkhách sạn
+DIA_NA00114,Liberty coffee and Tea,Ẩm thực,quán cà phê,18.4569771,105.303806,"Tây Sơn, Hương Sơn, Hà Tĩnh",,Liberty coffee and Tea là quán cà phê tại TP.HCM.,Liberty coffee and Tea Ẩm thựcquán cà phê
+DIA_NA00115,Thanh Suong restaurant,Ẩm thực,nhà hàng,18.4569049,105.3044363,"Tây Sơn, Hương Sơn, Hà Tĩnh",,Thanh Suong restaurant là nhà hàng tại TP.HCM.,Thanh Suong restaurant Ẩm thựcnhà hàng
+DIA_NA00116,Thsi Phat Dat hotel,Du lịch,khách sạn,18.4583084,105.3009419,"Quốc Lộ 8, Tây Sơn, Hương Sơn, Hà Tĩnh, 45834",,Thsi Phat Dat hotel là khách sạn tại TP.HCM.,Thsi Phat Dat hotel Du lịchkhách sạn
+DIA_NA00117,De Tuoi Ha Anh,Ẩm thực,nhà hàng,18.4581702,105.3025062,"Quốc Lộ 8, Tây Sơn, Hương Sơn, Hà Tĩnh, 45834",,De Tuoi Ha Anh là nhà hàng tại TP.HCM.,De Tuoi Ha Anh Ẩm thựcnhà hàng
+DIA_NA00118,Khách Sạn Lan Đồng,Du lịch,khách sạn,18.8081514,105.7216092,"Đường Nguyễn Năng Tĩnh, Thu Thủy, Cửa Lò, Nghệ An, 43210",,Khách Sạn Lan Đồng là khách sạn tại TP.HCM.,Khách Sạn Lan Đồng Du lịchkhách sạn
+DIA_NA00119,Xôi,Ẩm thực,nhà hàng,18.80191,105.7239795,"Housing Bank of Mekong Delta - Chi Nhánh Nghệ An - Phòng Giao Dịch Thị Xã, Đường Mai Thúc Loan, Nghi Hương, Cửa Lò, Nghệ An, 43206",,Xôi là nhà hàng tại TP.HCM.,Xôi Ẩm thựcnhà hàng
+DIA_NA00120,Cafe Boom,Ẩm thực,quán cà phê,18.8020057,105.7240536,"Housing Bank of Mekong Delta - Chi Nhánh Nghệ An - Phòng Giao Dịch Thị Xã, Đường Mai Thúc Loan, Nghi Hương, Cửa Lò, Nghệ An, 43206",,Cafe Boom là quán cà phê tại TP.HCM.,Cafe Boom Ẩm thựcquán cà phê
+DIA_NA00121,Sen Vang Resort,Du lịch,khách sạn,18.9773275,105.6169684,"Đường Quốc Lộ 7, Diễn Thành, Diễn Châu, Nghệ An, 43407",,Sen Vang Resort là khách sạn tại TP.HCM.,Sen Vang Resort Du lịchkhách sạn
+DIA_NA00122,Miu's Pizza,Ẩm thực,quán thức ăn nhanh,18.9776092,105.6003501,"Đường Quốc Lộ 7, Diễn Châu, Nghệ An, 43406",,Miu's Pizza là quán thức ăn nhanh tại TP.HCM.,Miu's Pizza Ẩm thựcquán thức ăn nhanh
+DIA_NA00123,Khach San Viet Uc,Du lịch,khách sạn,18.6746518,105.6976135,"7 Ngõ 8 Phan Sỹ Thục, Vinh, Nghệ An, 43107",,Khach San Viet Uc là khách sạn tại TP.HCM.,Khach San Viet Uc Du lịchkhách sạn
+DIA_NA00124,Dai Hue Palace,Du lịch,khách sạn,18.6760974,105.6949305,"2 Đường Nguyễn Phong Sắc, Hưng Dũng, Vinh, Nghệ An, 43109",,Dai Hue Palace là khách sạn tại TP.HCM.,Dai Hue Palace Du lịchkhách sạn
+DIA_NA00125,Phong Huy Nam Dinh,Ẩm thực,nhà hàng,18.5082601,105.4240609,"Quốc Lộ 8, Phố Châu, Hương Sơn, Hà Tĩnh, 45806",,Phong Huy Nam Dinh là nhà hàng tại TP.HCM.,Phong Huy Nam Dinh Ẩm thựcnhà hàng
+DIA_NA00126,Coffee Tina,Ẩm thực,quán cà phê,18.4479665,105.7755664,"Nghèn, Can Lộc, Hà Tĩnh",,Coffee Tina là quán cà phê tại TP.HCM.,Coffee Tina Ẩm thựcquán cà phê
+DIA_NA00127,Lá cà phê,Ẩm thực,quán cà phê,18.7298176,105.6830405,"Nghi Ân, Vinh, Nghệ An",,Lá cà phê là quán cà phê tại TP.HCM.,Lá cà phê Ẩm thựcquán cà phê
+DIA_NA00128,Nhà Nghỉ Long Lưu,Du lịch,khách sạn,18.7011906,105.6920558,"Nghi Phú, Vinh, Nghệ An",,Nhà Nghỉ Long Lưu là khách sạn tại TP.HCM.,Nhà Nghỉ Long Lưu Du lịchkhách sạn
+DIA_NA00129,Bun cha nuong,Ẩm thực,nhà hàng,18.6985389,105.687809,"66 Đường Trương Văn Lĩnh, Nghi Phú, Vinh, Nghệ An, 43121",,Bun cha nuong là nhà hàng tại TP.HCM.,Bun cha nuong Ẩm thựcnhà hàng
+DIA_NA00130,Türkiye parkı,Du lịch,công viên,18.6745085,105.6743372,"Đường Quang Trung, Quang Trung, Vinh, Nghệ An, 43112",,Türkiye parkı là công viên tại TP.HCM.,Türkiye parkı Du lịchcông viên
+DIA_NA00131,Thành cổ Vinh,Du lịch,địa điểm du lịch,18.6706824,105.6694746,"Đường Đào Tấn, Cửa Nam, Vinh, Nghệ An, 43114",,Thành cổ Vinh là địa điểm du lịch tại TP.HCM.,Thành cổ Vinh Du lịchđịa điểm du lịch
+DIA_NA00132,Buffet korea,Ẩm thực,nhà hàng,18.977503,105.608112,"Đường Quốc Lộ 7, Diễn Thành, Diễn Châu, Nghệ An, 43407",,Buffet korea là nhà hàng tại TP.HCM.,Buffet korea Ẩm thựcnhà hàng
+DIA_NA00133,Than Dat 2 Hotel,Du lịch,khách sạn,18.6943994,105.6656126,"Đường Lê Ninh, Quán Bàu, Vinh, Nghệ An, 43120",,Than Dat 2 Hotel là khách sạn tại TP.HCM.,Than Dat 2 Hotel Du lịchkhách sạn
+DIA_NA00134,Ly Ly,Ẩm thực,nhà hàng,18.5063541,105.4243156,"Phố Châu, Hương Sơn, Hà Tĩnh",,Ly Ly là nhà hàng tại TP.HCM.,Ly Ly Ẩm thựcnhà hàng
+DIA_NA00135,Vườn hoa Cửa Nam,Du lịch,công viên,18.6664639,105.6693248,"Đường Hồ Bá Ôn, Cửa Nam, Vinh, Nghệ An, 43114",,Vườn hoa Cửa Nam là công viên tại TP.HCM.,Vườn hoa Cửa Nam Du lịchcông viên
+DIA_NA00136,Vườn hoa Cửa Bắc,Du lịch,công viên,18.6771699,105.6752769,"Đường Nguyễn Thị Minh Khai, Quang Trung, Vinh, Nghệ An, 43112",,Vườn hoa Cửa Bắc là công viên tại TP.HCM.,Vườn hoa Cửa Bắc Du lịchcông viên
+DIA_NA00137,Khách sạn Mường Thanh Thanh Niên,Du lịch,khách sạn,18.6756859,105.6841511,"13 Ngõ 78 Lê Hồng Phong, Hưng Bình, Vinh, Nghệ An, 43111",,Khách sạn Mường Thanh Thanh Niên là khách sạn tại TP.HCM.,Khách sạn Mường Thanh Thanh Niên Du lịchkhách sạn
+DIA_NA00138,Công viên Nguyễn Tất Thành,Du lịch,công viên,18.6730401,105.695301,"Ngõ 26 Trường Thi, Vinh, Nghệ An, 43107",,Công viên Nguyễn Tất Thành là công viên tại TP.HCM.,Công viên Nguyễn Tất Thành Du lịchcông viên
+DIA_NA00139,Công viên Tuy Phước,Du lịch,công viên,18.450334,105.7787937,"Quốc Lộ 1A, Nghèn, Can Lộc, Hà Tĩnh, 45306",,Công viên Tuy Phước là công viên tại TP.HCM.,Công viên Tuy Phước Du lịchcông viên
+DIA_NA00140,Công viên VSIP Nghệ An,Du lịch,công viên,18.6770918,105.6372398,"Hưng Nguyên, Nghệ An",,Công viên VSIP Nghệ An là công viên tại TP.HCM.,Công viên VSIP Nghệ An Du lịchcông viên
+DIA_NA00141,ARTISAN Bakery & Cafe,Ẩm thực,quán cà phê,18.6772655,105.6866041,"136 Đường Nguyễn Văn Cừ, Hưng Phúc, Vinh, Nghệ An, 43110",,ARTISAN Bakery & Cafe là quán cà phê tại TP.HCM.,ARTISAN Bakery & Cafe Ẩm thựcquán cà phê
+DIA_NA00142,Khách Sạn Ngân Hàng,Du lịch,khách sạn,18.8098969,105.7217191,"Đường Bình Minh, Thu Thủy, Cửa Lò, Nghệ An, 43210",,Khách Sạn Ngân Hàng là khách sạn tại TP.HCM.,Khách Sạn Ngân Hàng Du lịchkhách sạn
+DIA_NA00143,Khách sạn VEAM Cửa Lò,Du lịch,khách sạn,18.7967778,105.7299638,"Đường Bình Minh, Nghi Hương, Cửa Lò, Nghệ An, 43206",,Khách sạn VEAM Cửa Lò là khách sạn tại TP.HCM.,Khách sạn VEAM Cửa Lò Du lịchkhách sạn
+DIA_NA00144,Khách sạn Xanh,Du lịch,khách sạn,18.7978405,105.7292691,"Đường Bình Minh, Nghi Hương, Cửa Lò, Nghệ An, 43206",,Khách sạn Xanh là khách sạn tại TP.HCM.,Khách sạn Xanh Du lịchkhách sạn
+DIA_NA00145,Melia Vinpearl Cửa Hội Beach Resort,Du lịch,khách sạn,18.7683214,105.7565298,"Nghi Hải, Cửa Lò, Nghệ An",,Melia Vinpearl Cửa Hội Beach Resort là khách sạn tại TP.HCM.,Melia Vinpearl Cửa Hội Beach Resort Du lịchkhách sạn
+DIA_NA00146,Khách sạn An Bình,Du lịch,khách sạn,18.8034393,105.7198839,"Nhà Luyện Tập Và Thi Đấu Thể Dục Thể Thao Thị Xã Cửa Lò, Đường Sào Nam, Nghi Thu, Cửa Lò, Nghệ An",,Khách sạn An Bình là khách sạn tại TP.HCM.,Khách sạn An Bình Du lịchkhách sạn
+DIA_NA00147,Nhà Hàng Sơn Kèn Gà Chọi,Ẩm thực,nhà hàng,18.7258099,105.6681565,"Ngõ 282A Thăng Long, Nghi Liên, Vinh, Nghệ An, 43124",,Nhà Hàng Sơn Kèn Gà Chọi là nhà hàng tại TP.HCM.,Nhà Hàng Sơn Kèn Gà Chọi Ẩm thựcnhà hàng
+DIA_NA00148,Bia Phủi 68 - Văn Văn Thanh Chương,Ẩm thực,nhà hàng,18.7256081,105.6682698,"Nghi Kim, Vinh, Nghệ An",,Bia Phủi 68 - Văn Văn Thanh Chương là nhà hàng tại TP.HCM.,Bia Phủi 68 - Văn Văn Thanh Chương Ẩm thựcnhà hàng
+DIA_NA00149,AIRPORT CAFE,Ẩm thực,quán cà phê,18.7200988,105.671158,"Nghi Kim, Vinh, Nghệ An",,AIRPORT CAFE là quán cà phê tại TP.HCM.,AIRPORT CAFE Ẩm thựcquán cà phê
+DIA_NA00150,Quán Bún Riêu Cua Chí Hoa,Ẩm thực,nhà hàng,18.7259769,105.6673275,"72 Ngõ 282A Thăng Long, Nghi Kim, Vinh, Nghệ An, 43124",,Quán Bún Riêu Cua Chí Hoa là nhà hàng tại TP.HCM.,Quán Bún Riêu Cua Chí Hoa Ẩm thựcnhà hàng
+DIA_NA00151,Un Ni Quân,Ẩm thực,nhà hàng,19.4002691,104.1486629,"Đường Quốc Lộ 7, Mường Xén, Kỳ Sơn, Nghệ An, 44406",,Un Ni Quân là nhà hàng tại TP.HCM.,Un Ni Quân Ẩm thựcnhà hàng
+DIA_NA00152,Thanh Hoa Hotel,Du lịch,khách sạn,19.7975041,105.776234,"25A Đường Quang Trung, Ngọc Trạo, Thanh Hóa",,Thanh Hoa Hotel là khách sạn tại TP.HCM.,Thanh Hoa Hotel Du lịchkhách sạn
+DIA_NA00153,Sao Mai Hotel,Du lịch,khách sạn,19.8125368,105.7732577,"20 Đường Phan Chu Trinh, Điện Biên, Thanh Hóa, 40120",,Sao Mai Hotel là khách sạn tại TP.HCM.,Sao Mai Hotel Du lịchkhách sạn
+DIA_NA00154,Hoa Thuy Tien Hotel,Du lịch,khách sạn,19.8120035,105.7787022,"13/1 Đường Ngô Quyền, Điện Biên, Thanh Hóa, 40120",,Hoa Thuy Tien Hotel là khách sạn tại TP.HCM.,Hoa Thuy Tien Hotel Du lịchkhách sạn
+DIA_NA00155,Long Nam Hotel,Du lịch,khách sạn,19.8195333,105.7878539,"381 Đường Trần Hưng Đạo, Nam Ngạn, Thanh Hóa, 40112",,Long Nam Hotel là khách sạn tại TP.HCM.,Long Nam Hotel Du lịchkhách sạn
+DIA_NA00156,Hoa Hong Hotel,Du lịch,khách sạn,19.8114686,105.7712242,"102 Đường Triệu Quốc Đạt, Điện Biên, Thanh Hóa",,Hoa Hong Hotel là khách sạn tại TP.HCM.,Hoa Hong Hotel Du lịchkhách sạn
+DIA_NA00157,Phu Dong Hotel,Du lịch,khách sạn,19.8136779,105.7678162,"Đường Lý Thái Tông, Tân Sơn, Thanh Hóa, 40132",,Phu Dong Hotel là khách sạn tại TP.HCM.,Phu Dong Hotel Du lịchkhách sạn
+DIA_NA00158,Hac Trang Hotel,Du lịch,khách sạn,19.8231063,105.7773289,"167 Đường Thành Thái, Đông Thọ, Thanh Hóa, 40110",,Hac Trang Hotel là khách sạn tại TP.HCM.,Hac Trang Hotel Du lịchkhách sạn
+DIA_NA00159,Muong Thanh Thanh Hoa Hotel,Du lịch,khách sạn,19.7825471,105.7778439,"Đường Lương Hữu Khánh, Đông Vệ, Thanh Hóa, 40130",,Muong Thanh Thanh Hoa Hotel là khách sạn tại TP.HCM.,Muong Thanh Thanh Hoa Hotel Du lịchkhách sạn
+DIA_NA00160,Dai Lam Hotel,Du lịch,khách sạn,19.6678404,105.4474235,"Yên Cát, Như Xuân, Thanh Hóa",,Dai Lam Hotel là khách sạn tại TP.HCM.,Dai Lam Hotel Du lịchkhách sạn
+DIA_NA00161,Thanh Coi Restaurant,Ẩm thực,nhà hàng,19.4549525,105.7845212,"Đường Quốc Lộ 1, Hải Hòa, Tĩnh Gia, Thanh Hóa, 42707",,Thanh Coi Restaurant là nhà hàng tại TP.HCM.,Thanh Coi Restaurant Ẩm thựcnhà hàng
+DIA_NA00162,Thanh Còi Hotel,Du lịch,khách sạn,19.4550278,105.7850008,"Đường Quốc Lộ 1, Hải Hòa, Tĩnh Gia, Thanh Hóa, 42707",,Thanh Còi Hotel là khách sạn tại TP.HCM.,Thanh Còi Hotel Du lịchkhách sạn
+DIA_NA00163,Khách sạn Phú Cường,Du lịch,khách sạn,19.9196697,105.3938316,"Đường Hồ Chí Minh, Thọ Xương, Thọ Xuân, Thanh Hóa, 41630",,Khách sạn Phú Cường là khách sạn tại TP.HCM.,Khách sạn Phú Cường Du lịchkhách sạn
+DIA_NA00164,Noodle soup,Ẩm thực,nhà hàng,19.32544,105.1891107,"Tỉnh Lộ 532, Quỳ Hợp, Nghệ An, 43906",,Noodle soup là nhà hàng tại TP.HCM.,Noodle soup Ẩm thựcnhà hàng
+DIA_NA00165,Khách Sạn Thanh Bình,Du lịch,khách sạn,19.2524666,105.711441,"Đường Quốc Lộ 1, Hoàng Mai, Nghệ An, 44906",,Khách Sạn Thanh Bình là khách sạn tại TP.HCM.,Khách Sạn Thanh Bình Du lịchkhách sạn
+DIA_NA00166,Nha kach Z111,Du lịch,khách sạn,19.8224832,105.7730972,"Đường Ỷ Lan, Đông Thọ, Thanh Hóa, 40110",,Nha kach Z111 là khách sạn tại TP.HCM.,Nha kach Z111 Du lịchkhách sạn
+DIA_NA00167,TamThuy's Home,Du lịch,khách sạn,19.7954792,105.7801057,"Đường Hồ Nguyên Trừng, Ngọc Trạo, Thanh Hóa, 40122",,TamThuy's Home là khách sạn tại TP.HCM.,TamThuy's Home Du lịchkhách sạn
+DIA_NA00168,Thực Đỏn,Ẩm thực,nhà hàng,19.8052723,105.7765483,"Đường Trần Phú, Lam Sơn, Thanh Hóa, 40123",,Thực Đỏn là nhà hàng tại TP.HCM.,Thực Đỏn Ẩm thựcnhà hàng
+DIA_NA00169,Hoàng Thanh,Du lịch,khách sạn,19.4449778,105.7780096,"Đường Quốc Lộ 1, Hải Hòa, Tĩnh Gia, Thanh Hóa, 42734",,Hoàng Thanh là khách sạn tại TP.HCM.,Hoàng Thanh Du lịchkhách sạn
+DIA_NA00170,Nhà hàng,Ẩm thực,quán thức ăn nhanh,19.4436395,105.7768223,"Đường Quốc Lộ 1, Hải Hòa, Tĩnh Gia, Thanh Hóa, 42734",,Nhà hàng là quán thức ăn nhanh tại TP.HCM.,Nhà hàng Ẩm thựcquán thức ăn nhanh
+DIA_NA00171,Park,Du lịch,địa điểm du lịch,19.8095476,105.7820253,"Đường Đại Lộ Lê Lợi, Lam Sơn, Thanh Hóa",,Park là địa điểm du lịch tại TP.HCM.,Park Du lịchđịa điểm du lịch
+DIA_NA00172,Golden Hotel,Du lịch,khách sạn,19.4559066,105.7842315,"Đường Quốc Lộ 1, Hải Hòa, Tĩnh Gia, Thanh Hóa, 42707",,Golden Hotel là khách sạn tại TP.HCM.,Golden Hotel Du lịchkhách sạn
+DIA_NA00173,Khách Sạn Dương Long Loan,Du lịch,khách sạn,19.2807512,105.7249715,"Đường Quốc Lộ 1, Hoàng Mai, Nghệ An, 44906",,Khách Sạn Dương Long Loan là khách sạn tại TP.HCM.,Khách Sạn Dương Long Loan Du lịchkhách sạn
+DIA_NA00174,Nhà hàng Xuân Trường,Ẩm thực,nhà hàng,19.7919427,105.3994487,"Đường Hồ Chí Minh, Luận Thành, Thường Xuân, Thanh Hóa, 42220",,Nhà hàng Xuân Trường là nhà hàng tại TP.HCM.,Nhà hàng Xuân Trường Ẩm thựcnhà hàng
+DIA_NA00175,Quan an thanh sau,Ẩm thực,nhà hàng,19.564003,105.7981872,"Đường Quốc Lộ 1, Hải Ninh, Tĩnh Gia, Thanh Hóa, 42715",,Quan an thanh sau là nhà hàng tại TP.HCM.,Quan an thanh sau Ẩm thựcnhà hàng
+DIA_NA00176,Cau Luong Dong,Du lịch,địa điểm du lịch,19.6319876,105.4118914,"Đường Hồ Chí Minh, Hóa Quỳ, Như Xuân, Thanh Hóa, 42511",,Cau Luong Dong là địa điểm du lịch tại TP.HCM.,Cau Luong Dong Du lịchđịa điểm du lịch
+DIA_NA00177,Thác Sao Va,Du lịch,địa điểm du lịch,19.6577398,104.9462695,"Tiền Phong, Quế Phong, Nghệ An",,Thác Sao Va là địa điểm du lịch tại TP.HCM.,Thác Sao Va Du lịchđịa điểm du lịch
+DIA_NA00178,Mường Đán,Du lịch,địa điểm du lịch,19.7191361,104.8545309,"Hạnh Dịch, Quế Phong, Nghệ An",,Mường Đán là địa điểm du lịch tại TP.HCM.,Mường Đán Du lịchđịa điểm du lịch
+DIA_NA00179,256 tống duy tân Bánh cuốn ngon,Ẩm thực,quán thức ăn nhanh,19.8045154,105.7772131,"256 Đường Tống Duy Tân, Lam Sơn, Thanh Hóa",,256 tống duy tân Bánh cuốn ngon là quán thức ăn nhanh tại TP.HCM.,256 tống duy tân Bánh cuốn ngon Ẩm thựcquán thức ăn nhanh
+DIA_NA00180,trung hai,Du lịch,khách sạn,19.3251467,105.1868928,"Đường Quốc Lộ 48C, Quỳ Hợp, Nghệ An, 43906",,trung hai là khách sạn tại TP.HCM.,trung hai Du lịchkhách sạn
+DIA_NA00181,Vincom Thanh Hoá,Du lịch,trung tâm thương mại,19.8095591,105.7778969,"Đường Triệu Quốc Đạt, Điện Biên, Thanh Hóa, 40120",,Vincom Thanh Hoá là trung tâm thương mại tại TP.HCM.,Vincom Thanh Hoá Du lịchtrung tâm thương mại
+DIA_NA00182,Cam Do,Ẩm thực,quán cà phê,19.7086458,105.784122,"Đường Quốc Lộ 1, Quảng Ninh, Quảng Xương, Thanh Hóa, 42617",,Cam Do là quán cà phê tại TP.HCM.,Cam Do Ẩm thựcquán cà phê
+DIA_NA00183,Nuong Yen,Du lịch,khách sạn,19.4924501,105.6353987,"Tỉnh Lộ 505, Yên Mỹ, Nông Cống, Thanh Hóa, 42337",,Nuong Yen là khách sạn tại TP.HCM.,Nuong Yen Du lịchkhách sạn
+DIA_NA00184,Time Square Cafe,Ẩm thực,quán cà phê,19.8129504,105.7729368,"20 Đường Hạc Thành, Điện Biên, Thanh Hóa, 40120",,Time Square Cafe là quán cà phê tại TP.HCM.,Time Square Cafe Ẩm thựcquán cà phê
+DIA_NA00185,Cafe Sen (8th floor),Ẩm thực,quán cà phê,19.811808,105.7728896,"Đường Hạc Thành, Điện Biên, Thanh Hóa",,Cafe Sen (8th floor) là quán cà phê tại TP.HCM.,Cafe Sen (8th floor) Ẩm thựcquán cà phê
+DIA_NA00186,Highlands Coffee,Ẩm thực,quán cà phê,19.81367,105.7679641,"Đường Dương Đình Nghệ, Đông Thọ, Thanh Hóa",,Highlands Coffee là quán cà phê tại TP.HCM.,Highlands Coffee Ẩm thựcquán cà phê
+DIA_NA00187,Cafe Nang Saigon,Ẩm thực,quán cà phê,19.8031093,105.771563,"19 Đường Phan Bội Châu, Ba Đình, Thanh Hóa, 40121",,Cafe Nang Saigon là quán cà phê tại TP.HCM.,Cafe Nang Saigon Ẩm thựcquán cà phê
+DIA_NA00188,Vinpearl Hotel,Du lịch,khách sạn,19.810097,105.7778591,"1B Đường Triệu Quốc Đạt, Điện Biên, Thanh Hóa, 40120",,Vinpearl Hotel là khách sạn tại TP.HCM.,Vinpearl Hotel Du lịchkhách sạn
+DIA_NA00189,Camellia Hostel,Du lịch,khách sạn,19.7861527,105.7748872,"52 Đường Nguyễn Phục, Quảng Thắng, Thanh Hóa, 40131",,Camellia Hostel là khách sạn tại TP.HCM.,Camellia Hostel Du lịchkhách sạn
+DIA_NA00190,Nha Hang Pho Bien,Ẩm thực,nhà hàng,19.2376596,105.7704866,"Quỳnh Lập, Hoàng Mai, Nghệ An",,Nha Hang Pho Bien là nhà hàng tại TP.HCM.,Nha Hang Pho Bien Ẩm thựcnhà hàng
+DIA_NA00191,Café/Fastfood,Ẩm thực,quán cà phê,19.665993,105.4338858,"Yên Cát, Như Xuân, Thanh Hóa",,Café/Fastfood là quán cà phê tại TP.HCM.,Café/Fastfood Ẩm thựcquán cà phê
+DIA_NA00192,Ls mart,Ẩm thực,quán cà phê,19.8946944,105.4007838,"Đường Hồ Chí Minh, Thọ Xương, Thọ Xuân, Thanh Hóa, 41630",,Ls mart là quán cà phê tại TP.HCM.,Ls mart Ẩm thựcquán cà phê
+DIA_NA00193,Nhà Nghỉ Thiên Trúc,Du lịch,khách sạn,19.2606899,105.7133052,"Đường Quốc Lộ 1, Hoàng Mai, Nghệ An, 44906",,Nhà Nghỉ Thiên Trúc là khách sạn tại TP.HCM.,Nhà Nghỉ Thiên Trúc Du lịchkhách sạn
+DIA_NA00194,Bánh Khoái Tép - Cô Tâm,Ẩm thực,quán thức ăn nhanh,19.8044077,105.7819866,"35A Đường Đinh Lễ, Lam Sơn, Thanh Hóa, 40123",,Bánh Khoái Tép - Cô Tâm là quán thức ăn nhanh tại TP.HCM.,Bánh Khoái Tép - Cô Tâm Ẩm thựcquán thức ăn nhanh
+DIA_NA00195,Làng làm bánh gai Tứ Trụ,Du lịch,địa điểm du lịch,19.9303328,105.4618611,"Đường Lê Lợi, Thọ Diên, Thọ Xuân, Thanh Hóa, 41626",,Làng làm bánh gai Tứ Trụ là địa điểm du lịch tại TP.HCM.,Làng làm bánh gai Tứ Trụ Du lịchđịa điểm du lịch
+DIA_NA00196,Làng nghề dệt nhiễu Hồng Đô,Du lịch,địa điểm du lịch,19.872504,105.6921165,"Thiệu Đô, Thiệu Hóa, Thanh Hóa",,Làng nghề dệt nhiễu Hồng Đô là địa điểm du lịch tại TP.HCM.,Làng nghề dệt nhiễu Hồng Đô Du lịchđịa điểm du lịch
+DIA_NA00197,Làng nghề đúc đồng Chè Đông,Du lịch,địa điểm du lịch,19.8513962,105.6809232,"Thiệu Trung, Thiệu Hóa, Thanh Hóa",,Làng nghề đúc đồng Chè Đông là địa điểm du lịch tại TP.HCM.,Làng nghề đúc đồng Chè Đông Du lịchđịa điểm du lịch
+DIA_NA00198,Làng điêu khắc đá Nhồi,Du lịch,địa điểm du lịch,19.7957165,105.7491163,"Đường Quốc Lộ 45, An Hưng, Nhồi, Thanh Hóa, 40134",,Làng điêu khắc đá Nhồi là địa điểm du lịch tại TP.HCM.,Làng điêu khắc đá Nhồi Du lịchđịa điểm du lịch
+DIA_NA00199,San van dong Bau Sen,Du lịch,công viên,19.3234848,105.4336421,"21 Đường Chu Huy Mân, Hòa Hiếu, Thái Hòa, Nghệ An, 44806",,San van dong Bau Sen là công viên tại TP.HCM.,San van dong Bau Sen Du lịchcông viên
+DIA_NA00200,Hai An hotel,Du lịch,khách sạn,19.4497245,105.7799806,"Đường Quốc Lộ 1, Hải Hòa, Tĩnh Gia, Thanh Hóa, 42734",,Hai An hotel là khách sạn tại TP.HCM.,Hai An hotel Du lịchkhách sạn
+DIA_NA00201,Com Binh Dan,Ẩm thực,nhà hàng,19.449955,105.7805949,"166 Đường Quốc Lộ 1, Hải Hòa, Tĩnh Gia, Thanh Hóa, 42734",,Com Binh Dan là nhà hàng tại TP.HCM.,Com Binh Dan Ẩm thựcnhà hàng
+DIA_NA00202,khu di tích lịch sử Lam Kinh,Du lịch,địa điểm du lịch,19.9275606,105.4035142,"Lam Sơn, Thọ Xuân, Thanh Hóa",,khu di tích lịch sử Lam Kinh là địa điểm du lịch tại TP.HCM.,khu di tích lịch sử Lam Kinh Du lịchđịa điểm du lịch
+DIA_NA00203,Dai Viet Hotel,Du lịch,khách sạn,19.8120009,105.7732935,"19 Đường Phan Chu Trinh, Điện Biên, Thanh Hóa, 40120",,Dai Viet Hotel là khách sạn tại TP.HCM.,Dai Viet Hotel Du lịchkhách sạn
+DIA_NA00204,Hac Thanh Garden,Ẩm thực,nhà hàng,19.8100122,105.7720515,"Đường Hạc Thành, Điện Biên, Thanh Hóa, 40120",,Hac Thanh Garden là nhà hàng tại TP.HCM.,Hac Thanh Garden Ẩm thựcnhà hàng
+DIA_NA00205,The Coffee House,Ẩm thực,quán cà phê,19.8073633,105.7776818,"BIDV - Chi Nhánh Thanh Hóa - Phòng Giao Dịch Số 1, 27 Đường Đại Lộ Lê Lợi, Lam Sơn, Thanh Hóa, 40123",,The Coffee House là quán cà phê tại TP.HCM.,The Coffee House Ẩm thựcquán cà phê
+DIA_NA00206,Cana Coffee,Ẩm thực,quán thức ăn nhanh,19.6672768,105.4391993,"Đài Truyền Thanh Truyền Hình Huyện Như Xuân, Yên Cát, Như Xuân, Thanh Hóa, 42506",,Cana Coffee là quán thức ăn nhanh tại TP.HCM.,Cana Coffee Ẩm thựcquán thức ăn nhanh
+DIA_NA00207,Dông Xuân Quán,Ẩm thực,quán cà phê,19.8240705,105.687769,"Đường Quốc Lộ 47, Đông Minh, Đông Sơn, Thanh Hóa, 40813",,Dông Xuân Quán là quán cà phê tại TP.HCM.,Dông Xuân Quán Ẩm thựcquán cà phê
+DIA_NA00208,Tiệm trà bánh nắng mai,Ẩm thực,quán cà phê,19.6302823,105.581171,"Bến Sung, Như Thanh, Thanh Hóa",,Tiệm trà bánh nắng mai là quán cà phê tại TP.HCM.,Tiệm trà bánh nắng mai Ẩm thựcquán cà phê
+DIA_NA00209,Đình Hàm Hạ,Du lịch,địa điểm du lịch,19.8266245,105.7065252,"Đông Tiến, Đông Sơn, Thanh Hóa",,Đình Hàm Hạ là địa điểm du lịch tại TP.HCM.,Đình Hàm Hạ Du lịchđịa điểm du lịch
+DIA_NA00210,Nhà Hàng Hằng Lĩnh - Cơm Bình Dân,Ẩm thực,nhà hàng,19.268074,105.7152063,"Đường Quốc Lộ 36, Hoàng Mai, Nghệ An, 44906",,Nhà Hàng Hằng Lĩnh - Cơm Bình Dân là nhà hàng tại TP.HCM.,Nhà Hàng Hằng Lĩnh - Cơm Bình Dân Ẩm thựcnhà hàng
+DIA_NA00211,Goki BBQ,Ẩm thực,nhà hàng,19.9116175,105.4082974,"Đường Quốc Lộ 47C, Lam Sơn, Thọ Xuân, Thanh Hóa, 41628",,Goki BBQ là nhà hàng tại TP.HCM.,Goki BBQ Ẩm thựcnhà hàng
+DIA_NA00212,Thành Nhà Hồ,Du lịch,địa điểm du lịch,20.0780149,105.6044464,"Vĩnh Tiến, Vĩnh Lộc, Thanh Hóa",,Thành Nhà Hồ là địa điểm du lịch tại TP.HCM.,Thành Nhà Hồ Du lịchđịa điểm du lịch
+DIA_NA00213,Công viên Hội An,Du lịch,công viên,19.8097373,105.7820724,"Đường Đại Lộ Lê Lợi, Lam Sơn, Thanh Hóa",,Công viên Hội An là công viên tại TP.HCM.,Công viên Hội An Du lịchcông viên
+DIA_NA00214,Công viên Hoà Vang,Du lịch,công viên,19.7336237,105.7820851,"28 Đường Tố Hữu, Quảng Tân, Quảng Xương, Thanh Hóa, 42606",,Công viên Hoà Vang là công viên tại TP.HCM.,Công viên Hoà Vang Du lịchcông viên
+DIA_NA00215,Công viên cây xanh,Du lịch,công viên,19.8117056,105.7720907,"Đường Hạc Thành, Điện Biên, Thanh Hóa, 40120",,Công viên cây xanh là công viên tại TP.HCM.,Công viên cây xanh Du lịchcông viên
+DIA_NA00216,Le Loi Monument Park,Du lịch,công viên,19.807291,105.7761411,"Phố Lê Hồng Phong, Lam Sơn, Thanh Hóa, 40123",,Le Loi Monument Park là công viên tại TP.HCM.,Le Loi Monument Park Du lịchcông viên
+DIA_NA00217,Lam Kinh Hotel,Du lịch,khách sạn,19.8066121,105.7936509,"Đường Đại Lộ Lê Lợi, Đông Hương, Thanh Hóa, 40124",,Lam Kinh Hotel là khách sạn tại TP.HCM.,Lam Kinh Hotel Du lịchkhách sạn
+DIA_NA00218,Vincom+ Tĩnh Gia,Du lịch,trung tâm thương mại,19.4363409,105.771921,"Đường Quốc Lộ 1, Nguyên Bình, Tĩnh Gia, Thanh Hóa, 42724",,Vincom+ Tĩnh Gia là trung tâm thương mại tại TP.HCM.,Vincom+ Tĩnh Gia Du lịchtrung tâm thương mại
+DIA_NA00219,Công viên Phủ Quảng,Du lịch,công viên,20.0532727,105.619773,"Đường Quốc Lộ 217, Vĩnh Lộc, Thanh Hóa, 41106",,Công viên Phủ Quảng là công viên tại TP.HCM.,Công viên Phủ Quảng Du lịchcông viên
+DIA_NA00220,Công viên Bố Vệ,Du lịch,công viên,19.7818888,105.7845909,"Đông Vệ, Thanh Hóa",,Công viên Bố Vệ là công viên tại TP.HCM.,Công viên Bố Vệ Du lịchcông viên
+DIA_NA00221,Công viên Quảng Xá,Du lịch,công viên,19.7827332,105.7807289,"Đông Vệ, Thanh Hóa",,Công viên Quảng Xá là công viên tại TP.HCM.,Công viên Quảng Xá Du lịchcông viên
+DIA_NA00222,Team Miền Tây Xứ Nghệ,Ẩm thực,quán cà phê,19.3212537,105.1833659,"Quỳ Hợp, Nghệ An",,Team Miền Tây Xứ Nghệ là quán cà phê tại TP.HCM.,Team Miền Tây Xứ Nghệ Ẩm thựcquán cà phê
+DIA_NA00223,Ma Riverside Homestay,Du lịch,khách sạn,19.8803185,105.3112156,"Thường Xuân, Thanh Hóa",,Ma Riverside Homestay là khách sạn tại TP.HCM.,Ma Riverside Homestay Du lịchkhách sạn
