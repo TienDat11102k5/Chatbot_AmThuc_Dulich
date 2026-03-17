@@ -103,4 +103,10 @@
     max-width: 100%;
     display: block;
   }
+
+  /* Ẩn icon con mắt mặc định của trình duyệt (như Edge) để không bị lặp với icon Custom */
+  input::-ms-reveal,
+  input::-ms-clear {
+    display: none;
+  }
 }

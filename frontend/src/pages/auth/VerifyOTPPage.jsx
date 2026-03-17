@@ -17,7 +17,7 @@ const VerifyOTPPage = () => {
   const [otp, setOtp]             = useState(Array(OTP_LENGTH).fill(''));
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError]         = useState('');
-  const [countdown, setCountdown] = useState(56);
+  const [countdown, setCountdown] = useState(300);
   const inputRefs = useRef([]);
   const navigate  = useNavigate();
 
@@ -73,24 +73,10 @@ const VerifyOTPPage = () => {
     setIsLoading(true);
     setError('');
     try {
-      // TODO: POST /api/v1/auth/verify-otp
-      await new Promise((r) => setTimeout(r, 800));
-
-      if (context === 'reset_password') {
-        // Luồng quên mật khẩu → sang trang đặt lại mật khẩu
-        navigate('/reset-password');
-      } else {
-        // Luồng đăng ký: xác thực email thành công → set user vào localStorage
-        const userName = sessionStorage.getItem('register_name') || email.split('@')[0];
-        const mockUser = { name: userName, email, role: 'USER' };
-        localStorage.setItem('savorytrip_user', JSON.stringify(mockUser));
-        // Notify Navbar cập nhật ngay (không cần F5)
-        window.dispatchEvent(new Event('authChange'));
-        // Dọn sessionStorage
-        sessionStorage.removeItem('register_email');
-        sessionStorage.removeItem('register_name');
-        navigate('/');
-      }
+      // Lưu OTP để ResetPasswordPage gửi lên API
+      sessionStorage.setItem('reset_otp', otp.join(''));
+      // Luồng quên mật khẩu → sang trang đặt lại mật khẩu
+      navigate('/reset-password');
     } catch {
       setError('Mã OTP không đúng hoặc đã hết hạn.');
     } finally {
@@ -100,7 +86,7 @@ const VerifyOTPPage = () => {
 
   const handleResend = () => {
     if (countdown > 0) return;
-    setCountdown(56);
+    setCountdown(300);
     setOtp(Array(OTP_LENGTH).fill(''));
     setError('');
     inputRefs.current[0]?.focus();

@@ -82,8 +82,8 @@ public class EmailConsumer {
         }
 
         try {
-            // Gọi EmailService gửi email thực tế qua SMTP Gmail
-            emailService.sendOtpEmail(message.getToEmail(), message.getBody());
+            // Gọi EmailService gửi email thực tế qua SMTP Gmail (dạng HTML)
+            emailService.sendHtmlEmail(message.getToEmail(), message.getSubject(), message.getBody());
 
             log.info("[EmailConsumer] ✅ Gửi email OTP thành công cho: {}", message.getToEmail());
 

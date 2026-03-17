@@ -14,9 +14,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class LoginRequest {
     /**
-     * Tài khoản người dùng (Định danh đăng nhập duy nhất).
+     * Email người dùng gửi lên.
      */
-    private String username;
+    private String email;
 
     /**
      * Mật khẩu dạng thuần (thô) người dùng nhập từ bàn phím.

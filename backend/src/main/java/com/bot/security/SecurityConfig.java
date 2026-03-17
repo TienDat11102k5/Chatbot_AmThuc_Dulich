@@ -64,6 +64,7 @@ public class SecurityConfig {
         // Allowed origins: Frontend dev server
         configuration.setAllowedOrigins(Arrays.asList(
                 "http://localhost:3000",
+                "http://localhost:3001",
                 "http://localhost:5173"
         ));
         // Allowed HTTP methods

@@ -4,17 +4,19 @@
  * Thiết kế theo Stitch "Modern Login - SavoryTrip UI":
  * - White card căn giữa, shadow nhẹ, rounded-2xl
  * - Tiêu đề "Đăng nhập vào SavoryTrip"
- * - Email field (no icon inside)
+ * - Username field (backend dùng username, không phải email)
  * - Password field + eye toggle + "Quên mật khẩu?" link
  * - Nút "Đăng nhập" màu primary (#2563eb)
  * - "Chưa có tài khoản? Đăng ký ngay"
  * - Divider "Hoặc"
- * - Google + Facebook buttons
+ * - Google button
  */
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
+import authService from '../../lib/authService';
+import useAuth from '../../hooks/useAuth';
 
 const LoginPage = () => {
   const [formData, setFormData]         = useState({ email: '', password: '' });
@@ -24,6 +26,7 @@ const LoginPage = () => {
   const [error, setError]               = useState('');
   const navigate   = useNavigate();
   const location   = useLocation();
+  const { login }  = useAuth();
 
   // Hiển thị toast khi được redirect từ ResetPasswordPage
   useEffect(() => {
@@ -40,20 +43,20 @@ const LoginPage = () => {
     if (error) setError('');
   };
 
-  // Xử lý đăng nhập - TODO: thay bằng API call thực
+  // Gọi API đăng nhập thực
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    setError('');
     try {
-      // TODO: POST /api/v1/auth/login
-      await new Promise((r) => setTimeout(r, 600));
-      const mockUser = { name: 'Demo User', email: formData.email, role: 'USER' };
-      localStorage.setItem('savorytrip_user', JSON.stringify(mockUser));
-      // Notify Navbar cập nhật ngay không cần F5
-      window.dispatchEvent(new Event('authChange'));
+      const data = await authService.login(formData.email, formData.password);
+      // Lưu user data: { token, userId, username, email, role }
+      login(data);
+      toast.success('Đăng nhập thành công!');
       navigate('/');
-    } catch {
-      setError('Email hoặc mật khẩu không đúng.');
+    } catch (err) {
+      const msg = err.response?.data?.message || err.response?.data || 'Tên đăng nhập hoặc mật khẩu không đúng.';
+      setError(typeof msg === 'string' ? msg : 'Đăng nhập thất bại.');
     } finally {
       setIsLoading(false);
     }
@@ -88,7 +91,7 @@ const LoginPage = () => {
             <input
               type="email" name="email" value={formData.email}
               onChange={handleChange} required
-              placeholder="nhap@email.com"
+              placeholder="Nhập địa chỉ email"
               className="w-full px-4 py-3 rounded-xl border border-slate-300 bg-white text-slate-900 placeholder-slate-400 text-sm focus:ring-2 focus:ring-primary-600/25 focus:border-primary-600 outline-none transition-all"
             />
           </div>

@@ -26,9 +26,9 @@ public class CustomUserDetailsService implements UserDetailsService {
      * @throws UsernameNotFoundException Nếu không rà soát thấy record bản ghi nào khớp với tham số này.
      */
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy người dùng có Tên đăng nhập: " + username));
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy người dùng có Tên truy cập (Email): " + email));
 
         return new CustomUserDetails(user);
     }

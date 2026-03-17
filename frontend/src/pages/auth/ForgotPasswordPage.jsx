@@ -13,6 +13,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, RotateCcw } from 'lucide-react';
+import toast from 'react-hot-toast';
+import authService from '../../lib/authService';
 
 const ForgotPasswordPage = () => {
   const [email, setEmail]         = useState('');
@@ -26,13 +28,14 @@ const ForgotPasswordPage = () => {
     setIsLoading(true);
     setError('');
     try {
-      // TODO: POST /api/v1/auth/forgot-password
-      await new Promise((r) => setTimeout(r, 700));
+      await authService.forgotPassword(email);
       sessionStorage.setItem('reset_email', email);
       sessionStorage.setItem('otp_context', 'reset_password');
+      toast.success('Đã gửi mã OTP đến email của bạn!');
       navigate('/verify-otp');
-    } catch {
-      setError('Đã xảy ra lỗi. Vui lòng thử lại.');
+    } catch (err) {
+      const msg = err.response?.data?.message || err.response?.data || 'Đã xảy ra lỗi. Vui lòng thử lại.';
+      setError(typeof msg === 'string' ? msg : 'Đã xảy ra lỗi.');
     } finally {
       setIsLoading(false);
     }

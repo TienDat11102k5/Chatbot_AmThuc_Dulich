@@ -14,6 +14,8 @@
 import { useState } from 'react';
 import { Link, useNavigate, Navigate } from 'react-router-dom';
 import { Eye, EyeOff, Check, X } from 'lucide-react';
+import toast from 'react-hot-toast';
+import authService from '../../lib/authService';
 
 // Password strength rules
 const PASSWORD_RULES = [
@@ -50,15 +52,17 @@ const ResetPasswordPage = () => {
     setIsLoading(true);
     setError('');
     try {
-      // TODO: POST /api/v1/auth/reset-password
-      await new Promise((r) => setTimeout(r, 800));
+      const email = sessionStorage.getItem('reset_email');
+      const otp = sessionStorage.getItem('reset_otp') || '';
+      await authService.resetPassword(email, otp, newPassword);
       sessionStorage.removeItem('reset_email');
       sessionStorage.removeItem('otp_context');
-      // Dispatch để Navbar cập nhật nếu cần
-      window.dispatchEvent(new Event('authChange'));
+      sessionStorage.removeItem('reset_otp');
+      toast.success('Đặt lại mật khẩu thành công!');
       navigate('/login', { state: { message: 'Đặt lại mật khẩu thành công! Hãy đăng nhập lại.' } });
-    } catch {
-      setError('Đã xảy ra lỗi. Vui lòng thử lại.');
+    } catch (err) {
+      const msg = err.response?.data?.message || err.response?.data || 'Đã xảy ra lỗi. Vui lòng thử lại.';
+      setError(typeof msg === 'string' ? msg : 'Đã xảy ra lỗi.');
     } finally {
       setIsLoading(false);
     }

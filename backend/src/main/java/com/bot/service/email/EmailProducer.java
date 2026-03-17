@@ -109,15 +109,23 @@ public class EmailProducer {
     private String buildOtpEmailBody(String otp) {
         return String.format("""
                 <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto;">
-                    <h2 style="color: #e74c3c;">🔐 Mã xác thực OTP</h2>
-                    <p>Bạn vừa yêu cầu đặt lại mật khẩu cho tài khoản Chatbot Ẩm Thực & Du Lịch.</p>
-                    <div style="background: #f4f4f4; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0;">
-                        <h1 style="color: #2c3e50; letter-spacing: 8px; font-size: 40px;">%s</h1>
+                    <div style="text-align: center;">
+                        <h2 style="color: #2c3e50;">🔐 Mã xác thực OTP</h2>
+                        <p>Bạn vừa yêu cầu đặt lại mật khẩu cho tài khoản Chatbot Ẩm Thực & Du Lịch.</p>
+                        <div style="background: #f4f4f4; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0;">
+                            <h1 style="color: #1a75d2; letter-spacing: 8px; font-size: 40px;">%s</h1>
+                        </div>
                     </div>
-                    <p>⏱️ Mã có hiệu lực trong <strong>15 phút</strong>.</p>
-                    <p>Nếu bạn không yêu cầu điều này, vui lòng bỏ qua email này.</p>
-                    <hr style="border: none; border-top: 1px solid #eee;" />
-                    <p style="color: #999; font-size: 12px;">Chatbot Ẩm Thực & Du Lịch Việt Nam</p>
+                    <div style="text-align: left; color: #333; line-height: 1.6;">
+                        <p>⏱️ Mã có hiệu lực trong <strong>5 phút</strong>.</p>
+                        <p>Nếu bạn không yêu cầu điều này, vui lòng bỏ qua email này.</p>
+                        <p style="margin-top: 25px;">
+                            Trân trọng,<br/>
+                            <strong>Website - Ẩm Thực - Du Lịch - Chatbot.</strong>
+                        </p>
+                    </div>
+                    <hr style="border: none; border-top: 1px solid #eee; margin-top: 30px;" />
+                    <p style="color: #999; font-size: 12px; text-align: center;">Chatbot Ẩm Thực & Du Lịch Việt Nam</p>
                 </div>
                 """, otp);
     }

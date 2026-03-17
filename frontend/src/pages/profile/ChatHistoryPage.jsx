@@ -7,105 +7,101 @@
  * - Empty state: illustration + CTA "Bắt đầu ngay"
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Bot, Clock, MessageSquare, ArrowRight, Sparkles, Trash2 } from 'lucide-react';
+import { Bot, Clock, MessageSquare, ArrowRight, Sparkles, Trash2, Loader2, AlertCircle } from 'lucide-react';
+import chatService from '../../lib/chatService';
+import useAuth from '../../hooks/useAuth';
 
-// ─── Dữ liệu mẫu lịch sử chat ───────────────────────────────────────────────
-const CHAT_SESSIONS = [
-  {
-    id: 1,
-    title: 'Lịch trình 3 ngày Đà Nẵng',
-    preview: 'AI: Anh nên dậy sớm để thăm Bà Nà Hills trước 9h sáng, lúc đó ít khách và ánh sáng đẹp nhất...',
-    timestamp: '2 giờ trước',
-    messages: 14,
-    emoji: '🌉',
-    color: 'bg-blue-100 text-blue-600',
-  },
-  {
-    id: 2,
-    title: 'Tìm quán ăn ngon Hội An',
-    preview: 'AI: Bánh Mì Phượng tại số 2B Phan Châu Trinh là địa chỉ không thể bỏ lỡ, mở cửa từ 6h sáng...',
-    timestamp: 'Hôm qua',
-    messages: 8,
-    emoji: '🥖',
-    color: 'bg-yellow-100 text-yellow-600',
-  },
-  {
-    id: 3,
-    title: 'Kế hoạch Food Tour Sài Gòn',
-    preview: 'AI: Tôi gợi ý bắt đầu từ cơm tấm Bà Bảy lúc 7h, sau đó di chuyển sang bánh mì...',
-    timestamp: '3 ngày trước',
-    messages: 22,
-    emoji: '🍜',
-    color: 'bg-orange-100 text-orange-600',
-  },
-  {
-    id: 4,
-    title: 'Gợi ý quán café view đẹp Hà Nội',
-    preview: 'AI: Với yêu cầu "rooftop view" tại Hà Nội, tôi đề xuất danh sách 5 quán nổi bật như Skyline Coffee...',
-    timestamp: '1 tuần trước',
-    messages: 6,
-    emoji: '☕',
-    color: 'bg-amber-100 text-amber-600',
-  },
-  {
-    id: 5,
-    title: 'Chuyến đi Phú Quốc 5 ngày 4 đêm',
-    preview: 'AI: Ngày 1 nên đến bãi Sao, đây là bãi biển đẹp nhất Phú Quốc với cát trắng mịn và nước xanh trong...',
-    timestamp: '2 tuần trước',
-    messages: 31,
-    emoji: '🏖️',
-    color: 'bg-cyan-100 text-cyan-600',
-  },
-];
+// ─── Hàm phụ trợ để format thời gian ──────────────────────────────────────────
+const formatTimeAgo = (dateString) => {
+  if (!dateString) return 'Gần đây';
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffInSeconds = Math.floor((now - date) / 1000);
+  
+  if (diffInSeconds < 60) return 'Vừa xong';
+  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} phút trước`;
+  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} giờ trước`;
+  if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)} ngày trước`;
+  return date.toLocaleDateString('vi-VN');
+};
 
-// ─── Card hội thoại ───────────────────────────────────────────────────────────
-const ChatCard = ({ session, onDelete }) => (
-  <div className="group bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-xl transition-all duration-300 flex items-start gap-5">
-    {/* Icon emoji đại diện */}
-    <div className={`w-14 h-14 rounded-2xl ${session.color} flex items-center justify-center text-2xl flex-shrink-0`}>
-      {session.emoji}
-    </div>
-    {/* Nội dung */}
-    <div className="flex-1 min-w-0">
-      <div className="flex items-start justify-between gap-4 mb-2">
-        <h3 className="font-bold text-slate-900 text-base line-clamp-1 group-hover:text-primary-600 transition-colors">
-          {session.title}
-        </h3>
-        <div className="flex items-center gap-1 text-slate-400 text-xs whitespace-nowrap flex-shrink-0">
-          <Clock size={11} />
-          <span>{session.timestamp}</span>
-        </div>
+// ─── Card hội thoại rỗng lúc loading ─────────────────────────────────────────
+const ChatCardSkeleton = () => (
+  <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex items-start gap-5 animate-pulse">
+    <div className="w-14 h-14 rounded-2xl bg-slate-200 flex-shrink-0"></div>
+    <div className="flex-1">
+      <div className="flex justify-between mb-3">
+        <div className="h-5 bg-slate-200 rounded w-1/3"></div>
+        <div className="h-4 bg-slate-200 rounded w-16"></div>
       </div>
-      <p className="text-slate-500 text-sm line-clamp-2 mb-4 leading-relaxed">
-        {session.preview}
-      </p>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1.5 text-slate-400 text-xs">
-          <MessageSquare size={12} />
-          <span>{session.messages} tin nhắn</span>
-        </div>
-        <div className="flex items-center gap-2">
-          {/* Xoá */}
-          <button
-            onClick={() => onDelete(session.id)}
-            className="opacity-0 group-hover:opacity-100 p-1.5 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition-all"
-          >
-            <Trash2 size={14} />
-          </button>
-          {/* Tiếp tục chat */}
-          <Link
-            to="/planner"
-            className="flex items-center gap-1.5 text-primary-600 font-bold text-sm hover:gap-2.5 transition-all"
-          >
-            Tiếp tục <ArrowRight size={14} />
-          </Link>
-        </div>
+      <div className="h-4 bg-slate-200 rounded w-full mb-2"></div>
+      <div className="h-4 bg-slate-200 rounded w-2/3 mb-4"></div>
+      <div className="flex justify-between">
+        <div className="h-4 bg-slate-200 rounded w-20"></div>
+        <div className="h-4 bg-slate-200 rounded w-24"></div>
       </div>
     </div>
   </div>
 );
+
+// ─── Card hội thoại (Dùng API data) ─────────────────────────────────────────
+const ChatCard = ({ session, onDelete }) => {
+  // Chọn màu/icon ngẫu nhiên vì DB không lưu
+  const colors = ['bg-blue-100 text-blue-600', 'bg-yellow-100 text-yellow-600', 'bg-orange-100 text-orange-600', 'bg-amber-100 text-amber-600', 'bg-cyan-100 text-cyan-600'];
+  const emojis = ['💬', '🌟', '🍜', '🗺️', '📸'];
+  
+  const colorIndex = session.title ? session.title.length % colors.length : 0;
+  const color = colors[colorIndex];
+  const emoji = emojis[colorIndex];
+
+  return (
+    <div className="group bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-xl transition-all duration-300 flex items-start gap-5">
+      {/* Icon emoji đại diện */}
+      <div className={`w-14 h-14 rounded-2xl ${color} flex items-center justify-center text-2xl flex-shrink-0`}>
+        {emoji}
+      </div>
+      {/* Nội dung */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-start justify-between gap-4 mb-2">
+          <h3 className="font-bold text-slate-900 text-base line-clamp-1 group-hover:text-primary-600 transition-colors">
+            {session.title || 'Mục hội thoại mới'}
+          </h3>
+          <div className="flex items-center gap-1 text-slate-400 text-xs whitespace-nowrap flex-shrink-0">
+            <Clock size={11} />
+            <span>{formatTimeAgo(session.createdAt)}</span>
+          </div>
+        </div>
+        <p className="text-slate-500 text-sm line-clamp-2 mb-4 leading-relaxed">
+          {session.status === 'ACTIVE' ? 'Đang hoạt động...' : 'Đã kết thúc.'}
+        </p>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1.5 text-slate-400 text-xs">
+            <MessageSquare size={12} />
+            <span>ID: {session.id.substring(0, 8)}...</span>
+          </div>
+          <div className="flex items-center gap-2">
+            {/* Xoá - TODO: Add API for deleting session */}
+            <button
+              onClick={() => onDelete(session.id)}
+              className="opacity-0 group-hover:opacity-100 p-1.5 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition-all"
+            >
+              <Trash2 size={14} />
+            </button>
+            {/* Tiếp tục chat */}
+            <Link
+              to={`/planner?sessionId=${session.id}`}
+              className="flex items-center gap-1.5 text-primary-600 font-bold text-sm hover:gap-2.5 transition-all"
+            >
+              Tiếp tục <ArrowRight size={14} />
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // ─── Empty State ─────────────────────────────────────────────────────────────
 const EmptyState = () => (
@@ -127,11 +123,52 @@ const EmptyState = () => (
   </div>
 );
 
+// ─── Error State ─────────────────────────────────────────────────────────────
+const ErrorState = ({ message, onRetry }) => (
+  <div className="flex flex-col items-center justify-center py-16 text-center">
+    <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mb-4 text-red-500">
+      <AlertCircle size={32} />
+    </div>
+    <h3 className="text-xl font-bold text-slate-800 mb-2">Không thể tải lịch sử</h3>
+    <p className="text-slate-500 mb-6 max-w-md">{message || "Có lỗi xảy ra khi kết nối đến máy chủ."}</p>
+    <button 
+      onClick={onRetry}
+      className="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-full font-semibold transition"
+    >
+      Thử lại
+    </button>
+  </div>
+);
+
 const ChatHistoryPage = () => {
-  const [sessions, setSessions] = useState(CHAT_SESSIONS);
+  const { user } = useAuth();
+  const [sessions, setSessions] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [filter, setFilter] = useState('all');
 
+  const fetchSessions = async () => {
+    if (!user?.id) return;
+    
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await chatService.getUserSessions(user.id);
+      setSessions(data || []);
+    } catch (err) {
+      console.error("Lỗi khi tải danh sách session:", err);
+      setError("Không thể tải lịch sử trò chuyện. Vui lòng kiểm tra kết nối mạng.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSessions();
+  }, [user]);
+
   const handleDelete = (id) => {
+    // Tạm thời chỉ xoá ở UI, sau này thêm API xoá
     setSessions((prev) => prev.filter((s) => s.id !== id));
   };
 
@@ -176,8 +213,16 @@ const ChatHistoryPage = () => {
           ))}
         </div>
 
-        {/* Danh sách chat hoặc Empty State */}
-        {sessions.length > 0 ? (
+        // Danh sách chat hoặc Empty State
+        {isLoading ? (
+          <div className="flex flex-col gap-4">
+            <ChatCardSkeleton />
+            <ChatCardSkeleton />
+            <ChatCardSkeleton />
+          </div>
+        ) : error ? (
+          <ErrorState message={error} onRetry={fetchSessions} />
+        ) : sessions.length > 0 ? (
           <div className="flex flex-col gap-4">
             {sessions.map((session) => (
               <ChatCard key={session.id} session={session} onDelete={handleDelete} />

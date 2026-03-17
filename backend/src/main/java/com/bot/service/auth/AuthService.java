@@ -90,6 +90,7 @@ public class AuthService {
 
         return AuthResponse.builder()
                 .token(token)
+                .userId(user.getId())
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .role(user.getRole())
@@ -106,16 +107,16 @@ public class AuthService {
      * @throws RuntimeException Nếu mật khẩu sai hoặc không tìm thấy thông tin trên database.
      */
     public AuthResponse login(LoginRequest request) {
-        log.info("Đang xử lý đăng nhập cho username: {}", request.getUsername());
+        log.info("Đang xử lý đăng nhập cho email: {}", request.getEmail());
         
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        request.getUsername(),
+                        request.getEmail(),
                         request.getPassword()
                 )
         );
 
-        User user = userRepository.findByUsername(request.getUsername())
+        User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin đăng nhập tương ứng"));
 
         UserDetails userDetails = org.springframework.security.core.userdetails.User.builder()
@@ -128,6 +129,7 @@ public class AuthService {
 
         return AuthResponse.builder()
                 .token(token)
+                .userId(user.getId())
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .role(user.getRole())
@@ -145,6 +147,7 @@ public class AuthService {
      * @param email Địa chỉ email của tài khoản cần lấy lại mật khẩu.
      * @throws RuntimeException Nếu email không tồn tại trong hệ thống (User chưa đăng ký).
      */
+    @org.springframework.transaction.annotation.Transactional
     public void forgotPassword(String email) {
         log.info("Process forgot password for email: {}", email);
         
@@ -262,6 +265,7 @@ public class AuthService {
 
             return AuthResponse.builder()
                     .token(jwtToken)
+                    .userId(user.getId())
                     .username(user.getUsername())
                     .email(user.getEmail())
                     .role(user.getRole())
