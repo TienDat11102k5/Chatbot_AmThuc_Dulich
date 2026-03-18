@@ -137,11 +137,19 @@ function Navbar() {
                   aria-label="Menu tài khoản"
                 >
                   {/* Avatar User - Viền tròn */}
-                  <div className="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center text-white text-sm font-semibold shrink-0">
-                    {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                  <div className="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center text-white text-sm font-semibold shrink-0 overflow-hidden">
+                    {user.avatarUrl ? (
+                      <img 
+                        src={user.avatarUrl.startsWith('http') ? user.avatarUrl : `http://localhost:8080${user.avatarUrl}`} 
+                        alt="Avatar" 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      user.fullName ? user.fullName.charAt(0).toUpperCase() : (user.username ? user.username.charAt(0).toUpperCase() : 'U')
+                    )}
                   </div>
                   <span className="text-sm font-medium text-neutral-700 max-w-[100px] truncate">
-                    {user.name || 'Tốc của tôi'}
+                    {user.fullName || user.username || 'Tốc của tôi'}
                   </span>
                   <ChevronDown size={14} className={`text-neutral-500 transition-transform ${isUserDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>

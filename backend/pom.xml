@@ -50,6 +50,13 @@
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 
+		<!-- Spring Boot Validation: Hỗ trợ kiểm tra dữ liệu (@NotBlank, @Email, @Size...)
+		     BẮT BUỘC khi dùng Bean Validation trong DTO/Controller         -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-validation</artifactId>
+		</dependency>
+
 		<!-- Spring Data JPA: Tầng truy cập dữ liệu (Repository pattern)
 		     Bao gồm: Hibernate ORM, EntityManager, @Transactional
 		     Dùng để tương tác với PostgreSQL qua Entity/Repository         -->

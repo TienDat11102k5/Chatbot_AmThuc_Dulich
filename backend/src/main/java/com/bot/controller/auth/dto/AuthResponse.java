@@ -41,4 +41,14 @@ public class AuthResponse {
      * Vai trò phân quyền trên hệ thống (Ví dụ: USER, ADMIN).
      */
     private String role;
+
+    /**
+     * Tên đầy đủ (họ và tên) của người dùng, dùng để hiển thị trên Navbar và Profile.
+     */
+    private String fullName;
+
+    /**
+     * Đường dẫn URL ảnh đại diện (avatar) của người dùng.
+     */
+    private String avatarUrl;
 }

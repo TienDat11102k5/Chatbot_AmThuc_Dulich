@@ -2,32 +2,34 @@
  * userService.js — Dịch vụ API quản lý thông tin người dùng.
  *
  * Module này chứa các hàm gọi API liên quan đến:
- * - Lấy thông tin hồ sơ người dùng (getUserById)
- * - Cập nhật cài đặt và tùy chọn cá nhân (updatePreferences)
- * - Tạo người dùng mới — chỉ dành cho Admin (createUser)
- *
- * Phân biệt với authService:
- * - authService: xử lý đăng nhập/đăng ký (KHÔNG cần JWT)
- * - userService: xử lý thông tin user sau khi đã đăng nhập (CẦN JWT)
- *
- * Sử dụng trong các trang:
- * - ProfilePage: hiển thị thông tin cá nhân
- * - SettingsPage: cập nhật cài đặt
- * - UserManagement (Admin): quản lý danh sách người dùng
+ * - GET /me: Lấy thông tin user đang đăng nhập (dùng JWT)
+ * - GET /{id}: Lấy thông tin user theo UUID
+ * - PUT /{id}/profile: Cập nhật thông tin hồ sơ (fullName, username, email)
+ * - PUT /{id}/password: Đổi mật khẩu (cần xác minh mật khẩu cũ)
+ * - POST /{id}/avatar: Upload ảnh đại diện từ máy tính lên server
+ * - PUT /{id}/preferences: Cập nhật sở thích cá nhân
  */
 import api from './api';
 
 const userService = {
   /**
-   * Lấy thông tin một người dùng theo ID.
+   * Lấy thông tin user đang đăng nhập dựa vào JWT token.
+   * Token được tự động gửi kèm qua interceptor trong api.js.
    *
-   * Gọi: GET /api/v1/users/{id}
+   * GET /api/v1/users/me
+   * @returns {Promise<Object>} UserProfileResponse { id, username, email, fullName, avatarUrl, role, createdAt }
+   */
+  async getCurrentUser() {
+    const response = await api.get('/v1/users/me');
+    return response.data;
+  },
+
+  /**
+   * Lấy thông tin user theo UUID.
    *
-   * Dùng cho ProfilePage — hiển thị chi tiết hồ sơ: họ tên, email,
-   * ngày tham gia, ảnh đại diện, số lượng yêu thích, v.v.
-   *
+   * GET /api/v1/users/{id}
    * @param {string} id - UUID của người dùng
-   * @returns {Promise<Object>} User { id, username, email, role, createdAt, preferences, ... }
+   * @returns {Promise<Object>} UserProfileResponse
    */
   async getUserById(id) {
     const response = await api.get(`/v1/users/${id}`);
@@ -35,22 +37,76 @@ const userService = {
   },
 
   /**
-   * Cập nhật tùy chọn cá nhân (preferences) của người dùng.
+   * Cập nhật thông tin hồ sơ cá nhân.
    *
-   * Gọi: PUT /api/v1/users/{id}/preferences
-   * Body: JSON object chứa các key-value tùy chọn
+   * PUT /api/v1/users/{id}/profile
+   * Body: { fullName, username, email } — các trường không bắt buộc
    *
-   * Ví dụ preferences:
-   * {
-   *   language: 'vi',
-   *   theme: 'dark',
-   *   notifications: true,
-   *   dietaryPreferences: ['vegetarian', 'seafood']
-   * }
+   * @param {string} id - UUID người dùng
+   * @param {Object} data - { fullName?, username?, email? }
+   * @returns {Promise<Object>} UserProfileResponse đã cập nhật
+   */
+  async updateProfile(id, data) {
+    const response = await api.put(`/v1/users/${id}/profile`, data);
+    return response.data;
+  },
+
+  /**
+   * Đổi mật khẩu người dùng.
+   * Backend sẽ xác minh mật khẩu cũ trước khi đổi.
    *
-   * @param {string} id          - UUID của người dùng
-   * @param {Object} preferences - Object chứa các tùy chọn cần cập nhật
-   * @returns {Promise<Object>} User đã cập nhật
+   * PUT /api/v1/users/{id}/password
+   * Body: { currentPassword, newPassword, confirmPassword }
+   *
+   * @param {string} id - UUID người dùng
+   * @param {Object} data - { currentPassword, newPassword, confirmPassword }
+   * @returns {Promise<Object>} { message: "Đổi mật khẩu thành công." }
+   * @throws {AxiosError} 400 nếu sai mật khẩu cũ hoặc mật khẩu mới không khớp
+   */
+  async changePassword(id, data) {
+    const response = await api.put(`/v1/users/${id}/password`, data);
+    return response.data;
+  },
+
+  /**
+   * Upload ảnh đại diện (avatar) từ máy tính lên server.
+   * Sử dụng FormData để gửi file dạng multipart/form-data.
+   * Server lưu file vào src/main/resources/db/uploads/ và trả về URL.
+   *
+   * POST /api/v1/users/{id}/avatar
+   *
+   * @param {string} id - UUID người dùng
+   * @param {File} file - File ảnh từ input[type="file"]
+   * @returns {Promise<Object>} UserProfileResponse với avatarUrl mới
+   */
+  async uploadAvatar(id, file) {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await api.post(`/v1/users/${id}/avatar`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  },
+
+  /**
+   * Xóa ảnh đại diện (avatar) của người dùng.
+   *
+   * @param {string} id - UUID người dùng
+   * @returns {Promise<Object>} UserProfileResponse với avatarUrl = null
+   */
+  async removeAvatar(id) {
+    const response = await api.delete(`/v1/users/${id}/avatar`);
+    return response.data;
+  },
+
+  /**
+   * Cập nhật sở thích cá nhân hóa (preferences).
+   *
+   * PUT /api/v1/users/{id}/preferences
+   *
+   * @param {string} id - UUID người dùng
+   * @param {Object} preferences - Object { language, theme, notifications, ... }
+   * @returns {Promise<Object>} UserProfileResponse đã cập nhật
    */
   async updatePreferences(id, preferences) {
     const response = await api.put(`/v1/users/${id}/preferences`, preferences);
@@ -60,21 +116,10 @@ const userService = {
   /**
    * Tạo người dùng mới — CHỈ DÀNH CHO ADMIN.
    *
-   * Gọi: POST /api/v1/users
-   * Body: { username: string, email: string, password: string, role: string }
+   * POST /api/v1/users
    *
-   * Admin tạo tài khoản cho người dùng mới qua trang UserManagement.
-   * Khác với register ở chỗ:
-   * - Register: người dùng tự đăng ký, role mặc định là USER
-   * - createUser: admin tạo, có thể chỉ định role (USER, EDITOR, ADMIN)
-   *
-   * @param {Object} userData - Thông tin người dùng mới
-   * @param {string} userData.username - Tên đăng nhập
-   * @param {string} userData.email    - Email
-   * @param {string} userData.password - Mật khẩu
-   * @param {string} userData.role     - Phân quyền: 'USER' | 'EDITOR' | 'ADMIN'
-   * @returns {Promise<Object>} User mới tạo { id, username, email, role, createdAt }
-   * @throws {AxiosError} 403 nếu không phải Admin, 409 nếu username/email đã tồn tại
+   * @param {Object} userData - { username, email, password, role }
+   * @returns {Promise<Object>} UserProfileResponse mới tạo
    */
   async createUser(userData) {
     const response = await api.post('/v1/users', userData);

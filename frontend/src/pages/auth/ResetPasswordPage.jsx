@@ -35,11 +35,12 @@ const ResetPasswordPage = () => {
   const [showPw, setShowPw]                     = useState(false);
   const [showConfirm, setShowConfirm]           = useState(false);
   const [isLoading, setIsLoading]               = useState(false);
+  const [isSuccess, setIsSuccess]               = useState(false);
   const [error, setError]                       = useState('');
   const navigate = useNavigate();
 
   // Guard: nếu không có luồng đặt lại mật khẩu hợp lệ → redirect
-  if (!sessionStorage.getItem('reset_email')) {
+  if (!sessionStorage.getItem('reset_email') && !isSuccess) {
     return <Navigate to="/forgot-password" replace />;
   }
 
@@ -55,11 +56,11 @@ const ResetPasswordPage = () => {
       const email = sessionStorage.getItem('reset_email');
       const otp = sessionStorage.getItem('reset_otp') || '';
       await authService.resetPassword(email, otp, newPassword);
+      setIsSuccess(true);
       sessionStorage.removeItem('reset_email');
       sessionStorage.removeItem('otp_context');
       sessionStorage.removeItem('reset_otp');
-      toast.success('Đặt lại mật khẩu thành công!');
-      navigate('/login', { state: { message: 'Đặt lại mật khẩu thành công! Hãy đăng nhập lại.' } });
+      navigate('/login', { state: { message: 'Đặt lại mật khẩu thành công! Vui lòng đăng nhập lại với mật khẩu mới.' } });
     } catch (err) {
       const msg = err.response?.data?.message || err.response?.data || 'Đã xảy ra lỗi. Vui lòng thử lại.';
       setError(typeof msg === 'string' ? msg : 'Đã xảy ra lỗi.');

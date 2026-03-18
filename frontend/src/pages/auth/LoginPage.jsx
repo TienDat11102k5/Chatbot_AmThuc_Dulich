@@ -28,14 +28,14 @@ const LoginPage = () => {
   const location   = useLocation();
   const { login }  = useAuth();
 
-  // Hiển thị toast khi được redirect từ ResetPasswordPage
+  // Hiển thị toast khi được redirect từ ResetPasswordPage hoặc nơi khác
   useEffect(() => {
     if (location.state?.message) {
-      toast.success(location.state.message);
-      // Xóa state tránh hiển thị lại khi refresh
-      window.history.replaceState({}, document.title);
+      toast.success(location.state.message, { id: 'login-toast' });
+      // Dùng navigate để update react-router state thay vì window.history
+      navigate(location.pathname, { replace: true, state: {} });
     }
-  }, [location.state]);
+  }, [location, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -49,9 +49,10 @@ const LoginPage = () => {
     setIsLoading(true);
     setError('');
     try {
+      // Backend giờ đã trả đủ: token, userId, username, email, role, fullName, avatarUrl
       const data = await authService.login(formData.email, formData.password);
-      // Lưu user data: { token, userId, username, email, role }
       login(data);
+
       toast.success('Đăng nhập thành công!');
       navigate('/');
     } catch (err) {

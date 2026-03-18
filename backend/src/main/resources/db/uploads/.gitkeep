@@ -1,0 +1,3 @@
+# Thư mục này dùng để lưu trữ ảnh avatar của người dùng.
+# File ảnh sẽ được lưu tại đây khi người dùng upload từ trang Profile.
+# Được phân phối qua URL: http://localhost:8080/uploads/{filename}

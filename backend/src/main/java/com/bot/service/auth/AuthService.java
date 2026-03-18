@@ -94,6 +94,8 @@ public class AuthService {
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .role(user.getRole())
+                .fullName(user.getFullName())
+                .avatarUrl(user.getAvatarUrl())
                 .build();
     }
 
@@ -133,6 +135,8 @@ public class AuthService {
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .role(user.getRole())
+                .fullName(user.getFullName())
+                .avatarUrl(user.getAvatarUrl())
                 .build();
     }
 
@@ -269,6 +273,8 @@ public class AuthService {
                     .username(user.getUsername())
                     .email(user.getEmail())
                     .role(user.getRole())
+                    .fullName(user.getFullName())
+                    .avatarUrl(user.getAvatarUrl())
                     .build();
 
         } catch (Exception e) {

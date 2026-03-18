@@ -59,6 +59,19 @@ public class User {
     private String preferences;
 
     /**
+     * Tên đầy đủ (họ và tên) của người dùng.
+     */
+    @Column(name = "full_name")
+    private String fullName;
+
+    /**
+     * Đường dẫn URL ảnh đại diện (avatar) của người dùng,
+     * được lưu sau khi user upload ảnh lên server.
+     */
+    @Column(name = "avatar_url")
+    private String avatarUrl;
+
+    /**
      * Dấu thời gian hệ thống ghi nhận lúc tài khoản được khởi tạo lần đầu tiên.
      */
     @CreationTimestamp
