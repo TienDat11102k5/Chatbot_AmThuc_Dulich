@@ -62,13 +62,13 @@ class RecommenderSystem:
         self.df = pd.read_csv(KNOWLEDGE_BASE_PATH)
         print(f"[Recommender] Đã nạp {len(self.df)} bản ghi từ knowledge_base.csv")
         
-        # Bước 2: Tạo cột phụ "combined_text" = ghép nội dung "description" + "tags" + "name" + "location"
+        # Bước 2: Tạo cột phụ "combined_text" = ghép nội dung "description" + "tags" + "name" + "region"
         # Mục đích: Cho TF-IDF có nhiều thông tin hơn để so sánh chính xác hơn.
         # Ví dụ sẽ ra dạng: "Phở Bò Hà Nội phở bò hà nội miền bắc truyền thống..."
         self.df['combined_text'] = (
             self.df['name'].fillna('') + " " +
             self.df['description'].fillna('') + " " +
-            self.df['location'].fillna('') + " " +
+            self.df['region'].fillna('') + " " +
             self.df['tags'].fillna('')
         )
         
@@ -145,7 +145,7 @@ class RecommenderSystem:
                 "name": row['name'],
                 "type": row['type'],
                 "description": row['description'],
-                "location": row['location'],
+                "location": row['region'],
                 "address": row.get('address', ''),  # Lấy địa chỉ nếu có
                 "tags": row['tags'],
                 "score": round(float(score), 4)  # Làm tròn 4 chữ số thập phân
