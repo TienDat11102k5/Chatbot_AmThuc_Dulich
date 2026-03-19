@@ -72,6 +72,14 @@ public class User {
     private String avatarUrl;
 
     /**
+     * Trạng thái tài khoản: ACTIVE, INACTIVE, BANNED.
+     * Mặc định là ACTIVE khi tạo mới.
+     */
+    @Column(nullable = false)
+    @Builder.Default
+    private String status = "ACTIVE";
+
+    /**
      * Dấu thời gian hệ thống ghi nhận lúc tài khoản được khởi tạo lần đầu tiên.
      */
     @CreationTimestamp

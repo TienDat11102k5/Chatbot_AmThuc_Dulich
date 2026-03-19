@@ -80,9 +80,9 @@ public class AuthService {
 
         log.info("Generating JWT token...");
         UserDetails userDetails = org.springframework.security.core.userdetails.User.builder()
-                .username(user.getUsername())
+                .username(user.getEmail())
                 .password(user.getPasswordHash())
-                .roles("USER")
+                .roles(user.getRole())
                 .build();
         
         String token = jwtService.generateToken(userDetails);
@@ -122,9 +122,9 @@ public class AuthService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin đăng nhập tương ứng"));
 
         UserDetails userDetails = org.springframework.security.core.userdetails.User.builder()
-                .username(user.getUsername())
+                .username(user.getEmail())
                 .password(user.getPasswordHash())
-                .roles("USER")
+                .roles(user.getRole())
                 .build();
         
         String token = jwtService.generateToken(userDetails);
@@ -261,9 +261,9 @@ public class AuthService {
 
             // Tạo token JWT của hệ thống
             UserDetails userDetails = org.springframework.security.core.userdetails.User.builder()
-                    .username(user.getUsername())
+                    .username(user.getEmail())
                     .password(user.getPasswordHash())
-                    .roles("USER")
+                    .roles(user.getRole())
                     .build();
             String jwtToken = jwtService.generateToken(userDetails);
 

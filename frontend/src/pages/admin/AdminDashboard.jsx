@@ -1,73 +1,107 @@
 /**
- * AdminDashboard.jsx — Trang tổng quan của Admin Dashboard.
+ * AdminDashboard.jsx — Trang tổng quan Admin Dashboard.
  *
- * Thiết kế theo Stitch "SavoryTrip Admin Dashboard Overview":
- * 1. Stats Cards (3 cột): Tổng User / Lượt chat AI / Điểm đến phổ biến
- *    - Mỗi card: label + số BIG + icon màu + trend badge xanh lá
- * 2. Biểu đồ đường (SVG)cho 7 ngày: AI traffic (primary) + Web visits (slate dashed)
- * 3. Bảng người dùng mới đăng ký: avatar initials + email + role + status badge + actions
+ * Stats từ API thật: GET /api/v1/admin/stats
+ * Users gần đây từ API: GET /api/v1/admin/users?page=0&size=5
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Users, MessageSquare, MapPin, TrendingUp, Edit, Trash2,
-  ChevronRight,
+  Users, UserCheck, UserX, Shield,
+  TrendingUp, Edit, Trash2, ChevronRight, Loader2,
 } from 'lucide-react';
+import adminService from '../../lib/adminService';
 
-// ─── Dữ liệu stats cards ────────────────────────────────────────────────────
-const STATS = [
-  {
-    label: 'Tổng User',
-    value: '1,200',
-    trend: '+5% so với tháng trước',
-    trendUp: true,
-    icon: Users,
-    iconBg: 'bg-blue-50 text-blue-600',
-  },
-  {
-    label: 'Lượt chat AI hôm nay',
-    value: '4,500',
-    trend: '+12% so với hôm qua',
-    trendUp: true,
-    icon: MessageSquare,
-    iconBg: 'bg-emerald-50 text-emerald-600',
-  },
-  {
-    label: 'Điểm đến phổ biến',
-    value: 'Đà Nẵng',
-    trend: 'Thành phố du lịch hot nhất',
-    trendUp: false,
-    icon: MapPin,
-    iconBg: 'bg-amber-50 text-amber-600',
-  },
+// ─── Helpers ────────────────────────────────────────────────────────────────────
+const AVATAR_COLORS = [
+  'bg-blue-100 text-blue-700', 'bg-emerald-100 text-emerald-700',
+  'bg-amber-100 text-amber-700', 'bg-purple-100 text-purple-700',
+  'bg-pink-100 text-pink-700', 'bg-orange-100 text-orange-700',
 ];
 
-// ─── Dữ liệu bảng users gần đây ─────────────────────────────────────────────
-const RECENT_USERS = [
-  { initials: 'LH', name: 'Lê Hoàng Nam',  email: 'nam.lh@example.com',   role: 'Premium User',    status: 'active',   bgColor: 'bg-primary-600/10 text-primary-600' },
-  { initials: 'TT', name: 'Trần Thị Thảo', email: 'thao.tt@testmail.vn',  role: 'User',            status: 'inactive', bgColor: 'bg-slate-200 text-slate-600' },
-  { initials: 'QD', name: 'Quốc Duy',      email: 'duy.travel@outlook.com', role: 'Admin Content', status: 'active',   bgColor: 'bg-amber-100 text-amber-700' },
-  { initials: 'MA', name: 'Minh Anh',      email: 'minhanh.ng@gmail.com', role: 'User',            status: 'active',   bgColor: 'bg-primary-600/10 text-primary-600' },
-];
+const getInitials = (name) => {
+  if (!name) return '?';
+  return name.split(' ').slice(-2).map((w) => w[0]).join('').toUpperCase();
+};
 
-// ─── Status Badge ─────────────────────────────────────────────────────────────
+const getAvatarColor = (name) => {
+  if (!name) return AVATAR_COLORS[0];
+  const hash = name.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
+  return AVATAR_COLORS[hash % AVATAR_COLORS.length];
+};
+
+// ─── Status Badge ───────────────────────────────────────────────────────────────
 const StatusBadge = ({ status }) => (
   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-    status === 'active'
-      ? 'bg-emerald-100 text-emerald-800'
-      : 'bg-red-100 text-red-800'
+    status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
   }`}>
-    {status === 'active' ? 'Hoạt động' : 'Vô hiệu'}
+    {status === 'ACTIVE' ? 'Hoạt động' : 'Vô hiệu'}
   </span>
 );
 
 const AdminDashboard = () => {
-  const [users, setUsers] = useState(RECENT_USERS);
+  const [stats, setStats] = useState(null);
+  const [recentUsers, setRecentUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleDelete = (email) => {
-    setUsers((prev) => prev.filter((u) => u.email !== email));
-  };
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [statsData, usersData] = await Promise.all([
+          adminService.getStats(),
+          adminService.getUsers(0, 5),
+        ]);
+        setStats(statsData);
+        setRecentUsers(usersData.content || []);
+      } catch (err) {
+        console.error('[AdminDashboard] Lỗi tải dữ liệu:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-32">
+        <Loader2 size={40} className="animate-spin text-primary-600" />
+      </div>
+    );
+  }
+
+  // Stats cards config
+  const STATS_CARDS = [
+    {
+      label: 'Tổng User',
+      value: stats?.totalUsers || 0,
+      icon: Users,
+      iconBg: 'bg-blue-50 text-blue-600',
+      trend: `${stats?.activeUsers || 0} đang hoạt động`,
+    },
+    {
+      label: 'User Active',
+      value: stats?.activeUsers || 0,
+      icon: UserCheck,
+      iconBg: 'bg-emerald-50 text-emerald-600',
+      trend: 'Tài khoản đang hoạt động',
+    },
+    {
+      label: 'User Inactive',
+      value: stats?.inactiveUsers || 0,
+      icon: UserX,
+      iconBg: 'bg-red-50 text-red-600',
+      trend: 'Tài khoản bị vô hiệu',
+    },
+    {
+      label: 'Admin',
+      value: stats?.adminUsers || 0,
+      icon: Shield,
+      iconBg: 'bg-violet-50 text-violet-600',
+      trend: 'Tài khoản quản trị viên',
+    },
+  ];
 
   return (
     <div className="space-y-8">
@@ -77,15 +111,12 @@ const AdminDashboard = () => {
         <p className="text-slate-500 text-sm mt-1">Dữ liệu thời gian thực của SavoryTrip</p>
       </div>
 
-      {/* === STATS CARDS (3 cột) === */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {STATS.map((stat) => {
+      {/* === STATS CARDS === */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {STATS_CARDS.map((stat) => {
           const Icon = stat.icon;
           return (
-            <div
-              key={stat.label}
-              className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow"
-            >
+            <div key={stat.label} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex justify-between items-start mb-4">
                 <p className="text-sm font-medium text-slate-500">{stat.label}</p>
                 <div className={`p-2 rounded-xl ${stat.iconBg}`}>
@@ -93,10 +124,7 @@ const AdminDashboard = () => {
                 </div>
               </div>
               <h3 className="text-3xl font-bold text-slate-900">{stat.value}</h3>
-              <div className={`flex items-center gap-1 mt-3 text-sm font-medium ${
-                stat.trendUp ? 'text-emerald-600' : 'text-slate-500'
-              }`}>
-                {stat.trendUp && <TrendingUp size={14} />}
+              <div className="flex items-center gap-1 mt-3 text-sm font-medium text-slate-500">
                 <span>{stat.trend}</span>
               </div>
             </div>
@@ -104,68 +132,7 @@ const AdminDashboard = () => {
         })}
       </div>
 
-      {/* === BIỂU ĐỒ SVG === */}
-      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-        <div className="flex items-start justify-between mb-8">
-          <div>
-            <h2 className="text-lg font-bold text-slate-900">Xu hướng sử dụng AI và Lưu lượng Web</h2>
-            <p className="text-sm text-slate-500">Dữ liệu thống kê trong 7 ngày qua</p>
-          </div>
-          <div className="flex gap-3">
-            <span className="flex items-center gap-2 text-xs font-medium text-slate-600 px-3 py-1.5 bg-slate-100 rounded-full">
-              <span className="w-2 h-2 bg-primary-600 rounded-full" />
-              Lưu lượng AI
-            </span>
-            <span className="flex items-center gap-2 text-xs font-medium text-slate-600 px-3 py-1.5 bg-slate-100 rounded-full">
-              <span className="w-2 h-2 bg-slate-400 rounded-full" />
-              Lượt truy cập Web
-            </span>
-          </div>
-        </div>
-
-        {/* SVG Line Chart theo Stitch */}
-        <div className="relative h-64 w-full">
-          <svg className="w-full h-full" viewBox="0 0 1000 250" preserveAspectRatio="none">
-            <defs>
-              <linearGradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
-                <stop offset="0%" stopColor="#1d4ed8" stopOpacity="0.2" />
-                <stop offset="100%" stopColor="#1d4ed8" stopOpacity="0" />
-              </linearGradient>
-            </defs>
-            {/* Vùng tô gradient bên dưới đường AI */}
-            <path
-              d="M0,200 Q150,50 300,180 T600,80 T1000,150 V250 H0 Z"
-              fill="url(#chartGradient)"
-            />
-            {/* Đường AI (solid primary) */}
-            <path
-              d="M0,200 Q150,50 300,180 T600,80 T1000,150"
-              fill="none"
-              stroke="#1d4ed8"
-              strokeWidth="3"
-              strokeLinecap="round"
-            />
-            {/* Đường Web visits (dashed slate) */}
-            <path
-              d="M0,220 Q200,180 400,210 T800,160 T1000,190"
-              fill="none"
-              stroke="#94a3b8"
-              strokeWidth="2"
-              strokeDasharray="8,4"
-              strokeLinecap="round"
-            />
-          </svg>
-
-          {/* Labels ngày trong tuần */}
-          <div className="flex justify-between mt-3 text-xs font-medium text-slate-400 uppercase tracking-wider px-1">
-            {['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'CN'].map((d) => (
-              <span key={d}>{d}</span>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* === BẢNG USERS MỚI === */}
+      {/* === BẢNG USERS MỚI ĐĂNG KÝ === */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
           <h2 className="text-lg font-bold text-slate-900">Người dùng mới đăng ký</h2>
@@ -177,50 +144,47 @@ const AdminDashboard = () => {
           <table className="w-full text-left">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-100">
-                {['Họ và Tên', 'Email', 'Vai trò', 'Trạng thái', 'Thao tác'].map((h, i) => (
-                  <th
-                    key={h}
-                    className={`px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider ${
-                      i === 4 ? 'text-right' : ''
-                    }`}
-                  >
+                {['Họ và Tên', 'Email', 'Vai trò', 'Trạng thái'].map((h) => (
+                  <th key={h} className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
                     {h}
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {users.map((user) => (
-                <tr key={user.email} className="hover:bg-slate-50/50 transition-colors">
-                  {/* Avatar initials + tên */}
+              {recentUsers.map((user) => (
+                <tr key={user.id} className="hover:bg-slate-50/50 transition-colors">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div className={`w-8 h-8 rounded-full ${user.bgColor} flex items-center justify-center font-bold text-xs`}>
-                        {user.initials}
+                      <div className={`w-8 h-8 rounded-full ${getAvatarColor(user.fullName || user.username)} flex items-center justify-center font-bold text-xs`}>
+                        {getInitials(user.fullName || user.username)}
                       </div>
-                      <span className="text-sm font-medium text-slate-900">{user.name}</span>
+                      <div>
+                        <span className="text-sm font-medium text-slate-900 block">{user.fullName || user.username}</span>
+                        <span className="text-xs text-slate-400">@{user.username}</span>
+                      </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 text-sm text-slate-600">{user.email}</td>
-                  <td className="px-6 py-4 text-sm text-slate-600">{user.role}</td>
+                  <td className="px-6 py-4">
+                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+                      user.role === 'ADMIN' ? 'bg-violet-100 text-violet-700' : 'bg-slate-100 text-slate-600'
+                    }`}>
+                      {user.role === 'ADMIN' ? 'Admin' : 'Member'}
+                    </span>
+                  </td>
                   <td className="px-6 py-4">
                     <StatusBadge status={user.status} />
                   </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      <button className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-500 hover:text-slate-800 transition-colors">
-                        <Edit size={16} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(user.email)}
-                        className="p-1.5 hover:bg-red-50 rounded-lg text-slate-400 hover:text-red-500 transition-colors"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </td>
                 </tr>
               ))}
+              {recentUsers.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="px-6 py-12 text-center text-slate-400 text-sm">
+                    Chưa có người dùng nào
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

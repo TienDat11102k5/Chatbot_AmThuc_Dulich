@@ -54,7 +54,9 @@ const LoginPage = () => {
       login(data);
 
       toast.success('Đăng nhập thành công!');
-      navigate('/');
+      // Admin → redirect /admin dashboard, User → redirect trang chủ
+      const redirectTo = data.role === 'ADMIN' ? '/admin' : '/';
+      navigate(redirectTo);
     } catch (err) {
       const msg = err.response?.data?.message || err.response?.data || 'Tên đăng nhập hoặc mật khẩu không đúng.';
       setError(typeof msg === 'string' ? msg : 'Đăng nhập thất bại.');

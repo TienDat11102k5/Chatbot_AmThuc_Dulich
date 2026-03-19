@@ -28,6 +28,8 @@ services:
       POSTGRES_PASSWORD: password     # Mật khẩu (đổi khi lên Production!)
     ports:
       - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     networks:
       - chatbot_network
 
@@ -51,6 +53,8 @@ services:
     ports:
       - "6379:6379"
     command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
     networks:
       - chatbot_network
 
@@ -74,6 +78,8 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: admin     # Tài khoản đăng nhập Management UI
       RABBITMQ_DEFAULT_PASS: password  # Mật khẩu (đổi khi lên Production!)
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
     networks:
       - chatbot_network
 
@@ -135,6 +141,8 @@ services:
       - ai_service    # AI Service phải sẵn sàng trước Backend
       - redis         # Redis phải sẵn sàng trước Backend
       - rabbitmq      # [THÊM MỚI Phase 6] RabbitMQ phải sẵn sàng trước Backend
+    volumes:
+      - ./data/uploads:/app/uploads  # Ánh xạ thư mục vật lý chứa ảnh avatar ra ngoài host
     networks:
       - chatbot_network
 
@@ -180,3 +188,11 @@ services:
 networks:
   chatbot_network:
     driver: bridge
+
+# =============================================================================
+# VOLUMES — Ổ đĩa lưu trữ dữ liệu vĩnh viễn (Persist Data)
+# =============================================================================
+volumes:
+  postgres_data:
+  redis_data:
+  rabbitmq_data:

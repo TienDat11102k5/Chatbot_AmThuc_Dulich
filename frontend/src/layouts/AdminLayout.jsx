@@ -46,6 +46,17 @@ function AdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Read admin info from localStorage
+  const getUserInfo = () => {
+    try {
+      const raw = localStorage.getItem('savorytrip_user');
+      return raw ? JSON.parse(raw) : {};
+    } catch { return {}; }
+  };
+  const userInfo = getUserInfo();
+  const adminName = userInfo.fullName || userInfo.username || 'Admin';
+  const adminInitial = adminName.charAt(0).toUpperCase();
+
   useEffect(() => {
     if (location.pathname.startsWith('/admin/content')) {
       setCmsOpen(true);
@@ -54,6 +65,7 @@ function AdminLayout() {
 
   const handleLogout = () => {
     localStorage.removeItem('savorytrip_user');
+    window.dispatchEvent(new Event('authChange'));
     navigate('/login');
   };
 
@@ -164,10 +176,10 @@ function AdminLayout() {
         <div className="p-4 border-t border-slate-800">
           <div className="flex items-center gap-3 px-4 py-2 mb-2">
             <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold text-slate-300">
-              A
+              {adminInitial}
             </div>
             <div className="text-sm">
-              <p className="font-medium text-white">Admin User</p>
+              <p className="font-medium text-white">{adminName}</p>
               <button
                 onClick={handleLogout}
                 className="text-xs text-slate-400 hover:text-red-400 transition-colors flex items-center gap-1"
@@ -218,11 +230,11 @@ function AdminLayout() {
             <div className="w-px h-8 bg-slate-200" />
             <div className="flex items-center gap-3">
               <div className="text-right hidden sm:block">
-                <p className="text-sm font-semibold text-slate-900 leading-none">Nguyễn Văn A</p>
-                <p className="text-xs text-slate-500 mt-1">Super Admin</p>
+                <p className="text-sm font-semibold text-slate-900 leading-none">{adminName}</p>
+                <p className="text-xs text-slate-500 mt-1">{userInfo.role === 'ADMIN' ? 'Super Admin' : 'User'}</p>
               </div>
               <div className="w-10 h-10 rounded-full bg-primary-600 flex items-center justify-center text-white text-sm font-bold ring-2 ring-primary-600/20">
-                A
+                {adminInitial}
               </div>
             </div>
           </div>

@@ -33,7 +33,8 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public String getUsername() {
-        return user.getUsername();
+        // Must return email to match JWT subject (used by JwtService.isTokenValid)
+        return user.getEmail();
     }
 
     @Override
