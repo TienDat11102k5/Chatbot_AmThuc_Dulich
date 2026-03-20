@@ -28,6 +28,7 @@ from fastapi.middleware.cors import CORSMiddleware  # Middleware cho phép Cross
 
 # Import Router chứa endpoint đã chuẩn bị ở Phase 4
 from src.api.router import router as ai_router
+from src.api.admin_router import admin_router  # Phase 1: Admin endpoints
 from src.core.intent_classifier import IntentClassifier  # Model phân loại ý định
 from src.core.recommender import RecommenderSystem       # Hệ thống đề xuất (CSV — sẽ chuyển sang PostgreSQL ở Phase AI Service)
 
@@ -251,6 +252,7 @@ app.add_middleware(
 # 5. GẮN ROUTER (Các endpoint API)
 # ==============================================================================
 app.include_router(ai_router)
+app.include_router(admin_router)  # Phase 1: Admin endpoints (GET /api/v1/ai/admin/*)
 
 
 # ==============================================================================

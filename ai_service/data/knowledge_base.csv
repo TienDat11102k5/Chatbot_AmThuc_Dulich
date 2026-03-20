@@ -1,1 +1,21 @@
-﻿
+id,name,type,description,region,address,tags
+MON001,Phở Bò Hà Nội,mon_an,Phở bò truyền thống Hà Nội với nước dùng ninh từ xương bò trong nhiều giờ. Bánh phở mềm dai kèm thịt bò tái chín thơm ngon.,Hà Nội,Phố cổ Hà Nội,phở bò hà nội truyền thống miền bắc
+MON002,Bún Bò Huế,mon_an,Bún bò Huế cay nồng đặc trưng với nước dùng sả ớt đậm đà. Kèm giò heo chả cua và rau sống tươi ngon.,Huế,Thành phố Huế,bún bò huế cay sả miền trung
+MON003,Cơm Tấm Sài Gòn,mon_an,Cơm tấm sườn bì chả đặc sản Sài Gòn. Sườn nướng than hoa thơm lừng kèm bì trộn và chả trứng hấp.,Sài Gòn,Quận 1 TP.HCM,cơm tấm sài gòn sườn nướng miền nam
+MON004,Bánh Mì Sài Gòn,mon_an,Bánh mì Sài Gòn giòn rụm nhân pate thịt nguội rau sống. Món ăn đường phố nổi tiếng thế giới.,Sài Gòn,Quận 1 TP.HCM,bánh mì sài gòn pate thịt nguội
+MON005,Bún Chả Hà Nội,mon_an,Bún chả Hà Nội với chả viên và thịt nướng than hoa chấm nước mắm chua ngọt. Kèm rau sống và bún tươi.,Hà Nội,Phố cổ Hà Nội,bún chả hà nội nướng than miền bắc
+MON006,Mì Quảng,mon_an,Mì Quảng Đà Nẵng sợi mì vàng ươm nước dùng ít xương heo tôm thịt. Ăn kèm bánh tráng rau sống đậu phộng.,Đà Nẵng,Thành phố Đà Nẵng,mì quảng đà nẵng tôm thịt miền trung
+MON007,Cao Lầu Hội An,mon_an,Cao lầu đặc sản Hội An sợi mì dai giòn kèm thịt xá xíu rau sống và nước sốt đậm đà.,Hội An,Phố cổ Hội An,cao lầu hội an xá xíu miền trung
+MON008,Bánh Xèo Miền Tây,mon_an,Bánh xèo miền Tây giòn vàng nhân tôm thịt giá đỗ. Cuốn rau sống chấm nước mắm chua ngọt.,Cần Thơ,Ninh Kiều Cần Thơ,bánh xèo miền tây tôm thịt miền nam
+MON009,Nem Nướng Nha Trang,mon_an,Nem nướng Nha Trang thơm lừng cuốn bánh tráng rau sống bún tươi. Chấm nước mắm pha đặc biệt.,Nha Trang,Thành phố Nha Trang,nem nướng nha trang cuốn bánh tráng
+MON010,Lẩu Mắm Miền Tây,mon_an,Lẩu mắm đồng miền Tây đậm đà với cá lóc tôm mực rau đồng. Nước lẩu mắm cá linh thơm nồng.,Cần Thơ,Ninh Kiều Cần Thơ,lẩu mắm miền tây cá đồng miền nam
+DIA001,Vịnh Hạ Long,dia_diem,Di sản thiên nhiên thế giới UNESCO với hàng ngàn hòn đảo đá vôi kỳ vĩ. Trải nghiệm du thuyền ngắm hoàng hôn.,Quảng Ninh,Thành phố Hạ Long,vịnh hạ long du thuyền đảo đá vôi
+DIA002,Phố Cổ Hội An,dia_diem,Phố cổ Hội An di sản văn hóa thế giới với kiến trúc cổ kính đèn lồng lung linh. Đặc biệt đẹp về đêm.,Hội An,Thành phố Hội An,phố cổ hội an đèn lồng di sản
+DIA003,Đà Lạt,dia_diem,Thành phố ngàn hoa Đà Lạt với khí hậu mát mẻ quanh năm. Nhiều điểm check-in đẹp và ẩm thực phong phú.,Đà Lạt,Thành phố Đà Lạt,đà lạt thành phố hoa khí hậu mát
+DIA004,Sapa,dia_diem,Sapa Lào Cai với ruộng bậc thang tuyệt đẹp và văn hóa dân tộc thiểu số độc đáo. Leo Fansipan nóc nhà Đông Dương.,Lào Cai,Thị xã Sapa,sapa ruộng bậc thang fansipan dân tộc
+DIA005,Phú Quốc,dia_diem,Đảo ngọc Phú Quốc với bãi biển cát trắng nước trong xanh. Thiên đường nghỉ dưỡng và hải sản tươi sống.,Kiên Giang,Thành phố Phú Quốc,phú quốc đảo ngọc biển xanh hải sản
+DIA006,Ninh Bình,dia_diem,Tràng An Ninh Bình di sản thiên nhiên thế giới với hang động và sông nước hùng vĩ. Cố đô Hoa Lư lịch sử.,Ninh Bình,Thành phố Ninh Bình,ninh bình tràng an hang động cố đô
+DIA007,Huế,dia_diem,Cố đô Huế với kinh thành triều Nguyễn lăng tẩm và sông Hương thơ mộng. Di sản văn hóa thế giới.,Huế,Thành phố Huế,huế cố đô kinh thành sông hương
+DIA008,Mũi Né Phan Thiết,dia_diem,Mũi Né Phan Thiết nổi tiếng với đồi cát bay và bãi biển đẹp. Thiên đường thể thao biển và hải sản.,Bình Thuận,Thành phố Phan Thiết,mũi né phan thiết đồi cát biển
+DIA009,Hồ Xuân Hương Đà Lạt,dia_diem,Hồ Xuân Hương trung tâm Đà Lạt lãng mạn với hàng thông xanh mát. Đạp vịt ngắm cảnh thư giãn.,Đà Lạt,Trung tâm Đà Lạt,hồ xuân hương đà lạt thông xanh
+DIA010,Bà Nà Hills,dia_diem,Bà Nà Hills Đà Nẵng với Cầu Vàng nổi tiếng thế giới và công viên giải trí Sun World. Khí hậu châu Âu.,Đà Nẵng,Thành phố Đà Nẵng,bà nà hills cầu vàng đà nẵng sun world

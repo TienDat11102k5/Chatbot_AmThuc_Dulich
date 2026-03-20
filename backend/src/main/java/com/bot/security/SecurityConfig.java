@@ -71,10 +71,11 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         // Allowed origins: Frontend dev server
-        configuration.setAllowedOrigins(Arrays.asList(
+        // Port 3000: Vite dev server mặc định hoặc Docker frontend (Nginx)
+        // Port 3001: Vite dev server khi port 3000 bị Docker chiếm
+        configuration.setAllowedOrigins(List.of(
                 "http://localhost:3000",
-                "http://localhost:3001",
-                "http://localhost:5173"
+                "http://localhost:3001"
         ));
         // Allowed HTTP methods
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));

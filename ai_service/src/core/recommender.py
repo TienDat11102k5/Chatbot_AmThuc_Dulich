@@ -44,6 +44,8 @@ class RecommenderSystem:
     4. Lưu Ma trận đó vào thuộc tính `self.tfidf_matrix` → Sẵn sàng để so sánh.
     
     Khi cần tìm: Chỉ cần biến câu truy vấn thành 1 Vector, rồi so sánh với Ma trận.
+    
+    Graceful Degradation: Nếu CSV rỗng → hệ thống vẫn khởi động, recommend() trả []
     """
     
     def __init__(self):
@@ -52,17 +54,42 @@ class RecommenderSystem:
         Hàm này chỉ chạy MỘT LẦN khi Server khởi động (nhờ FastAPI lifespan).
         Sau đó mọi request đều dùng lại Ma trận đã tính sẵn → Cực nhanh.
         """
-        # Bước 1: Đọc file CSV chưa cơ sở tri thức
-        if not os.path.exists(KNOWLEDGE_BASE_PATH):
-            raise FileNotFoundError(
-                f"Không tìm thấy file tri thức: {KNOWLEDGE_BASE_PATH}\n"
-                "Hãy chắc chắn đã tạo file data/knowledge_base.csv trước."
-            )
+        # Flag cho biết recommender sẵn sàng chưa
+        self.ready = False
+        self.df = None
+        self.vectorizer = None
+        self.tfidf_matrix = None
         
-        self.df = pd.read_csv(KNOWLEDGE_BASE_PATH)
+        # Bước 1: Kiểm tra file CSV tồn tại
+        if not os.path.exists(KNOWLEDGE_BASE_PATH):
+            print(f"[Recommender] ⚠️ CẢNH BÁO: Không tìm thấy file {KNOWLEDGE_BASE_PATH}")
+            print("[Recommender] Recommender sẽ hoạt động ở chế độ rỗng (trả [] cho mọi truy vấn)")
+            return
+        
+        # Bước 2: Thử đọc CSV — xử lý graceful nếu file rỗng
+        try:
+            self.df = pd.read_csv(KNOWLEDGE_BASE_PATH)
+        except pd.errors.EmptyDataError:
+            print("[Recommender] ⚠️ CẢNH BÁO: File knowledge_base.csv rỗng (không có cột nào)")
+            print("[Recommender] Recommender sẽ hoạt động ở chế độ rỗng (trả [] cho mọi truy vấn)")
+            return
+        
+        if self.df.empty or len(self.df) == 0:
+            print("[Recommender] ⚠️ CẢNH BÁO: knowledge_base.csv có header nhưng không có dữ liệu")
+            print("[Recommender] Recommender sẽ hoạt động ở chế độ rỗng (trả [] cho mọi truy vấn)")
+            return
+        
+        # Kiểm tra các cột bắt buộc
+        required_cols = ['name', 'description', 'region', 'tags']
+        missing_cols = [c for c in required_cols if c not in self.df.columns]
+        if missing_cols:
+            print(f"[Recommender] ⚠️ CẢNH BÁO: Thiếu cột {missing_cols} trong knowledge_base.csv")
+            print("[Recommender] Recommender sẽ hoạt động ở chế độ rỗng (trả [] cho mọi truy vấn)")
+            return
+            
         print(f"[Recommender] Đã nạp {len(self.df)} bản ghi từ knowledge_base.csv")
         
-        # Bước 2: Tạo cột phụ "combined_text" = ghép nội dung "description" + "tags" + "name" + "region"
+        # Bước 3: Tạo cột phụ "combined_text" = ghép nội dung "description" + "tags" + "name" + "region"
         # Mục đích: Cho TF-IDF có nhiều thông tin hơn để so sánh chính xác hơn.
         # Ví dụ sẽ ra dạng: "Phở Bò Hà Nội phở bò hà nội miền bắc truyền thống..."
         self.df['combined_text'] = (
@@ -72,15 +99,14 @@ class RecommenderSystem:
             self.df['tags'].fillna('')
         )
         
-        # Bước 3: Tiền xử lý NLP cho cột ghép (cắt từ tiếng Việt + loại bỏ stop words)
+        # Bước 4: Tiền xử lý NLP cho cột ghép (cắt từ tiếng Việt + loại bỏ stop words)
         self.df['processed_text'] = self.df['combined_text'].apply(preprocess_text)
         
-        # Bước 4: Tính toán trước Ma trận TF-IDF cho toàn bộ 30 bản ghi
-        # Kết quả là 1 ma trận kích thước: (30 bản ghi) x (số lượng từ vựng duy nhất)
+        # Bước 5: Tính toán trước Ma trận TF-IDF cho toàn bộ bản ghi
         self.vectorizer = TfidfVectorizer()
         self.tfidf_matrix = self.vectorizer.fit_transform(self.df['processed_text'])
-        print(f"[Recommender] Đã tính xong Ma trận TF-IDF: {self.tfidf_matrix.shape}")
-        # Ví dụ output: (30, 250) → 30 bản ghi, 250 từ vựng riêng biệt
+        self.ready = True
+        print(f"[Recommender] ✅ Đã tính xong Ma trận TF-IDF: {self.tfidf_matrix.shape}")
     
     def recommend(self, entities: dict, top_k: int = 3) -> list:
         """
@@ -105,6 +131,10 @@ class RecommenderSystem:
                 {"id": "DIA009", "name": "Hồ Xuân Hương",  "score": 0.31, ...}
             ]
         """
+        # Guard clause: Nếu recommender chưa sẵn sàng (CSV rỗng/lỗi) → trả []
+        if not self.ready:
+            return []
+        
         # 1. Lấy câu truy vấn thô từ NER (đã ghép food+location lại)
         raw_query = entities.get("raw_query", "")
         
