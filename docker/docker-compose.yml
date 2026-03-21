@@ -91,10 +91,10 @@ services:
   # Biến môi trường:
   #   REDIS_HOST: Kết nối Redis để dùng Semantic Cache (không mất khi restart)
   # ===========================================================================
-  ai_service:
+  aiservice:
     build:
       context: ../ai_service
-    container_name: ai_service
+    container_name: aiservice
     ports:
       - "8000:8000"
     environment:
@@ -128,7 +128,7 @@ services:
       SPRING_DATASOURCE_USERNAME: ${DB_USERNAME:-admin}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-password}
       
-      AI_SERVICE_URL: http://ai_service:8000     # URL AI Service trong mạng Docker
+      AI_SERVICE_URL: http://aiservice:8000      # URL AI Service trong mạng Docker (không dùng underscore — Java reject theo RFC 952)
       SPRING_DATA_REDIS_HOST: redis              # Redis trong mạng Docker
       SPRING_DATA_REDIS_PORT: 6379
       
@@ -138,7 +138,7 @@ services:
       RABBITMQ_PASS: password
     depends_on:
       - database      # Database phải sẵn sàng trước Backend
-      - ai_service    # AI Service phải sẵn sàng trước Backend
+      - aiservice     # AI Service phải sẵn sàng trước Backend
       - redis         # Redis phải sẵn sàng trước Backend
       - rabbitmq      # [THÊM MỚI Phase 6] RabbitMQ phải sẵn sàng trước Backend
     volumes:

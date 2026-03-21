@@ -415,16 +415,19 @@ const UserManagement = () => {
               <table className="w-full text-left">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-100">
-                    {['Người dùng', 'Email', 'Vai trò', 'Trạng thái', 'Ngày đăng ký', 'Thao tác'].map((h, i) => (
-                      <th key={h} className={`px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider ${i === 5 ? 'text-right' : ''}`}>
+                    {['STT', 'Người dùng', 'Email', 'Vai trò', 'Trạng thái', 'Ngày đăng ký', 'Thao tác'].map((h, i) => (
+                      <th key={h} className={`px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider ${i === 6 ? 'text-right' : ''}`}>
                         {h}
                       </th>
                     ))}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {users.map((user) => (
+                  {users.map((user, index) => (
                     <tr key={user.id} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="px-6 py-4 text-sm font-medium text-slate-500">
+                        {page * PAGE_SIZE + index + 1}
+                      </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className={`w-9 h-9 rounded-full ${getAvatarColor(user.fullName || user.username)} flex items-center justify-center font-bold text-xs flex-shrink-0`}>
@@ -470,7 +473,7 @@ const UserManagement = () => {
 
                   {users.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="px-6 py-12 text-center text-slate-400 text-sm">
+                      <td colSpan={7} className="px-6 py-12 text-center text-slate-400 text-sm">
                         Không tìm thấy người dùng phù hợp
                       </td>
                     </tr>

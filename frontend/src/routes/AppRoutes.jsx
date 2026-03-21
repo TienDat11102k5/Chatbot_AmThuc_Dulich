@@ -46,7 +46,8 @@ import ChatHistoryPage from '@/pages/profile/ChatHistoryPage';
 import AdminDashboard from '@/pages/admin/AdminDashboard';
 import UserManagement from '@/pages/admin/UserManagement';
 import ContentManagement from '@/pages/admin/ContentManagement';
-import AILogsPage from '@/pages/admin/AILogsPage';
+import AiMonitoring from '@/pages/admin/ai/AiMonitoring';
+import AiTrainingData from '@/pages/admin/ai/AiTrainingData';
 import AnalyticsPage from '@/pages/admin/AnalyticsPage';
 import AdminSettings from '@/pages/admin/AdminSettings';
 import BlogList from '@/pages/admin/cms/BlogList';
@@ -133,7 +134,11 @@ function AppRoutes() {
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/analytics" element={<AnalyticsPage />} />
           <Route path="/admin/users" element={<UserManagement />} />
-          <Route path="/admin/ai-logs" element={<AILogsPage />} />
+          
+          {/* AI Center Routes */}
+          <Route path="/admin/ai/monitoring" element={<AiMonitoring />} />
+          <Route path="/admin/ai/training-data" element={<AiTrainingData />} />
+
           <Route path="/admin/settings" element={<AdminSettings />} />
           
           {/* CMS Routes */}

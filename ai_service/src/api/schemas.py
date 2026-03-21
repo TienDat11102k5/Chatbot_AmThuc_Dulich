@@ -108,3 +108,38 @@ class ChatResponse(BaseModel):
         default=None,
         description="Các thực thể NER đã trích xuất (food, location). Hữu ích cho debug."
     )
+
+
+# ==============================================================================
+# 4. SCHEMAS ADMIN — Dành cho trang quản trị AI (Phase 1)
+# ==============================================================================
+class IntentItem(BaseModel):
+    """
+    Schema cho 1 intent trong bộ dữ liệu huấn luyện.
+    Ví dụ: { "tag": "tim_mon_an", "sample_count": 151, "examples": ["Phở Hà Nội", "Bún bò Huế"] }
+    """
+    tag: str = Field(description="Tên intent (VD: tim_mon_an, tim_dia_diem)")
+    sample_count: int = Field(description="Số lượng mẫu câu huấn luyện cho intent này")
+    examples: List[str] = Field(
+        default=[],
+        description="Tối đa 5 câu mẫu đại diện cho intent"
+    )
+
+
+class IntentListResponse(BaseModel):
+    """Schema phản hồi danh sách intents cho trang Training Data admin."""
+    total_intents: int = Field(description="Tổng số intent")
+    total_samples: int = Field(description="Tổng số mẫu câu trong dataset")
+    intents: List[IntentItem] = Field(description="Danh sách chi tiết từng intent")
+
+
+class AiStatsResponse(BaseModel):
+    """Schema phản hồi thống kê AI cho trang Monitoring admin."""
+    total_intents: int = Field(description="Tổng số intent AI hỗ trợ")
+    total_samples: int = Field(description="Tổng số mẫu câu huấn luyện")
+    intent_breakdown: dict = Field(
+        description="Phân bổ số lượng mẫu theo intent, VD: {'tim_mon_an': 151, 'tim_dia_diem': 100}"
+    )
+    cache_hit_count: int = Field(default=0, description="Số lần cache HIT (Redis)")
+    cache_miss_count: int = Field(default=0, description="Số lần cache MISS")
+    cache_hit_rate: float = Field(default=0.0, description="Tỉ lệ cache HIT (%)")

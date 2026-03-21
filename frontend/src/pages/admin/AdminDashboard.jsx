@@ -144,7 +144,7 @@ const AdminDashboard = () => {
           <table className="w-full text-left">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-100">
-                {['Họ và Tên', 'Email', 'Vai trò', 'Trạng thái'].map((h) => (
+                {['STT', 'Người dùng', 'Email', 'Vai trò', 'Trạng thái'].map((h) => (
                   <th key={h} className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
                     {h}
                   </th>
@@ -152,8 +152,11 @@ const AdminDashboard = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {recentUsers.map((user) => (
+              {recentUsers.map((user, index) => (
                 <tr key={user.id} className="hover:bg-slate-50/50 transition-colors">
+                  <td className="px-6 py-4 text-sm font-medium text-slate-500">
+                    {index + 1}
+                  </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className={`w-8 h-8 rounded-full ${getAvatarColor(user.fullName || user.username)} flex items-center justify-center font-bold text-xs`}>
@@ -180,7 +183,7 @@ const AdminDashboard = () => {
               ))}
               {recentUsers.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="px-6 py-12 text-center text-slate-400 text-sm">
+                  <td colSpan={5} className="px-6 py-12 text-center text-slate-400 text-sm">
                     Chưa có người dùng nào
                   </td>
                 </tr>

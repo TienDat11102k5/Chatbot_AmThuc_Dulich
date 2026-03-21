@@ -1,13 +1,14 @@
 /**
  * AIChatWidget.jsx — Widget chat AI nổi, cải tiến theo thiết kế Stitch.
  *
- * Nâng cấp so với phiên bản cũ:
+ * Nâng cấp:
  * - Nút floating có pulse animation + badge "Ask AI"
  * - Quick suggestion chips để user click ngay
  * - Avatar icon cho từng tin nhắn
  * - Transition mở/đóng cửa sổ mượt (scale + opacity)
  * - Link "Mở đầy đủ AI Planner" ở footer
  * - Typing indicator 3 chấm bounce
+ * - [Phase 6] Mốc thời gian kiểu Zalo/Messenger (hiện khi cách > 30 phút)
  */
 
 import { useState, useRef, useEffect } from 'react';
@@ -27,6 +28,7 @@ const INITIAL_MESSAGE = {
   id: 0,
   role: 'assistant',
   content: 'Xin chào! Tôi là **SavoryAI** 🍜\nTôi có thể giúp bạn tìm nhà hàng ngon, gợi ý món ăn hoặc lên kế hoạch chuyến đi. Bạn muốn khám phá gì hôm nay?',
+  timestamp: Date.now(),
 };
 
 // ─── Map câu hỏi → câu trả lời demo ──────────────────────────────────────────
@@ -44,6 +46,48 @@ function getAIReply(text) {
     if (lower.includes(key)) return val;
   }
   return `Câu hỏi hay! Tôi đang xử lý: "${text}"\n\nĐể có câu trả lời chi tiết nhất, hãy thử **Mở AI Planner đầy đủ** nhé! 🚀`;
+}
+
+// ─── [Phase 6] Helper: Mốc thời gian kiểu Zalo/Messenger ─────────────────────
+const THIRTY_MINUTES = 30 * 60 * 1000; // 30 phút tính bằng ms
+
+/**
+ * Kiểm tra có nên hiện mốc thời gian hay không.
+ * Quy tắc: Hiện mốc khi tin nhắn cách tin trước > 30 phút, hoặc là tin đầu tiên.
+ */
+function shouldShowTimestamp(currentMsg, prevMsg) {
+  if (!prevMsg) return true; // Tin nhắn đầu tiên luôn hiện mốc
+  const curr = currentMsg.timestamp || 0;
+  const prev = prevMsg.timestamp || 0;
+  return (curr - prev) > THIRTY_MINUTES;
+}
+
+/**
+ * Format timestamp hiển thị theo kiểu Zalo/Messenger.
+ * Hôm nay → "Hôm nay, 09:00"
+ * Hôm qua → "Hôm qua, 14:30"
+ * Khác    → "20/03/2026, 10:00"
+ */
+function formatChatTimestamp(ts) {
+  if (!ts) return '';
+  const date = new Date(ts);
+  const now = new Date();
+  const time = date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+
+  // Kiểm tra hôm nay
+  if (date.toDateString() === now.toDateString()) {
+    return `Hôm nay, ${time}`;
+  }
+
+  // Kiểm tra hôm qua
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  if (date.toDateString() === yesterday.toDateString()) {
+    return `Hôm qua, ${time}`;
+  }
+
+  // Ngày khác
+  return `${date.toLocaleDateString('vi-VN')}, ${time}`;
 }
 
 function AIChatWidget() {
@@ -66,21 +110,23 @@ function AIChatWidget() {
     return () => window.removeEventListener('openAIChatWidget', handleOpenChat);
   }, []);
 
-  // Gửi tin nhắn
+  // Gửi tin nhắn — bổ sung timestamp vào mỗi message
   function handleSend(text = inputText) {
     const trimmed = text.trim();
     if (!trimmed || isLoading) return;
 
-    setShowQuick(false); // Ẩn quick suggestions sau lần gửi đầu
-    setMessages((prev) => [...prev, { id: Date.now(), role: 'user', content: trimmed }]);
+    setShowQuick(false);
+    const userTs = Date.now();
+    setMessages((prev) => [...prev, { id: userTs, role: 'user', content: trimmed, timestamp: userTs }]);
     setInputText('');
     setIsLoading(true);
 
     // Giả lập AI phản hồi sau 1s
     setTimeout(() => {
+      const botTs = Date.now();
       setMessages((prev) => [
         ...prev,
-        { id: Date.now() + 1, role: 'assistant', content: getAIReply(trimmed) },
+        { id: botTs, role: 'assistant', content: getAIReply(trimmed), timestamp: botTs },
       ]);
       setIsLoading(false);
     }, 1000 + Math.random() * 500);
@@ -138,24 +184,37 @@ function AIChatWidget() {
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 bg-slate-50">
-          {messages.map((msg) => (
-            <div key={msg.id} className={`flex gap-2.5 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-              {/* Avatar */}
-              <div className={`w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-xs ${
-                msg.role === 'user'
-                  ? 'bg-primary-600 text-white'
-                  : 'bg-white border border-slate-200 text-primary-600'
-              }`}>
-                {msg.role === 'user' ? <User size={13} /> : <Bot size={13} />}
-              </div>
-              {/* Bubble */}
-              <div className={`max-w-[78%] px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-line ${
-                msg.role === 'user'
-                  ? 'bg-primary-600 text-white rounded-tr-sm'
-                  : 'bg-white text-slate-800 border border-slate-200 rounded-tl-sm shadow-sm'
-              }`}>
-                {msg.content}
+        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-1 bg-slate-50">
+          {messages.map((msg, index) => (
+            <div key={msg.id}>
+              {/* [Phase 6] Mốc thời gian — hiện khi cách > 30 phút */}
+              {shouldShowTimestamp(msg, messages[index - 1]) && (
+                <div className="flex items-center gap-3 my-4">
+                  <div className="flex-1 h-px bg-slate-200" />
+                  <span className="text-[10px] text-slate-400 font-medium whitespace-nowrap px-2">
+                    {formatChatTimestamp(msg.timestamp)}
+                  </span>
+                  <div className="flex-1 h-px bg-slate-200" />
+                </div>
+              )}
+              {/* Bubble tin nhắn */}
+              <div className={`flex gap-2.5 mb-3 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                {/* Avatar */}
+                <div className={`w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-xs ${
+                  msg.role === 'user'
+                    ? 'bg-primary-600 text-white'
+                    : 'bg-white border border-slate-200 text-primary-600'
+                }`}>
+                  {msg.role === 'user' ? <User size={13} /> : <Bot size={13} />}
+                </div>
+                {/* Bubble */}
+                <div className={`max-w-[78%] px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-line ${
+                  msg.role === 'user'
+                    ? 'bg-primary-600 text-white rounded-tr-sm'
+                    : 'bg-white text-slate-800 border border-slate-200 rounded-tl-sm shadow-sm'
+                }`}>
+                  {msg.content}
+                </div>
               </div>
             </div>
           ))}
@@ -178,7 +237,7 @@ function AIChatWidget() {
 
           {/* Quick suggestions (chỉ hiện khi chưa có tin nhắn nào từ user) */}
           {showQuick && (
-            <div className="space-y-2">
+            <div className="space-y-2 mt-2">
               <p className="text-xs text-slate-400 font-medium">Gợi ý câu hỏi:</p>
               <div className="flex flex-wrap gap-2">
                 {QUICK_SUGGESTIONS.map((s) => (
