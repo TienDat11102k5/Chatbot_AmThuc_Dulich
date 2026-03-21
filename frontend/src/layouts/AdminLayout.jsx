@@ -24,7 +24,15 @@ import {
 const ADMIN_MENU = [
   { path: '/admin',          label: 'Tổng quan',           icon: LayoutDashboard },
   { path: '/admin/users',    label: 'Quản lý User',         icon: Users           },
-  { path: '/admin/ai-logs',  label: 'AI Center (Prompt & Logs)', icon: BrainCircuit },
+  { 
+    label: 'AI Center', 
+    icon: BrainCircuit,
+    isSubmenu: true,
+    subItems: [
+      { path: '/admin/ai/monitoring', label: 'Giám sát AI Center' },
+      { path: '/admin/ai/training-data', label: 'Dữ liệu Huấn luyện' }
+    ]
+  },
   { 
     label: 'Quản lý trang (CMS)', 
     icon: FileText,
@@ -42,7 +50,7 @@ const ADMIN_MENU = [
 
 function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [cmsOpen, setCmsOpen] = useState(false);
+  const [openMenus, setOpenMenus] = useState({});
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -59,9 +67,16 @@ function AdminLayout() {
 
   useEffect(() => {
     if (location.pathname.startsWith('/admin/content')) {
-      setCmsOpen(true);
+      setOpenMenus(prev => ({ ...prev, 'Quản lý trang (CMS)': true }));
+    }
+    if (location.pathname.startsWith('/admin/ai')) {
+      setOpenMenus(prev => ({ ...prev, 'AI Center': true }));
     }
   }, [location.pathname]);
+
+  const toggleSubmenu = (label) => {
+    setOpenMenus(prev => ({ ...prev, [label]: !prev[label] }));
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('savorytrip_user');
@@ -109,11 +124,15 @@ function AdminLayout() {
             const Icon = item.icon;
             
             if (item.isSubmenu) {
-              const isActiveParent = location.pathname.startsWith('/admin/content');
+              const isActiveParent = item.label === 'AI Center'
+                ? location.pathname.startsWith('/admin/ai')
+                : location.pathname.startsWith('/admin/content');
+              const isOpen = openMenus[item.label];
+
               return (
                 <div key={item.label} className="space-y-1">
                   <button
-                    onClick={() => setCmsOpen(!cmsOpen)}
+                    onClick={() => toggleSubmenu(item.label)}
                     className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all duration-150 ${
                       isActiveParent
                         ? 'bg-slate-800 text-white' 
@@ -124,10 +143,10 @@ function AdminLayout() {
                       <Icon size={18} />
                       <span>{item.label}</span>
                     </div>
-                    {cmsOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                    {isOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                   </button>
                   
-                  {cmsOpen && (
+                  {isOpen && (
                     <div className="pl-4 pr-2 space-y-1 mt-1 border-l-2 border-slate-800 ml-6">
                       {item.subItems.map((sub) => (
                         <NavLink
