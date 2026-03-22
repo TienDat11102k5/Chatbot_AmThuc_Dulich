@@ -3,7 +3,7 @@ WORKDIR /app
 
 # Cache dependencies layer
 COPY package.json package-lock.json* ./
-RUN npm ci || npm install
+RUN npm install --legacy-peer-deps
 
 # Build (tăng memory limit nếu Vite cần)
 ENV NODE_OPTIONS="--max-old-space-size=2048"

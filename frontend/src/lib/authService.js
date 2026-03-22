@@ -93,6 +93,20 @@ const authService = {
     const response = await api.post('/auth/reset-password', { email, otp, newPassword });
     return response.data;
   },
+
+  /**
+   * Xác thực thông qua Google (Xác minh ID Token).
+   *
+   * Gọi: POST /api/auth/google
+   * Body: { idToken: string }
+   *
+   * @param {string} idToken - Token lấy được từ @react-oauth/google
+   * @returns {Promise<{token: string, userId: string, username: string, email: string, role: string}>}
+   */
+  async googleLogin(idToken) {
+    const response = await api.post('/auth/google', { idToken });
+    return response.data;
+  },
 };
 
 export default authService;

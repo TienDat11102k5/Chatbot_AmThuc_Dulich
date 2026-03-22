@@ -23,6 +23,12 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
+import java.util.Map;
 import java.util.Collections;
 
 /**
@@ -222,26 +228,48 @@ public class AuthService {
 
     /**
      * Xác thực người dùng bằng Google Login.
-     * Sử dụng Google API Client để kiểm tra token từ phía client gửi lên.
-     * Nếu email khớp tài khoản đã có, tự động đăng nhập. Nếu chưa có, tạo tài khoản mới.
-     * @param idToken Chuỗi JWT do Google sinh ra.
+     * Hỗ trợ xác thực bằng ID Token hoặc Access Token (từ custom button FE).
+     * @param tokenStr Chuỗi JWT (ID Token) hoặc Access Token.
      * @return AuthResponse chứa access token của ứng dụng.
      */
-    public AuthResponse googleLogin(String idToken) {
+    public AuthResponse googleLogin(String tokenStr) {
         try {
-            GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(
-                    new NetHttpTransport(), GsonFactory.getDefaultInstance())
-                    .setAudience(Collections.singletonList(googleClientId))
-                    .build();
+            String email;
+            String name;
+            String picture;
 
-            GoogleIdToken token = verifier.verify(idToken);
-            if (token == null) {
-                throw new RuntimeException("Mã xác thực Google không hợp lệ!");
+            // Nếu là ID Token (chuỗi JWT có 3 phần)
+            if (tokenStr.split("\\.").length == 3) {
+                GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(
+                        new NetHttpTransport(), GsonFactory.getDefaultInstance())
+                        .setAudience(Collections.singletonList(googleClientId))
+                        .build();
+
+                GoogleIdToken token = verifier.verify(tokenStr);
+                if (token == null) {
+                    throw new RuntimeException("Mã xác thực Google không hợp lệ!");
+                }
+                GoogleIdToken.Payload payload = token.getPayload();
+                email = payload.getEmail();
+                name = (String) payload.get("name");
+                picture = (String) payload.get("picture");
+            } else {
+                // Xử lý nhánh lấy Access Token từ Custom Button (implicit flow)
+                RestTemplate restTemplate = new RestTemplate();
+                HttpHeaders headers = new HttpHeaders();
+                headers.setBearerAuth(tokenStr);
+                HttpEntity<String> entity = new HttpEntity<>("", headers);
+                ResponseEntity<Map> response = restTemplate.exchange(
+                        "https://www.googleapis.com/oauth2/v3/userinfo", 
+                        HttpMethod.GET, entity, Map.class);
+                Map<String, Object> payload = response.getBody();
+                if (payload == null || !payload.containsKey("email")) {
+                    throw new RuntimeException("Mã truy cập Google không hợp lệ!");
+                }
+                email = (String) payload.get("email");
+                name = (String) payload.get("name");
+                picture = (String) payload.get("picture");
             }
-
-            GoogleIdToken.Payload payload = token.getPayload();
-            String email = payload.getEmail();
-            String name = (String) payload.get("name");
 
             // Kiểm tra xem user đã tồn tại chưa
             User user = userRepository.findByEmail(email).orElse(null);
@@ -251,12 +279,27 @@ public class AuthService {
                 user = User.builder()
                         .username(email) // dùng tạm email làm username hoặc sinh tự động UUID
                         .email(email)
+                        .fullName(name)
+                        .avatarUrl(picture)
                         // mật khẩu tạo ngẫu nhiên do đăng nhập bằng Google không cần pass
                         .passwordHash(passwordEncoder.encode(java.util.UUID.randomUUID().toString()))
                         .role("USER")
                         .createdAt(java.time.LocalDateTime.now())
                         .build();
                 userRepository.save(user);
+            } else {
+                boolean isUpdated = false;
+                if (user.getFullName() == null || user.getFullName().isEmpty()) {
+                    user.setFullName(name);
+                    isUpdated = true;
+                }
+                if (user.getAvatarUrl() == null || user.getAvatarUrl().isEmpty()) {
+                    user.setAvatarUrl(picture);
+                    isUpdated = true;
+                }
+                if (isUpdated) {
+                    userRepository.save(user);
+                }
             }
 
             // Tạo token JWT của hệ thống

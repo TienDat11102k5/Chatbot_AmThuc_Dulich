@@ -75,8 +75,9 @@ function Navbar() {
         <div className="flex items-center justify-between h-16">
 
           {/* =================== LOGO =================== */}
-          <Link to="/" className="flex items-center gap-2 shrink-0">
-            <span className="text-primary-600 font-bold text-xl tracking-tight">
+          <Link to="/" className="flex items-center shrink-0">
+            <img src="/logo.png" alt="SavoryTrip Logo" className="w-24 h-24 object-contain mix-blend-multiply -ml-4" />
+            <span className="text-primary-600 font-bold text-xl tracking-tight -ml-2">
               SavoryTrip
             </span>
           </Link>

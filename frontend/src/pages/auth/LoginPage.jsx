@@ -15,6 +15,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useGoogleLogin } from '@react-oauth/google';
 import authService from '../../lib/authService';
 import useAuth from '../../hooks/useAuth';
 
@@ -42,6 +43,30 @@ const LoginPage = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (error) setError('');
   };
+
+  // Tích hợp Google Login qua Hook để giữ nguyên UI custom
+  const handleGoogleLogin = useGoogleLogin({
+    prompt: 'consent', // Ép Google hiển thị bảng Consent Screen mỗi lần đăng nhập
+    onSuccess: async (tokenResponse) => {
+      try {
+        setIsLoading(true);
+        // Với useGoogleLogin (implicit flow), ta nhận được access_token. Đẩy xuống Backend xử lý.
+        const data = await authService.googleLogin(tokenResponse.access_token);
+        login(data);
+        toast.success('Đăng nhập Google thành công!');
+        const redirectTo = data.role === 'ADMIN' ? '/admin' : '/';
+        navigate(redirectTo);
+      } catch (err) {
+        const msg = err.response?.data?.message || err.response?.data || 'Đăng nhập Google thất bại.';
+        setError(typeof msg === 'string' ? msg : 'Lỗi không xác định.');
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    onError: () => {
+      setError('Lỗi kết nối hoặc uỷ quyền từ Google Popup.');
+    }
+  });
 
   // Gọi API đăng nhập thực
   const handleSubmit = async (e) => {
@@ -160,7 +185,11 @@ const LoginPage = () => {
         </div>
 
         {/* OAuth button - Google */}
-        <button className="w-full flex items-center justify-center gap-2.5 py-3 px-4 border border-slate-300 rounded-xl hover:bg-slate-50 transition-colors text-sm font-semibold text-slate-700">
+        <button 
+          type="button"
+          onClick={() => handleGoogleLogin()}
+          className="w-full flex items-center justify-center gap-2.5 py-3 px-4 border border-slate-300 rounded-xl hover:bg-slate-50 transition-colors text-sm font-semibold text-slate-700"
+        >
           <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4" />
           Tiếp tục với Google
         </button>

@@ -25,7 +25,8 @@ import java.util.List;
 
 /**
  * Lớp cấu hình lõi của Spring Security.
- * Quản lý các quy tắc truy cập API, CORS, CSRF và thiết lập bộ định tuyến bảo mật.
+ * Quản lý các quy tắc truy cập API, CORS, CSRF và thiết lập bộ định tuyến bảo
+ * mật.
  */
 @Configuration
 @EnableWebSecurity
@@ -52,12 +53,11 @@ public class SecurityConfig {
                         // Admin endpoints — chỉ role ADMIN
                         .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                         // Tất cả request còn lại — cho phép (sẽ siết khi JWT filter hoàn chỉnh)
-                        .anyRequest().permitAll()
-                )
+                        .anyRequest().permitAll())
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
-                // Đăng ký JWT filter — parse token, set SecurityContext trước khi Spring Security kiểm tra role
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // Đăng ký JWT filter — parse token, set SecurityContext trước khi Spring
+                // Security kiểm tra role
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -75,7 +75,12 @@ public class SecurityConfig {
         // Port 3001: Vite dev server khi port 3000 bị Docker chiếm
         configuration.setAllowedOrigins(List.of(
                 "http://localhost:3000",
-                "http://localhost:3001"
+                "http://localhost:3001",
+                "http://localhost:3002",
+                "http://localhost:3003",
+                "http://localhost:5173",
+                "http://localhost:5174"
+
         ));
         // Allowed HTTP methods
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
