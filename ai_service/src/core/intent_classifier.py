@@ -40,27 +40,26 @@ class IntentClassifier:
     def __init__(self):
         """
         Hàm khởi tạo. Khi tạo Instance mới của Object này:
-        - Tự động chèn Pipeline.
-        - Tự động tải trước Model (nếu có file trong ổ cứng) để chạy ngay.
+        - Tự động tải trước Model và Vectorizer (nếu có file trong ổ cứng) để chạy ngay.
         """
-        # Pipeline (Ống Dẫn):
-        # Đặc điểm AI học ngôn ngữ: 
-        #   - Máy tính không biết chữ V-I-E-T-N-A-M là gì, nó chỉ biết số.
-        #   - Bước 1 ('tfidf'): TfidfVectorizer cào sạch text và quy đổi thành các Vector xác suất tần suất từ vựng (Nhúng từ ngữ).
-        #   - Bước 2 ('clf'): Classification - Gắn thuật toán Máy học Support Vector Machine (SVC) với kernel tuyến tính để vạch ranh giới các biến số ra. Trả về toán học để quyết định Ý định.
-        self.pipeline = Pipeline([
-            ('tfidf', TfidfVectorizer()),
-            ('clf', SVC(kernel='linear', C=1.0, probability=True)) 
-            # probability=True để có thể in ra cái Confidence Score % tự tin (Ví dụ: "Hôm nay tôi tự tin 95% dự đoán câu này là hỏi thời tiết")
-        ])
+        self.model = None
+        self.vectorizer = None
         
         # Nếu đã có model cũ đang lưu trên ổ C cứng, LOAD (nạp) thẳng vô RAM luôn!
-        # Phục vụ cho Task API Lifecycle (Phase 4). Nếu API restart sẽ không phải Train lại từ số không.
-        if os.path.exists(MODEL_FILE):
-            self.model = joblib.load(MODEL_FILE)
-            print(f"[INFO] Đã load Model thành công từ {MODEL_FILE}")
+        model_file = os.path.join(MODEL_DIR, "intent_model.pkl")
+        vectorizer_file = os.path.join(MODEL_DIR, "vectorizer.pkl")
+        
+        if os.path.exists(model_file) and os.path.exists(vectorizer_file):
+            self.model = joblib.load(model_file)
+            self.vectorizer = joblib.load(vectorizer_file)
+            print(f"[INFO] Đã load Model và Vectorizer thành công từ {MODEL_DIR}")
         else:
-            self.model = None
+            print(f"[WARNING] Không tìm thấy model files. Cần train trước.")
+            # Khởi tạo pipeline để train (nếu cần)
+            self.pipeline = Pipeline([
+                ('tfidf', TfidfVectorizer()),
+                ('clf', SVC(kernel='linear', C=1.0, probability=True)) 
+            ])
 
     def train_and_evaluate(self):
         """
@@ -184,7 +183,7 @@ class IntentClassifier:
                 "cleaned_text": "phở ngon"
             }
         """
-        if self.model is None:
+        if self.model is None or self.vectorizer is None:
             raise RuntimeError("LỖI: Mô hình AI chưa được huấn luyện (hoặc file .pkl chưa được tạo). Hãy gõ lệnh Train trước!")
             
         # 1. Quét dọn câu nguyên thủy của khách hàng
@@ -198,19 +197,40 @@ class IntentClassifier:
                 "cleaned_text": cleaned_text
             }
             
-        # 2. Rút kiếm ra Dự đoán
-        # pipeline predict yêu cầu đầu vào phải là một Array(List) text (vd: 1 phần tử array)
-        prediction = self.model.predict([cleaned_text])[0]
-        
-        # Rút cả phần trăm % tự tin ra
-        probs = self.model.predict_proba([cleaned_text])[0]
-        confidence = max(probs)
-        
-        return {
-            "intent": prediction,
-            "confidence": round(float(confidence), 4), # Làm tròn tối đa 4 chữ số (ví dụ: 0.9854)
-            "cleaned_text": cleaned_text
-        }
+        # 2. Vector hóa text bằng vectorizer đã train
+        try:
+            text_vector = self.vectorizer.transform([cleaned_text])
+            
+            # 3. Dự đoán bằng model
+            prediction = self.model.predict(text_vector)[0]
+            
+            # LinearSVC không có predict_proba, dùng decision_function thay thế
+            if hasattr(self.model, 'predict_proba'):
+                probs = self.model.predict_proba(text_vector)[0]
+                confidence = max(probs)
+            else:
+                # Dùng decision_function cho LinearSVC
+                decision_scores = self.model.decision_function(text_vector)[0]
+                if isinstance(decision_scores, (list, tuple)) or hasattr(decision_scores, '__len__'):
+                    confidence = max(abs(score) for score in decision_scores)
+                else:
+                    confidence = abs(decision_scores)
+                # Normalize về 0-1
+                confidence = min(confidence / 2.0, 1.0)
+            
+            return {
+                "intent": prediction,
+                "confidence": round(float(confidence), 4),
+                "cleaned_text": cleaned_text
+            }
+            
+        except Exception as e:
+            print(f"[Intent] Lỗi khi predict: {e}")
+            return {
+                "intent": "giao_tiep_bot",
+                "confidence": 0.5,
+                "cleaned_text": cleaned_text
+            }
 
 # Nếu gọi thẳng script này bằng lệnh `python intent_classifier.py` ở Terminal:
 if __name__ == "__main__":

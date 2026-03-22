@@ -3,18 +3,21 @@ Recommender System sử dụng PostgreSQL thay vì CSV
 """
 import psycopg2
 import pandas as pd
+import os
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from src.core.nlp_utils import preprocess_text
 
-# Cấu hình database
-DB_CONFIG = {
-    'host': 'localhost',
-    'port': 5432,
-    'database': 'chatbot_db',
-    'user': 'postgres',  # Thay đổi nếu khác
-    'password': '123456'
-}
+# Cấu hình database từ environment variables
+def get_db_config():
+    """Lấy cấu hình database từ .env"""
+    return {
+        'host': os.getenv('DB_HOST', 'localhost'),
+        'port': int(os.getenv('DB_PORT', '5432')),
+        'database': os.getenv('DB_NAME', 'chatbot_db'),
+        'user': os.getenv('DB_USER', 'postgres'),
+        'password': os.getenv('DB_PASSWORD', '123456')
+    }
 
 class RecommenderSystem:
     """
@@ -23,51 +26,46 @@ class RecommenderSystem:
     
     def __init__(self):
         """Khởi tạo và load dữ liệu từ PostgreSQL"""
-        self.load_data_from_db()
-        self.build_tfidf_matrix()
+        self.ready = False
+        self.df = None
+        self.vectorizer = None
+        self.tfidf_matrix = None
+        
+        try:
+            self.db_config = get_db_config()
+            self.load_data_from_db()
+            self.build_tfidf_matrix()
+            self.ready = True
+            print(f"[Recommender] ✅ PostgreSQL Recommender sẵn sàng!")
+        except Exception as e:
+            print(f"[Recommender] ⚠️ Lỗi khởi tạo PostgreSQL Recommender: {e}")
+            print("[Recommender] Sẽ hoạt động ở chế độ rỗng (trả [] cho mọi truy vấn)")
     
     def load_data_from_db(self):
         """Load dữ liệu từ PostgreSQL"""
-        conn = psycopg2.connect(**DB_CONFIG)
+        conn = psycopg2.connect(**self.db_config)
         
-        # Load foods
-        foods_query = """
-            SELECT 
-                CONCAT('FOOD_', id) as id,
-                name,
-                'food' as type,
-                description,
-                location,
-                COALESCE(address, '') as address,
-                COALESCE(tags, '') as tags
-            FROM foods
-            WHERE is_active = TRUE
-        """
-        foods_df = pd.read_sql(foods_query, conn)
-        
-        # Load places
-        places_query = """
-            SELECT 
-                CONCAT('PLACE_', id) as id,
-                name,
-                'place' as type,
-                description,
-                location,
-                COALESCE(address, '') as address,
-                COALESCE(tags, '') as tags
-            FROM places
-            WHERE is_active = TRUE
-        """
-        places_df = pd.read_sql(places_query, conn)
-        
-        # Gộp lại
-        self.df = pd.concat([foods_df, places_df], ignore_index=True)
-        
-        conn.close()
-        
-        print(f"[Recommender] Đã nạp {len(self.df)} bản ghi từ PostgreSQL")
-        print(f"  - Món ăn: {len(foods_df)}")
-        print(f"  - Địa điểm: {len(places_df)}")
+        try:
+            # Load places từ PostgreSQL
+            places_query = """
+                SELECT 
+                    CONCAT('PLACE_', id) as id,
+                    name,
+                    category_vi as type,
+                    description,
+                    province as location,
+                    COALESCE(address, '') as address,
+                    COALESCE(domain, '') as tags
+                FROM places
+                WHERE name IS NOT NULL 
+                AND description IS NOT NULL
+            """
+            self.df = pd.read_sql(places_query, conn)
+            
+            print(f"[Recommender] Đã nạp {len(self.df)} bản ghi từ PostgreSQL")
+            
+        finally:
+            conn.close()
     
     def build_tfidf_matrix(self):
         """Xây dựng ma trận TF-IDF"""
@@ -89,8 +87,14 @@ class RecommenderSystem:
         print(f"[Recommender] Đã tính xong Ma trận TF-IDF: {self.tfidf_matrix.shape}")
     
     def recommend(self, entities: dict, top_k: int = 3) -> list:
-        """Tìm kiếm Top K bản ghi giống nhất"""
+        """Tìm kiếm Top K bản ghi giống nhất với filter thông minh"""
+        # Guard clause: Nếu recommender chưa sẵn sàng → trả []
+        if not self.ready:
+            return []
+            
         raw_query = entities.get("raw_query", "")
+        food_entities = entities.get("food", [])
+        location_entities = entities.get("location", [])
         
         if not raw_query.strip():
             return []
@@ -101,19 +105,92 @@ class RecommenderSystem:
         if not processed_query.strip():
             return []
         
-        # Chuyển thành vector
-        query_vector = self.vectorizer.transform([processed_query])
+        print(f"[Recommender] Searching for: '{processed_query}'")
+        print(f"[Recommender] Food entities: {food_entities}")
+        print(f"[Recommender] Location entities: {location_entities}")
         
-        # Tính cosine similarity
-        similarity_scores = cosine_similarity(query_vector, self.tfidf_matrix).flatten()
+        # BƯỚC 1: Filter dữ liệu trước khi tính Cosine
+        filtered_df = self.df.copy()
         
-        # Lấy top K
-        top_indices = similarity_scores.argsort()[::-1][:top_k]
+        # Filter theo food entities (nếu có)
+        if food_entities:
+            food_mask = pd.Series([False] * len(filtered_df))
+            for food in food_entities:
+                food_lower = food.lower()
+                mask = (
+                    filtered_df['name'].str.lower().str.contains(food_lower, na=False) |
+                    filtered_df['description'].str.lower().str.contains(food_lower, na=False) |
+                    filtered_df['tags'].str.lower().str.contains(food_lower, na=False)
+                )
+                food_mask = food_mask | mask
+            
+            filtered_df = filtered_df[food_mask]
+            print(f"[Recommender] After food filter: {len(filtered_df)} records")
         
-        # Đóng gói kết quả
+        # Filter theo location entities (nếu có)
+        if location_entities and len(filtered_df) > 0:
+            location_mask = pd.Series([False] * len(filtered_df))
+            for location in location_entities:
+                location_lower = location.lower()
+                mask = (
+                    filtered_df['location'].str.lower().str.contains(location_lower, na=False) |
+                    filtered_df['name'].str.lower().str.contains(location_lower, na=False) |
+                    filtered_df['address'].str.lower().str.contains(location_lower, na=False)
+                )
+                location_mask = location_mask | mask
+            
+            location_filtered = filtered_df[location_mask]
+            print(f"[Recommender] After location filter: {len(location_filtered)} records")
+            
+            # Nếu có kết quả với cả food + location → dùng
+            if len(location_filtered) >= 3:
+                filtered_df = location_filtered
+            else:
+                # Nếu không đủ kết quả → ưu tiên food, bỏ qua location
+                print(f"[Recommender] Not enough results with location, prioritizing food")
+        
+        # Nếu filter quá ít kết quả, fallback về cosine similarity toàn bộ
+        if len(filtered_df) < 3:
+            print(f"[Recommender] Too few results after filter, using full cosine similarity")
+            filtered_df = self.df.copy()
+        
+        # BƯỚC 2: Tính Cosine Similarity trên dữ liệu đã filter
+        if len(filtered_df) == len(self.df):
+            # Dùng ma trận TF-IDF đã tính sẵn
+            query_vector = self.vectorizer.transform([processed_query])
+            similarity_scores = cosine_similarity(query_vector, self.tfidf_matrix).flatten()
+            top_indices = similarity_scores.argsort()[::-1][:top_k]
+        else:
+            # Tính TF-IDF cho subset
+            filtered_indices = filtered_df.index.tolist()
+            filtered_tfidf = self.tfidf_matrix[filtered_indices]
+            
+            query_vector = self.vectorizer.transform([processed_query])
+            similarity_scores = cosine_similarity(query_vector, filtered_tfidf).flatten()
+            
+            # Map về indices gốc
+            top_local_indices = similarity_scores.argsort()[::-1][:top_k]
+            top_indices = [filtered_indices[i] for i in top_local_indices]
+        
+        # Debug: In ra top results
+        print(f"[Recommender] Top {min(5, len(top_indices))} results:")
+        for i, idx in enumerate(top_indices[:5]):
+            if len(filtered_df) == len(self.df):
+                score = similarity_scores[idx]
+            else:
+                local_idx = filtered_indices.index(idx)
+                score = similarity_scores[local_idx]
+            name = self.df.iloc[idx]['name']
+            print(f"  {i+1}. {name} - Score: {score:.4f}")
+        
+        # BƯỚC 3: Đóng gói kết quả
         results = []
         for idx in top_indices:
-            score = similarity_scores[idx]
+            if len(filtered_df) == len(self.df):
+                score = similarity_scores[idx]
+            else:
+                local_idx = filtered_indices.index(idx)
+                score = similarity_scores[local_idx]
             
             if score <= 0:
                 continue

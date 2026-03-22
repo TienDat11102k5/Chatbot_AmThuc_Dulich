@@ -25,7 +25,12 @@ class ChatRequest(BaseModel):
     Ví dụ JSON đầu vào hợp lệ:
     {
         "message": "Ở Đà Lạt ăn gì ngon?",
-        "session_id": "abc-123-xyz"
+        "session_id": "abc-123-xyz",
+        "user_location": {
+            "lat": 10.762622,
+            "lng": 106.660172,
+            "address": "TP. Hồ Chí Minh"
+        }
     }
     """
     message: str = Field(
@@ -37,6 +42,10 @@ class ChatRequest(BaseModel):
     session_id: Optional[str] = Field(
         default=None,  # Không bắt buộc, có thể không gửi
         description="Mã phiên chat (nếu có). Dùng để tracking hội thoại."
+    )
+    user_location: Optional[dict] = Field(
+        default=None,
+        description="Vị trí hiện tại của user (cho câu hỏi 'gần đây'). Format: {lat: float, lng: float, address: str}"
     )
 
 
@@ -88,11 +97,12 @@ class ChatResponse(BaseModel):
         "entities": {
             "food": ["lẩu bò"],
             "location": ["đà lạt"]
-        }
+        },
+        "ask_location": false
     }
     """
     intent: str = Field(
-        description="Ý định của người dùng (tim_mon_an, tim_dia_diem, hoi_thoi_tiet, giao_tiep_bot)"
+        description="Ý định của người dùng (tim_mon_an, tim_dia_diem, hoi_vi_tri, hoi_thoi_tiet, giao_tiep_bot)"
     )
     confidence: float = Field(
         description="Độ tự tin của AI khi dự đoán intent (0.0 → 1.0)"
@@ -107,6 +117,10 @@ class ChatResponse(BaseModel):
     entities: Optional[dict] = Field(
         default=None,
         description="Các thực thể NER đã trích xuất (food, location). Hữu ích cho debug."
+    )
+    ask_location: bool = Field(
+        default=False,
+        description="True nếu AI cần hỏi lại vị trí user (cho intent hoi_vi_tri)"
     )
 
 

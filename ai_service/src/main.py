@@ -30,7 +30,7 @@ from fastapi.middleware.cors import CORSMiddleware  # Middleware cho phép Cross
 from src.api.router import router as ai_router
 from src.api.admin_router import admin_router  # Phase 1: Admin endpoints
 from src.core.intent_classifier import IntentClassifier  # Model phân loại ý định
-from src.core.recommender import RecommenderSystem       # Hệ thống đề xuất (CSV — sẽ chuyển sang PostgreSQL ở Phase AI Service)
+from src.core.recommender_postgres import RecommenderSystem  # Hệ thống đề xuất PostgreSQL
 
 # ==============================================================================
 # 1. SEMANTIC CACHE — BỘ NHỚ ĐỆM THÔNG MINH (Redis-backed)

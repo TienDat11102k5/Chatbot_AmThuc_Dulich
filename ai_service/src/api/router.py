@@ -17,6 +17,7 @@ Mục đích: Định nghĩa API Endpoint chính cho AI Service.
 from fastapi import APIRouter, HTTPException, Request  # Request để truy cập app.state
 from src.api.schemas import ChatRequest, ChatResponse, RecommendationItem  # Schema đã chuẩn bị
 from src.core.ner import extract_entities     # Hàm trích xuất thực thể từ Phase 3
+from src.core.location_handler import get_location_handler  # Xử lý câu hỏi "gần đây"
 
 # ==============================================================================
 # KHỞI TẠO ROUTER
@@ -35,6 +36,7 @@ router = APIRouter(
 INTENT_RESPONSES = {
     "tim_mon_an": "🍜 Đây là một số món ăn mà mình gợi ý cho bạn:",
     "tim_dia_diem": "📍 Đây là một số địa điểm du lịch mà mình gợi ý cho bạn:",
+    "hoi_vi_tri": "🗺️ Mình sẽ giúp bạn tìm địa điểm gần đây:",
     "hoi_thoi_tiet": "🌤️ Mình chưa hỗ trợ tra cứu thời tiết trực tiếp. "
                       "Bạn có thể truy cập trang web dự báo thời tiết để biết thêm chi tiết nhé!",
     "giao_tiep_bot": "👋 Xin chào! Mình là Chatbot Ẩm Thực & Du Lịch Việt Nam. "
@@ -125,15 +127,37 @@ async def chat_endpoint(request: ChatRequest, raw_request: Request):
                     "Bạn thử mô tả cụ thể hơn nhé!"
                 )
         
+        elif intent == "hoi_vi_tri":
+            # Bước 3e: Xử lý câu hỏi "gần đây có gì?"
+            entities = extract_entities(user_message)
+            location_handler = get_location_handler()
+            
+            # Lấy user_location từ request
+            user_location = request.user_location
+            
+            location_result = location_handler.handle_nearby_query(entities, user_location)
+            
+            response_message = location_result["message"]
+            # Chuyển đổi recommendations từ location_handler thành RecommendationItem
+            raw_results = location_result.get("recommendations", [])
+            recommendations = [
+                RecommendationItem(**item) for item in raw_results
+            ]
+        
         # ==================================================================
         # BƯỚC 4: ĐÓNG GÓI RESPONSE + LƯU VÀO CACHE
         # ==================================================================
+        ask_location = False
+        if intent == "hoi_vi_tri":
+            ask_location = location_result.get("ask_location", False)
+            
         response_data = {
             "intent": intent,
             "confidence": confidence,
             "message": response_message,
             "recommendations": [r.model_dump() for r in recommendations],
-            "entities": entities
+            "entities": entities,
+            "ask_location": ask_location
         }
         
         # Lưu kết quả vào Cache để lần sau không cần tính lại

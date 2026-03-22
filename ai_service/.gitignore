@@ -159,10 +159,10 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
-# Thư mục lưu Model AI & Cache sinh ra lúc train
-models/
-*.pkl
-*.model
+# Thư mục lưu Model AI - chỉ ignore file tạm, giữ lại .pkl
+models/*.tmp
+models/*.log
+models/temp/
 
 # Chỉ ignore file .data, giữ lại CSV
 data/*.data
