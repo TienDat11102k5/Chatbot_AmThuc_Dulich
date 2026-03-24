@@ -455,6 +455,7 @@ const BlogSection = () => {
     {
       tag: 'Ẩm thực • 5 phút đọc',
       title: 'Top 10 món ngon không thể bỏ qua khi đến Đà Lạt mùa mưa',
+      slug: 'top-10-mon-ngon-da-lat',
       excerpt:
         'Đà Lạt mùa mưa có gì hấp dẫn? Cùng AI khám phá list những quán lẩu bò, lẩu gà lá é nóng hổi cho ngày lạnh...',
       img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAg25yjj6ybaR1z4Ruj-hpWhljgc5OuLsa21HtnbkeWuW_ZH0ML8TKMSl8mjTTEW8OP5UBCEa2dFTLV7ZJp9VTrh4KFNAzxXjZ4XoqXDYUV3EoNjqH2pzu_1uqMG7WWbK_gGNmIW3JKfH9VG5NeGRIUfObMxXelPU0eqMC6P5IMDnnfYytQKhaj62ZqimDH7m5xni110op-Gt42H2NNe4DTXwgDnLJCmX0vnSMpge-WuOuDvg7i_9gM3Nc_BVtkenT5UMzbULJ0CZk',
@@ -462,6 +463,7 @@ const BlogSection = () => {
     {
       tag: 'Kinh nghiệm • 8 phút đọc',
       title: 'Bí kíp săn vé rẻ và đặt phòng khách sạn thông minh với AI',
+      slug: 'meo-san-ve-may-bay-ai',
       excerpt:
         'Công cụ AI nào giúp bạn tiết kiệm đến 40% chi phí chuyến đi? Khám phá ngay hướng dẫn chi tiết của chúng tôi.',
       img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBscxyrS7cdSoyz-Nc54YCi7KQMfSAUAxkNfaOIxtVjXiFfdaGnQ-kAfb3UWSpH-7J-CgEc2GL7LtnFehgHKMnwijN3N57x_SR4j_8KBrhFhpUMCrC3MwQNMNBh2ttDJzOqGIyQ37RBUyz1NwqgfNTg-AognfSzRx6VgP7FvCScIENE_PvnYnoe_t483ovBjimM4IpirXsw_Tsu7MfTDWqIunngy4TbbL9Tz7D5LQMYrUm0u923e80QrIjW5svnbL3GMXuw4vh9pZo',
@@ -469,9 +471,10 @@ const BlogSection = () => {
     {
       tag: 'Xu hướng • 6 phút đọc',
       title: 'Du lịch một mình không còn khó với trợ lý SavoryTrip',
+      slug: 'du-lich-mot-minh-savorytrip',
       excerpt:
         'Tự tin lên đường một mình với sự đồng hành của AI, đảm bảo an toàn và luôn có gợi ý ăn uống tuyệt vời.',
-      img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB9Gu3zBeJjQNOl9Yy-NURoZieZctQtMiTmDT90lRM8JUgD9m09wWSdEcMEbxay4WHG--YiBkbikYI_NhYf765Xx7SSg-PLguVuBhet7zkNLCuI34pjh44LEEaRS4dhDvNTBN_DBPEX31KuPgI5qkXIfbb2NPxtUBpsjlEe57XI5fQl21bOJI-yVMmPgx2_oG7FAop-khMP6SM9yU3XRkYWvpzQBhBDRT18kCCsLmnhN5sgQyi5dRmg0rpo-cRtNpnhsBGBViNDt0WE',
+      img: 'https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?auto=format&fit=crop&q=80&w=800',
     },
   ];
 
@@ -492,7 +495,7 @@ const BlogSection = () => {
         {/* Grid 3 bài viết */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {posts.map((post, i) => (
-            <article key={i} className="group cursor-pointer">
+            <Link to={`/blog/${post.slug}`} key={i} className="group block cursor-pointer">
               {/* Ảnh bài viết dạng 16:10 */}
               <div className="rounded-2xl overflow-hidden mb-4 aspect-[16/10]">
                 <img
@@ -511,7 +514,7 @@ const BlogSection = () => {
               </h3>
               {/* Tóm tắt (2 dòng) */}
               <p className="text-slate-600 text-sm line-clamp-2">{post.excerpt}</p>
-            </article>
+            </Link>
           ))}
         </div>
       </div>

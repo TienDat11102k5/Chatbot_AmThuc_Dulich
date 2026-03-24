@@ -27,6 +27,7 @@ import ExplorePage from '@/pages/core/ExplorePage';
 import PlaceDetailPage from '@/pages/core/PlaceDetailPage';
 import DestinationPage from '@/pages/core/DestinationPage';
 import BlogPage from '@/pages/core/BlogPage';
+import BlogDetail from '@/pages/public/BlogDetail';
 import TravelPlannerPage from '@/pages/core/TravelPlannerPage';
 
 // --- Import Pages: Auth ---
@@ -90,6 +91,7 @@ function AppRoutes() {
         <Route path="/place/:id" element={<PlaceDetailPage />} />
         <Route path="/destination/:id" element={<DestinationPage />} />
         <Route path="/blog" element={<BlogPage />} />
+        <Route path="/blog/:id" element={<BlogDetail />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/contact" element={<ContactPage />} />
 
