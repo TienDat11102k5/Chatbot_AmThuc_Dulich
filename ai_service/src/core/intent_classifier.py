@@ -218,6 +218,22 @@ class IntentClassifier:
                 # Normalize về 0-1
                 confidence = min(confidence / 2.0, 1.0)
             
+            # 4. Rule-based override: Nếu có món ăn cụ thể → override thành tim_mon_an
+            # Import NER để kiểm tra entities
+            from src.core.ner import extract_entities
+            entities = extract_entities(user_message)
+            food_entities = entities.get("food", [])
+            
+            # Danh sách từ chung chung không đủ để xác định là tìm món ăn
+            generic_food_words = ["ăn", "ngon", "tốt", "hay", "đồ ăn", "thức ăn", "món ăn"]
+            
+            # Nếu có món ăn cụ thể (không chỉ là từ chung chung)
+            specific_foods = [f for f in food_entities if f not in generic_food_words]
+            if specific_foods and prediction != "tim_mon_an":
+                print(f"[Intent] Rule-based override: Found specific food {specific_foods}, changing intent to tim_mon_an")
+                prediction = "tim_mon_an"
+                confidence = 1.0  # High confidence vì rule-based
+            
             return {
                 "intent": prediction,
                 "confidence": round(float(confidence), 4),

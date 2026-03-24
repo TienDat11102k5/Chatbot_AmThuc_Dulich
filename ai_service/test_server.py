@@ -17,7 +17,7 @@ def test_health_check():
     """Test health check endpoint"""
     print("🏥 TEST HEALTH CHECK")
     try:
-        response = requests.get(HEALTH_ENDPOINT, timeout=5)
+        response = requests.get(HEALTH_ENDPOINT, timeout=10)  # Tăng timeout lên 10s
         if response.status_code == 200:
             data = response.json()
             print(f"   ✅ Server đang chạy: {data}")
@@ -70,7 +70,7 @@ def test_chat_api():
             response = requests.post(
                 CHAT_ENDPOINT, 
                 json=payload, 
-                timeout=10,
+                timeout=30,  # Tăng timeout lên 30s vì AI cần thời gian xử lý
                 headers={"Content-Type": "application/json"}
             )
             

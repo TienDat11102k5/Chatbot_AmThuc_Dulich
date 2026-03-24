@@ -105,7 +105,10 @@ async def chat_endpoint(request: ChatRequest, raw_request: Request):
             entities = extract_entities(user_message)
             
             # Bước 3b: Gọi Recommender Cosine Similarity — Tìm Top 3 kết quả giống nhất
-            raw_results = recommender.recommend(entities, top_k=3)
+            recommender_result = recommender.recommend(entities, intent=intent, top_k=3)
+            raw_results = recommender_result["results"]
+            location_not_found = recommender_result.get("location_not_found", False)
+            searched_location = recommender_result.get("searched_location", None)
             
             # Bước 3c: Chuyển đổi kết quả thô thành Schema Pydantic chuẩn
             recommendations = [
@@ -114,10 +117,22 @@ async def chat_endpoint(request: ChatRequest, raw_request: Request):
             
             # Bước 3d: Bổ sung chi tiết vào câu trả lời nếu có kết quả
             if recommendations:
+                # Nếu không tìm thấy ở địa phương, thông báo trước
+                if location_not_found and searched_location:
+                    response_message = (
+                        f"😅 Mình không tìm thấy kết quả phù hợp tại {searched_location}. "
+                        f"Đây là một số gợi ý từ các tỉnh thành khác:\n"
+                    )
+                
                 detail_lines = []
                 for i, rec in enumerate(recommendations, 1):
+                    # Thêm địa chỉ nếu có
+                    location_info = rec.location
+                    if rec.address and rec.address.strip():
+                        location_info += f" - {rec.address}"
+                    
                     detail_lines.append(
-                        f"\n{i}. **{rec.name}** ({rec.location})\n"
+                        f"\n{i}. **{rec.name}** ({location_info})\n"
                         f"   {rec.description}"
                     )
                 response_message += "\n" + "\n".join(detail_lines)

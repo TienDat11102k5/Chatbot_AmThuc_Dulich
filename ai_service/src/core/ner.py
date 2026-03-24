@@ -23,7 +23,8 @@ import re  # Thư viện Biểu thức chính quy để tìm kiếm chuỗi ký 
 # chúng ta đã .lower() hết rồi.
 LOCATION_DICTIONARY = {
     # --- 63 Tỉnh/Thành phố (viết thường, có dấu) ---
-    "hà nội", "hồ chí minh", "tphcm", "sài gòn", "đà nẵng", "hải phòng",
+    "hà nội", "hồ chí minh", "tphcm", "sài gòn", "tp hồ chí minh", "tp.hcm", "hcm",
+    "hồ chín minh", "hồ chí min", "hcm city", "saigon", "đà nẵng", "hải phòng",
     "cần thơ", "an giang", "bà rịa vũng tàu", "vũng tàu", "bắc giang",
     "bắc kạn", "bạc liêu", "bắc ninh", "bến tre", "bình định",
     "bình dương", "bình phước", "bình thuận", "cà mau", "cao bằng",
@@ -37,6 +38,12 @@ LOCATION_DICTIONARY = {
     "thái bình", "thái nguyên", "thanh hóa", "thừa thiên huế",
     "tiền giang", "trà vinh", "tuyên quang", "vĩnh long", "vĩnh phúc",
     "yên bái",
+    
+    # --- Các quận/huyện TP.HCM ---
+    "quận 1", "quận 2", "quận 3", "quận 4", "quận 5", "quận 6", "quận 7", 
+    "quận 8", "quận 9", "quận 10", "quận 11", "quận 12", "quận bình thạnh",
+    "quận tân bình", "quận tân phú", "quận phú nhuận", "quận gò vấp",
+    "quận bình tân", "thủ đức", "tp thủ đức",
     
     # --- Các địa danh du lịch phổ biến (bổ sung thêm để bắt chuẩn hơn) ---
     "huế", "đà lạt", "hội an", "sapa", "sa pa", "nha trang",
@@ -63,20 +70,47 @@ FOOD_DICTIONARY = {
     "hủ tiếu", "gỏi cuốn", "nem rán", "chả giò", "bún đậu",
     "bún đậu mắm tôm", "bún thịt nướng", "bún ốc", "bún riêu",
     "xôi", "xôi gà", "cháo lòng", "cháo", "lẩu", "lẩu bò",
-    "lẩu cá kèo", "lẩu thái", "bánh đập", "bánh tráng trộn",
+    "lẩu cá kèo", "lẩu thái", "bánh đập", "bánh tráng trộn", "bánh tráng",
+    
+    # --- Các loại bánh ---
+    "bánh chuối", "bánh flan", "bánh bông lan", "bánh bao", "bánh chưng",
+    "bánh tét", "bánh ít", "bánh căn", "bánh khọt", "bánh tráng nướng",
+    "bánh ướt", "bánh bèo", "bánh nậm", "bánh lọc", "bánh ram ít",
+    "bánh pía", "bánh in", "bánh đậu xanh", "bánh dẻo", "bánh nướng",
+    "bánh tiêu", "bánh cam", "bánh rán", "bánh su kem", "bánh pateso",
     
     # --- Hải sản và đặc sản ---
     "hải sản", "ốc", "ốc luộc", "cua", "tôm", "mực",
     "vịt lịm", "vịt quay", "gà nướng", "gà luộc",
     
     # --- Đồ ngọt, nước uống ---
-    "chè", "chè huế", "chè bắp", "chè đậu", "cà phê", "cafe",
+    "chè", "chè huế", "chè bắp", "chè đậu",
     "trà sữa", "nước mía", "sinh tố", "kem",
     
     # --- Buffet, loại hình ăn uống ---
     "buffet", "buffet nướng", "súp cua", "cơm gà",
     "đặc sản", "đồ ăn", "thức ăn", "ăn sáng", "ăn trưa", "ăn tối",
-    "quán ăn", "nhà hàng", "quán"
+    
+    # --- Từ khóa liên quan đến ăn uống ---
+    "ăn", "ăn gì", "món", "món ăn", "thức ăn", "đồ ăn",
+    "ngon", "ngon bổ rẻ", "đặc sản", "nổi tiếng", "truyền thống",
+    "địa phương", "bản địa", "dân dã", "quê nhà"
+}
+
+# ==============================================================================
+# 3. TỪ ĐIỂN LOẠI ĐỊA ĐIỂM — DANH SÁCH CÁC LOẠI HÌNH KINH DOANH
+# ==============================================================================
+# Tại sao cần danh sách này?
+# Khi người dùng gõ "nhà hàng nào ở tây ninh ăn ngon?", chúng ta cần BẮT được 
+# từ "nhà hàng" để biết người dùng muốn tìm LOẠI ĐỊA ĐIỂM GÌ (place type),
+# từ đó lọc kết quả chỉ trả về nhà hàng, không trả về quán cà phê.
+PLACE_TYPE_DICTIONARY = {
+    "nhà hàng", "quán ăn", "quán", "quán cơm", "cơm bình dân",
+    "quán cà phê", "quán cafe", "cafe", "cà phê", "coffee",
+    "quán trà", "trà sữa", "quán nước", "quán giải khát",
+    "quán bia", "bia hơi", "bar", "pub",
+    "quán lẩu", "quán nướng", "quán buffet",
+    "tiệm", "cửa hàng", "siêu thị", "chợ"
 }
 
 
@@ -88,9 +122,10 @@ def extract_entities(text: str) -> dict:
     1. Chuyển câu chat về chữ thường (lowercase) để so khớp với từ điển.
     2. Duyệt qua Từ điển Địa điểm, kiểm tra từng từ có xuất hiện trong câu không.
     3. Duyệt qua Từ điển Món ăn, kiểm tra từng từ có xuất hiện trong câu không.
-    4. Ưu tiên từ DÀI HƠN trước (ví dụ: "bún bò huế" > "bún bò" > "bún").
+    4. Duyệt qua Từ điển Loại địa điểm (place type), kiểm tra loại hình kinh doanh.
+    5. Ưu tiên từ DÀI HƠN trước (ví dụ: "bún bò huế" > "bún bò" > "bún").
        Lý do: Nếu không ưu tiên dài → "bún bò huế" sẽ bị tách thành "bún" và "bò" riêng → sai nghĩa.
-    5. Trả về Dict chứa 2 mảng: danh sách food[] và location[] tìm được.
+    6. Trả về Dict chứa 3 mảng: danh sách food[], location[], và place_type[] tìm được.
     
     Tham số:
         text (str): Câu chat gốc của người dùng (chưa qua xử lý nặng).
@@ -100,6 +135,7 @@ def extract_entities(text: str) -> dict:
         dict: {
             "food": ["lẩu bò"],        ← Mảng các món ăn phát hiện được
             "location": ["đà lạt"],     ← Mảng các địa điểm phát hiện được
+            "place_type": ["nhà hàng"], ← Mảng các loại địa điểm (nhà hàng, quán cà phê...)
             "raw_query": "lẩu bò đà lạt" ← Chuỗi truy vấn ghép từ food+location (dùng cho Recommender)
         }
     """
@@ -108,6 +144,7 @@ def extract_entities(text: str) -> dict:
     
     # Gọi hàm phụ để tìm kiếm từng loại Thực thể
     found_locations = _find_entities_in_text(text_lower, LOCATION_DICTIONARY)
+    found_place_types = _find_entities_in_text(text_lower, PLACE_TYPE_DICTIONARY)
     found_foods = _find_entities_in_text(text_lower, FOOD_DICTIONARY)
     
     # Ghép tất cả chữ tìm được thành 1 câu truy vấn gọn 
@@ -118,6 +155,7 @@ def extract_entities(text: str) -> dict:
     return {
         "food": found_foods,
         "location": found_locations,
+        "place_type": found_place_types,
         "raw_query": raw_query
     }
 
@@ -176,7 +214,8 @@ if __name__ == "__main__":
         "Có gì ăn ở Sài Gòn không",
         "Bánh mì Hội An ngon hay Đà Nẵng ngon hơn",
         "Đặc sản miền Tây là gì",
-        "Thời tiết hôm nay thế nào",
+        "nhà hàng nào ở tây ninh ăn ngon?",
+        "quán cà phê nào ở hà nội view đẹp?",
     ]
     
     print("="*55)
@@ -185,7 +224,8 @@ if __name__ == "__main__":
     
     for sentence in test_sentences:
         result = extract_entities(sentence)
-        print(f"\n📩 Input:    \"{sentence}\"")
-        print(f"   🍜 Food:     {result['food']}")
-        print(f"   📍 Location: {result['location']}")
-        print(f"   🔗 Query:    \"{result['raw_query']}\"")
+        print(f"\n📩 Input:      \"{sentence}\"")
+        print(f"   🍜 Food:       {result['food']}")
+        print(f"   📍 Location:   {result['location']}")
+        print(f"   🏪 PlaceType:  {result['place_type']}")
+        print(f"   🔗 Query:      \"{result['raw_query']}\")")

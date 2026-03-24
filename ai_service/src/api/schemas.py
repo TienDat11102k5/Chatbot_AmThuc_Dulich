@@ -63,6 +63,7 @@ class RecommendationItem(BaseModel):
         "type": "food",
         "description": "Lẩu bò Đà Lạt nổi danh...",
         "location": "Đà Lạt",
+        "address": "123 Đường ABC, Phường XYZ",
         "tags": "lẩu, bò, đà lạt",
         "score": 0.8734
     }
@@ -72,6 +73,7 @@ class RecommendationItem(BaseModel):
     type: str = Field(description="Loại: 'food' (món ăn) hoặc 'place' (địa điểm)")
     description: str = Field(description="Mô tả chi tiết về món ăn/địa điểm")
     location: str = Field(description="Vị trí địa lý (tỉnh/thành phố)")
+    address: str = Field(default="", description="Địa chỉ chi tiết (nếu có)")
     tags: str = Field(description="Các thẻ tag phân loại, ngăn cách bởi dấu phẩy")
     score: float = Field(description="Điểm tương đồng Cosine (0.0 → 1.0)")
 
