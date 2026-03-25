@@ -118,12 +118,20 @@ const BlogPage = () => {
   const [activeCategory, setActiveCategory] = useState('Tất cả');
   // State trang hiện tại (pagination)
   const [currentPage, setCurrentPage] = useState(1);
-  const postsPerPage = 6;
 
   // Lọc bài viết theo danh mục đã chọn
   const filteredPosts = activeCategory === 'Tất cả'
     ? POSTS
     : POSTS.filter((p) => p.category === activeCategory);
+
+  // Logic phân trang
+  const postsPerPage = 3;
+  const totalPosts = filteredPosts.length;
+  const totalPages = Math.ceil(totalPosts / postsPerPage) || 1;
+  const currentPosts = filteredPosts.slice(
+    (currentPage - 1) * postsPerPage,
+    currentPage * postsPerPage
+  );
 
   // Bài nổi bật luôn là bài đầu tiên
   const featuredPost = POSTS[0];
@@ -136,15 +144,16 @@ const BlogPage = () => {
         <section className="mb-16">
           <div className="relative overflow-hidden rounded-2xl bg-white shadow-xl shadow-slate-200/50 flex flex-col lg:flex-row min-h-[400px]">
             {/* Ảnh bên trái (3/5 chiều rộng) */}
-            <div className="lg:w-3/5 relative overflow-hidden bg-gradient-to-br from-primary-600 to-primary-800 flex items-center justify-center">
-              <div className="relative z-10 text-center p-12">
-                <div className="text-8xl mb-6">🍜</div>
-                <div className="text-white/80 text-sm">Bài viết nổi bật</div>
+            <div className="lg:w-3/5 relative overflow-hidden bg-[#031635] flex items-center justify-center">
+              <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuDDeKt9TGHnyzJQbipfuJrN_Bcp4ihdxjS5JUo2wEvz0dW4CfKlrx3ZDi5HXvuqZJmKi5gc6UcqVF1VmMWaIJ_AUBoDrhr5X0ikhV-j9uB4LptdY5p8ubMmNCVBNL78Orr6YG5xzMz3FlHlOXoMTOYR0AtD9MGgt-Pe5xAiFxEMxhEF2RmEqy6b_Pde0mZfbysCFeVA7xRk1_2xYcf9p2YPdnvjGcUUJOyQGcUEJiFxeMc9Wo5oZkb9ru3bSpmYFY5h9sViHnLA8-0')", backgroundSize: 'cover', backgroundPosition: 'center' }} />
+              <div className="relative z-10 text-center scale-125">
+                <span className="material-symbols-outlined text-8xl text-red-600 mb-2 block" style={{ fontVariationSettings: "'FILL' 1" }}>ramen_dining</span>
+                <div className="mt-2 text-white/40 font-['Epilogue'] font-bold text-lg tracking-[0.2em]">CƠN LỐC VỊ GIÁC</div>
               </div>
               {/* Overlay gradient */}
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent to-white/20" />
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent to-white/10" />
               {/* Badge Nổi bật */}
-              <span className="absolute top-6 left-6 bg-white text-primary-600 text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full shadow-md">
+              <span className="absolute top-6 left-6 bg-white text-primary-600 text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full shadow-md z-10">
                 🔥 Nổi bật
               </span>
             </div>
@@ -155,7 +164,7 @@ const BlogPage = () => {
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center text-lg">👨‍🍳</div>
                 <div>
-                  <p className="text-sm font-bold text-slate-900">Minh Tuấn</p>
+                  <p className="text-sm font-bold text-slate-900">Đầu bếp Minh Tuấn</p>
                   <p className="text-xs text-slate-500">20/10/2023 • {featuredPost.readTime} đọc</p>
                 </div>
               </div>
@@ -196,45 +205,52 @@ const BlogPage = () => {
 
         {/* === 3. GRID BÀI VIẾT 3 CỘT === */}
         <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-          {filteredPosts.map((post) => (
+          {currentPosts.map((post) => (
             <PostCard key={post.id} post={post} />
           ))}
         </section>
 
         {/* === 4. PAGINATION === */}
-        <div className="flex items-center justify-center gap-2">
-          <button
-            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-            className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-200 transition-colors"
-            aria-label="Trang trước"
-          >
-            <ChevronLeft size={18} />
-          </button>
-          {[1, 2, 3].map((page) => (
+        {totalPages > 1 && (
+          <div className="flex items-center justify-center gap-2">
             <button
-              key={page}
-              onClick={() => setCurrentPage(page)}
-              className={`w-10 h-10 flex items-center justify-center rounded-full font-bold transition-all ${
-                currentPage === page
-                  ? 'bg-primary-600 text-white'
-                  : 'hover:bg-slate-200 text-slate-700'
+              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+              disabled={currentPage === 1}
+              className={`w-10 h-10 flex items-center justify-center rounded-full transition-colors ${
+                currentPage === 1 ? 'text-slate-300 cursor-not-allowed' : 'hover:bg-slate-200 text-slate-700'
               }`}
+              aria-label="Trang trước"
             >
-              {page}
+              <ChevronLeft size={18} />
             </button>
-          ))}
-          <span className="mx-1 text-slate-400">...</span>
-          <button onClick={() => setCurrentPage(10)} className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-200 text-slate-700 transition-colors">
-            10
-          </button>
-          <button
-            onClick={() => setCurrentPage(Math.min(10, currentPage + 1))}
-            className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-200 transition-colors"
-            aria-label="Trang sau"
-          >
-            <ChevronRight size={18} />
-          </button>
-        </div>
+            
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`w-10 h-10 flex items-center justify-center rounded-full font-bold transition-all ${
+                  currentPage === page
+                    ? 'bg-primary-600 text-white shadow-md'
+                    : 'hover:bg-slate-200 text-slate-700'
+                }`}
+              >
+                {page}
+              </button>
+            ))}
+            
+            <button
+              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+              disabled={currentPage === totalPages}
+              className={`w-10 h-10 flex items-center justify-center rounded-full transition-colors ${
+                currentPage === totalPages ? 'text-slate-300 cursor-not-allowed' : 'hover:bg-slate-200 text-slate-700'
+              }`}
+              aria-label="Trang sau"
+            >
+              <ChevronRight size={18} />
+            </button>
+          </div>
+        )}
+
       </main>
     </div>
   );

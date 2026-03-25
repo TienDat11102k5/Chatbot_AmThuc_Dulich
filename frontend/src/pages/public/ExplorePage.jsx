@@ -116,8 +116,15 @@ const ExplorePage = () => {
   const [selectedRating, setSelectedRating] = useState('Tất cả');
   // State danh sách yêu thích
   const [places, setPlaces] = useState(PLACES);
-  // Số lượng hiển thị (pagination đơn giản)
-  const [showCount, setShowCount] = useState(8);
+  // Phân trang
+  const [currentPage, setCurrentPage] = useState(0);
+  const ITEMS_PER_PAGE = 4;
+
+  // Reset về trang 1 khi filter thay đổi
+  const handleSearch = (val) => { setSearchQuery(val); setCurrentPage(0); };
+  const handleCity = (val) => { setSelectedCity(val); setCurrentPage(0); };
+  const handleFoodType = (val) => { setSelectedFoodType(val); setCurrentPage(0); };
+  const handleRating = (val) => { setSelectedRating(val); setCurrentPage(0); };
 
   /**
    * Toggle trạng thái yêu thích của một địa điểm.
@@ -129,24 +136,22 @@ const ExplorePage = () => {
     );
   };
 
-  /**
-   * Lọc danh sách địa điểm theo các bộ lọc đã chọn.
-   * Trả về mảng đã được lọc và giới hạn số lượng hiển thị.
-   */
-  const filteredPlaces = places
-    .filter((p) => {
-      // Lọc theo từ khóa tìm kiếm (tên hoặc thành phố)
-      if (searchQuery && !p.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-          !p.city.toLowerCase().includes(searchQuery.toLowerCase())) return false;
-      // Lọc theo thành phố
-      if (selectedCity !== 'Tất cả' && p.city !== selectedCity) return false;
-      // Lọc theo đánh giá
-      if (selectedRating === '4.9+' && p.rating < 4.9) return false;
-      if (selectedRating === '4.5+' && p.rating < 4.5) return false;
-      if (selectedRating === '4.0+' && p.rating < 4.0) return false;
-      return true;
-    })
-    .slice(0, showCount);
+  // Lọc tất cả kết quả (không slice)
+  const allFiltered = places.filter((p) => {
+    if (searchQuery && !p.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+        !p.city.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+    if (selectedCity !== 'Tất cả' && p.city !== selectedCity) return false;
+    if (selectedRating === '4.9+' && p.rating < 4.9) return false;
+    if (selectedRating === '4.5+' && p.rating < 4.5) return false;
+    if (selectedRating === '4.0+' && p.rating < 4.0) return false;
+    return true;
+  });
+
+  const totalPages = Math.ceil(allFiltered.length / ITEMS_PER_PAGE);
+  const filteredPlaces = allFiltered.slice(
+    currentPage * ITEMS_PER_PAGE,
+    (currentPage + 1) * ITEMS_PER_PAGE
+  );
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -164,7 +169,7 @@ const ExplorePage = () => {
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => handleSearch(e.target.value)}
               placeholder="Tìm kiếm thành phố, món ăn, nhà hàng..."
               className="w-full py-4 pl-12 pr-32 border-none bg-transparent focus:outline-none text-lg placeholder:text-slate-400"
             />
@@ -180,20 +185,20 @@ const ExplorePage = () => {
             <SlidersHorizontal size={18} className="text-slate-500" />
             <FilterDropdown
               label="Thành phố" options={CITIES}
-              value={selectedCity} onChange={setSelectedCity}
+              value={selectedCity} onChange={handleCity}
             />
             <FilterDropdown
               label="Loại hình ẩm thực" options={FOOD_TYPES}
-              value={selectedFoodType} onChange={setSelectedFoodType}
+              value={selectedFoodType} onChange={handleFoodType}
             />
             <FilterDropdown
               label="Đánh giá" options={RATINGS}
-              value={selectedRating} onChange={setSelectedRating}
+              value={selectedRating} onChange={handleRating}
             />
             {/* Nút reset bộ lọc */}
             {(selectedCity !== 'Tất cả' || selectedFoodType !== 'Tất cả' || selectedRating !== 'Tất cả') && (
               <button
-                onClick={() => { setSelectedCity('Tất cả'); setSelectedFoodType('Tất cả'); setSelectedRating('Tất cả'); }}
+                onClick={() => { handleCity('Tất cả'); handleFoodType('Tất cả'); handleRating('Tất cả'); }}
                 className="text-sm text-slate-500 hover:text-primary-600 transition-colors font-medium"
               >
                 × Xóa bộ lọc
@@ -212,6 +217,15 @@ const ExplorePage = () => {
         </section>
 
         {/* === 3. GRID CARDS === */}
+        {/* Thanh trạng thái kết quả */}
+        {allFiltered.length > 0 && (
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-sm text-slate-500">
+              Hiển thị <span className="font-bold text-slate-700">{currentPage * ITEMS_PER_PAGE + 1}–{Math.min((currentPage + 1) * ITEMS_PER_PAGE, allFiltered.length)}</span> trong tổng <span className="font-bold text-slate-700">{allFiltered.length}</span> địa điểm
+            </p>
+          </div>
+        )}
+
         {filteredPlaces.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {filteredPlaces.map((place) => (
@@ -227,14 +241,42 @@ const ExplorePage = () => {
           </div>
         )}
 
-        {/* === 4. NÚT XEM THÊM === */}
-        {showCount < places.length && filteredPlaces.length === showCount && (
-          <div className="mt-12 text-center">
+        {/* === 4. PHÂN TRANG === */}
+        {totalPages > 1 && (
+          <div className="mt-10 flex items-center justify-center gap-2">
+            {/* Nút Trước */}
             <button
-              onClick={() => setShowCount(showCount + 8)}
-              className="px-8 py-3 bg-white border-2 border-primary-600 text-primary-600 rounded-xl font-bold hover:bg-primary-600 hover:text-white transition-all"
+              onClick={() => setCurrentPage((p) => Math.max(0, p - 1))}
+              disabled={currentPage === 0}
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-600 hover:bg-slate-50 hover:border-primary-300 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              Xem thêm địa điểm
+              ← Trước
+            </button>
+
+            {/* Số trang */}
+            <div className="flex gap-1.5">
+              {[...Array(totalPages)].map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setCurrentPage(idx)}
+                  className={`w-10 h-10 rounded-xl text-sm font-bold transition-all ${
+                    idx === currentPage
+                      ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/30 scale-105'
+                      : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-primary-300'
+                  }`}
+                >
+                  {idx + 1}
+                </button>
+              ))}
+            </div>
+
+            {/* Nút Tiếp */}
+            <button
+              onClick={() => setCurrentPage((p) => Math.min(totalPages - 1, p + 1))}
+              disabled={currentPage === totalPages - 1}
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-600 hover:bg-slate-50 hover:border-primary-300 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Tiếp →
             </button>
           </div>
         )}

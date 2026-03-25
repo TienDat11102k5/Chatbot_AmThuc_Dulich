@@ -177,44 +177,57 @@ const mockData = {
   },
   'top-10-mon-sai-gon': {
     title: 'Top 10 món ẩm thực đường phố không thể bỏ lỡ tại Sài Gòn',
-    date: '20/10/2025', readTime: '6 phút đọc', tag: 'Ẩm thực', image: 'https://images.unsplash.com/photo-1511690656952-34342bb7c2f2?q=80&w=1200',
+    date: '20/10/2023', readTime: '5 phút đọc', tag: '🔥 NỔI BẬT', image: 'https://images.unsplash.com/photo-1511690656952-34342bb7c2f2?q=80&w=1200',
+    customHeader: (
+      <div className="w-full h-[400px] md:h-[600px] bg-[#031635] rounded-xl overflow-hidden mb-16 flex items-center justify-center relative shadow-xl">
+        <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuDDeKt9TGHnyzJQbipfuJrN_Bcp4ihdxjS5JUo2wEvz0dW4CfKlrx3ZDi5HXvuqZJmKi5gc6UcqVF1VmMWaIJ_AUBoDrhr5X0ikhV-j9uB4LptdY5p8ubMmNCVBNL78Orr6YG5xzMz3FlHlOXoMTOYR0AtD9MGgt-Pe5xAiFxEMxhEF2RmEqy6b_Pde0mZfbysCFeVA7xRk1_2xYcf9p2YPdnvjGcUUJOyQGcUEJiFxeMc9Wo5oZkb9ru3bSpmYFY5h9sViHnLA8-0')", backgroundSize: 'cover', backgroundPosition: 'center' }}>
+        </div>
+        <div className="relative z-10 text-center scale-150">
+          <span className="material-symbols-outlined text-9xl text-red-600" style={{ fontVariationSettings: "'FILL' 1" }}>ramen_dining</span>
+          <div className="mt-4 text-white/40 font-['Epilogue'] font-bold text-xl tracking-[0.2em]">CƠN LỐC VỊ GIÁC</div>
+        </div>
+      </div>
+    ),
     content: (
       <>
-        <p className="text-xl font-medium italic text-slate-600 leading-relaxed border-l-4 border-orange-200 pl-6 py-2 mb-10">
-          Sài Gòn — thành phố không bao giờ ngủ — ẩn chứa một nền ẩm thực đường phố phong phú đến choáng ngợp. Từ những gánh hàng rong bên vỉa hè đến các con hẻm ngập mùi khói bếp, mỗi góc phố là một câu chuyện hương vị riêng.
+        <p className="text-xl font-medium text-slate-800 leading-relaxed italic border-l-4 border-emerald-600 pl-6 mb-12">
+          Sài Gòn - nơi được mệnh danh là thiên đường ẩm thực đường phố của Đông Nam Á. Từ những con hẻm nhỏ đến phố lớn, hương vị của các món ăn luôn nồng nàn và đầy sức sống.
         </p>
-
-        <h2 className="text-3xl font-bold text-[#031635] mt-12 mb-6">1. Hủ Tiếu Gõ — Âm Thanh Của Đêm Sài Gòn</h2>
+        
+        <h2 className="text-3xl font-bold text-[#031635] mt-12 mb-4 font-['Epilogue']">1. Bánh mì Huỳnh Hoa - Huyền thoại "ổ bánh mì đắt nhất"</h2>
         <p className="mb-8 leading-relaxed text-slate-600">
-          Tiếng gõ lóc cóc đặc trưng của gánh hủ tiếu dạo đã gắn liền với ký ức của bao thế hệ người Sài Gòn. Tô hủ tiếu trong veo với thịt bằm, gan, tim heo và tôm khô chan nước dùng ngọt thanh là món ăn đêm không thể thiếu.
+          Không phải ngẫu nhiên mà Bánh mì Huỳnh Hoa lại trở thành một biểu tượng. Với ổ bánh mì nặng tay, đầy ắp các loại chả, bơ và đặc biệt là lớp pate béo ngậy đặc trưng, đây là món ăn mà bất kỳ du khách nào cũng sẵn lòng đứng xếp hàng dài để thưởng thức.
         </p>
-
-        <h2 className="text-3xl font-bold text-[#031635] mt-12 mb-6">2. Bánh Mì Sài Gòn — Di Sản Thế Giới</h2>
-        <p className="mb-8 leading-relaxed text-slate-600">
-          Bánh mì Việt Nam đã được CNN bình chọn là một trong những món ăn ngon nhất thế giới. Ổ bánh mì giòn rụm với patê, chả lụa, dưa cải, rau thơm và tương ớt tạo nên một tổng hòa hương vị không thể cưỡng lại.
-        </p>
-
-        <div className="my-10 p-8 bg-orange-50 border border-orange-100 rounded-2xl">
-          <h3 className="text-xl font-bold text-[#031635] mb-4">Những địa chỉ không thể bỏ qua</h3>
-          <ul className="space-y-3 text-slate-600">
-            <li className="flex items-center gap-3">
-              <span className="w-2 h-2 rounded-full bg-orange-400 flex-shrink-0"></span>
-              <span><strong>Bánh tráng trộn:</strong> Góc Pasteur - Lê Thánh Tôn, Quận 1</span>
-            </li>
-            <li className="flex items-center gap-3">
-              <span className="w-2 h-2 rounded-full bg-orange-400 flex-shrink-0"></span>
-              <span><strong>Bún bò Huế:</strong> Chợ Bến Thành - ăn sáng từ 6h</span>
-            </li>
-            <li className="flex items-center gap-3">
-              <span className="w-2 h-2 rounded-full bg-orange-400 flex-shrink-0"></span>
-              <span><strong>Cơm tấm sườn bì chả:</strong> Đường Võ Văn Tần, Quận 3</span>
-            </li>
-          </ul>
+        <div className="my-10 rounded-xl overflow-hidden shadow-soft">
+          <img className="w-full h-[500px] object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA4SFNzrGj0uA_u2AF3rNDa80FpEc6FrJiqAmhNmp2rsUeGKFeGYG0yg5Y4Bzwr4iD9DKWIqhK2vzyGDI79xA7EsQpAMUcJq__AqR4xBCqiPi2sP5o4me2Ng4aIqUAYVNQvOsJ993f-L0HeTP9ToTac-IJQ4GRozHLWCk4FLtA5rdktdguWkagdU4p7s3pfXjPKqGmTQowLAZpHU5vHioQ588bQYJlVesdISDPKmYsNFR3LQSY1uqlLpcnCZJHwBd2BHqF3vl8zSoo" alt="Bánh mì Huỳnh Hoa"/>
+          <div className="bg-slate-100 p-4 text-center text-sm text-slate-500 italic">
+            Bánh mì Sài Gòn luôn mang một sức hút khó cưỡng với lớp vỏ giòn tan và nhân đậm đà.
+          </div>
         </div>
 
-        <h2 className="text-3xl font-bold text-[#031635] mt-12 mb-6">3. Phá Lấu — Linh Hồn Của Phố Người Hoa</h2>
-        <p className="mb-10 leading-relaxed text-slate-600">
-          Xuất phát từ ẩm thực Tiều, phá lấu Sài Gòn là sự kết hợp các nội tạng bò/heo/gà hầm với ngũ vị hương ngào ngạt, ăn kèm bánh mì hoặc hủ tiếu. Một tô phá lấu đậm đà vào buổi chiều là trải nghiệm không thể thiếu khi đặt chân đến đây.
+        <h2 className="text-3xl font-bold text-[#031635] mt-12 mb-4 font-['Epilogue']">2. Ốc quận 4 - Văn hóa "nhậu" về đêm</h2>
+        <p className="mb-8 leading-relaxed text-slate-600">
+          Đến Sài Gòn mà chưa đi ăn ốc là một thiếu sót lớn. Tại quận 4, bạn sẽ lạc vào mê cung của hàng trăm loại ốc được chế biến theo đủ phong cách: xào me, nướng mỡ hành, rang muối hay hấp sả. Không khí nhộn nhịp, mùi thơm của bơ và sả lan tỏa khắp phố phường.
+        </p>
+        <div className="grid grid-cols-2 gap-4 my-10">
+          <img className="rounded-lg h-64 w-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAYAWWwii_pchs3E_1xXq_sPT9OCNzDndF-LQNR_KwdpNow2K5F0QiMkyCOqkYtD-BjF8NabJRR41s-auqVRzxoWh-l1KwLoOvaFyj5sKTMS5w9eUG-rnUvNeePlLBYDe3byX13pT7PLB8DYwFeEaaCkUcC9rYZEbET_jTZqPoeqsDz9DAwR3_99ZbI9_WE-JglqTsN_dQ_F7sDAuTtYpmx0AHxt4XCQoYNj90MFnXhk1leZxPPJ8DhpFG324wL5iFt05-EHJ8gTg8" alt="Ốc xào me"/>
+          <img className="rounded-lg h-64 w-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDuxaObGZrfyHHwYxShPXSUU4n0hk9l7tlOWnQtvjlj4qaMM1vRbZ0zCnirJJQYzgwYOGbQOe28qyMVXzxbIFCoLXw1Agegfs_U3HB8dyiNH_OGf2_q_MuKmIU6U3p5qtsaMlEQsut-L9dicnTNnc87-R7min9nPwx12nIKgH-hAt9NVj16RGsLFeyQJi-iH2daayDftMKfZjUdTwxnRLIz2HLbwMgpDJStjiBJ5cNW7gzuR0IdrNGGKD6egBy0C4_d6PXhPJ2rnec" alt="Ốc mỡ hành"/>
+        </div>
+
+        <h2 className="text-3xl font-bold text-[#031635] mt-12 mb-4 font-['Epilogue']">3. Cơm Tấm - Linh hồn bữa sáng Sài Thành</h2>
+        <p className="mb-8 leading-relaxed text-slate-600">
+          Từ tầng lớp bình dân đến thượng lưu, cơm tấm luôn là sự lựa chọn ưu tiên. Miếng sườn nướng mật ong thơm nức, bì dai giòn cùng chả trứng vàng ươm, ăn kèm với chén nước mắm chua ngọt sền sệt là định nghĩa của hạnh phúc vào mỗi buổi sáng.
+        </p>
+        <div className="bg-sky-50 rounded-xl p-8 my-12 border-l-8 border-sky-400">
+          <h4 className="font-bold text-[#031635] mb-2 flex items-center gap-2">
+            <span className="material-symbols-outlined text-sky-500">lightbulb</span>
+            Mẹo của đầu bếp:
+          </h4>
+          <p className="mb-0 text-sm text-slate-700">Hãy thử xin thêm một chút "mỡ hành" và "tóp mỡ" khi ăn cơm tấm, đó chính là bí quyết để món ăn trở nên hoàn hảo và đúng điệu nhất.</p>
+        </div>
+        
+        <p className="leading-relaxed text-slate-600 mt-12 mb-4 italic text-lg text-center font-medium">
+          Còn rất nhiều món ngon khác như Bún riêu Cua, Phá lấu, hay Gỏi cuốn... đang chờ đợi bạn khám phá. Sài Gòn không bao giờ ngủ, và dạ dày của bạn cũng vậy khi đặt chân đến đây!
         </p>
       </>
     )
@@ -542,14 +555,18 @@ const BlogDetail = () => {
             </div>
           </header>
 
-          {/* Ảnh Nổi Bật */}
-          <div className="mb-16 rounded-3xl overflow-hidden bg-blue-50 aspect-[21/9] relative group">
-            <img 
-              alt={post.title} 
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
-              src={post.image}
-            />
-          </div>
+          {/* Ảnh Nổi Bật hoặc Custom Header */}
+          {post.customHeader ? (
+             post.customHeader
+          ) : (
+            <div className="mb-16 rounded-3xl overflow-hidden bg-blue-50 aspect-[21/9] relative group">
+              <img 
+                alt={post.title} 
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
+                src={post.image}
+              />
+            </div>
+          )}
 
           {/* Nội Dung HTML */}
           <div className="max-w-[800px] mx-auto prose prose-slate prose-lg">
