@@ -88,6 +88,8 @@ public class SecurityConfig {
         configuration.setAllowedHeaders(List.of("*"));
         // Allow credentials (cookies, authorization headers)
         configuration.setAllowCredentials(true);
+        // Expose response headers for SSE streaming
+        configuration.setExposedHeaders(List.of("Content-Type", "Cache-Control"));
         // Cache preflight response for 1 hour
         configuration.setMaxAge(3600L);
 

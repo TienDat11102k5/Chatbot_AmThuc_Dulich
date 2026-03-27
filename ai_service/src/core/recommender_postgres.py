@@ -1,23 +1,22 @@
 """
 Recommender System sử dụng PostgreSQL thay vì CSV
 """
-import psycopg2
 import pandas as pd
 import os
+from sqlalchemy import create_engine
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from src.core.nlp_utils import preprocess_text
 
 # Cấu hình database từ environment variables
-def get_db_config():
-    """Lấy cấu hình database từ .env"""
-    return {
-        'host': os.getenv('DB_HOST', 'localhost'),
-        'port': int(os.getenv('DB_PORT', '5432')),
-        'database': os.getenv('DB_NAME', 'chatbot_db'),
-        'user': os.getenv('DB_USER', 'postgres'),
-        'password': os.getenv('DB_PASSWORD', '123456')
-    }
+def get_db_url():
+    """Tạo SQLAlchemy connection URL từ environment variables"""
+    host = os.getenv('DB_HOST', 'localhost')
+    port = os.getenv('DB_PORT', '5432')
+    dbname = os.getenv('DB_NAME', 'chatbot_db')
+    user = os.getenv('DB_USER', 'postgres')
+    password = os.getenv('DB_PASSWORD', '123456')
+    return f"postgresql+psycopg2://{user}:{password}@{host}:{port}/{dbname}"
 
 class RecommenderSystem:
     """
@@ -32,7 +31,7 @@ class RecommenderSystem:
         self.tfidf_matrix = None
         
         try:
-            self.db_config = get_db_config()
+            self.db_url = get_db_url()
             self.load_data_from_db()
             self.build_tfidf_matrix()
             self.ready = True
@@ -42,30 +41,29 @@ class RecommenderSystem:
             print("[Recommender] Sẽ hoạt động ở chế độ rỗng (trả [] cho mọi truy vấn)")
     
     def load_data_from_db(self):
-        """Load dữ liệu từ PostgreSQL"""
-        conn = psycopg2.connect(**self.db_config)
+        """Load dữ liệu từ PostgreSQL dùng SQLAlchemy engine (bắt buộc cho pandas 2.x)"""
+        engine = create_engine(self.db_url)
         
-        try:
-            # Load places từ PostgreSQL
-            places_query = """
-                SELECT 
-                    CONCAT('PLACE_', id) as id,
-                    name,
-                    category_vi as type,
-                    description,
-                    province as location,
-                    COALESCE(address, '') as address,
-                    COALESCE(domain, '') as tags
-                FROM places
-                WHERE name IS NOT NULL 
-                AND description IS NOT NULL
-            """
+        # Load places từ PostgreSQL
+        places_query = """
+            SELECT 
+                CONCAT('PLACE_', p.id) as id,
+                p.name as name,
+                COALESCE(c.name, '') as type,
+                p.description as description,
+                p.location as location,
+                COALESCE(p.address, '') as address,
+                COALESCE(p.tags, '') as tags
+            FROM places p
+            LEFT JOIN categories c ON p.category_id = c.id
+            WHERE p.name IS NOT NULL 
+            AND p.description IS NOT NULL
+        """
+        with engine.connect() as conn:
             self.df = pd.read_sql(places_query, conn)
-            
-            print(f"[Recommender] Đã nạp {len(self.df)} bản ghi từ PostgreSQL")
-            
-        finally:
-            conn.close()
+        
+        engine.dispose()
+        print(f"[Recommender] Đã nạp {len(self.df)} bản ghi từ PostgreSQL")
     
     def build_tfidf_matrix(self):
         """Xây dựng ma trận TF-IDF"""

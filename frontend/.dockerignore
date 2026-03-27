@@ -10,9 +10,9 @@ dist
 dist-ssr
 *.local
 
-# Ignore file môi trường chứa key bảo mật
-.env
-.env.*
+# Bỏ tính năng ignore .env để quá trình build (Vite) có thể lấy biến môi trường client-side
+# .env
+# .env.*
 
 # Editor directories and files
 .vscode/*

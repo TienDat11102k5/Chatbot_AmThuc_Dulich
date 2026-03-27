@@ -41,6 +41,10 @@ redis==5.0.0
 # Dùng để đọc dữ liệu món ăn và địa điểm từ database
 psycopg2-binary==2.9.9
 
+# sqlalchemy: ORM và engine connector — bắt buộc để pandas.read_sql() hoạt động
+# pandas 2.x không hỗ trợ psycopg2 raw connection, phải dùng SQLAlchemy engine
+sqlalchemy==2.0.36
+
 # --- HTTP Requests ---
 # requests: Gửi HTTP requests đến API (OpenStreetMap, BigDataCloud, etc.)
 requests==2.31.0

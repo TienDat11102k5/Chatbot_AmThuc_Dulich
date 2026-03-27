@@ -7,7 +7,7 @@
  * - Empty state: illustration + CTA "Bắt đầu ngay"
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Bot, Clock, MessageSquare, ArrowRight, Sparkles, Trash2, Loader2, AlertCircle } from 'lucide-react';
 import chatService from '../../lib/chatService';
@@ -141,19 +141,20 @@ const ErrorState = ({ message, onRetry }) => (
 );
 
 const ChatHistoryPage = () => {
-  const { user } = useAuth();
+  const { userId } = useAuth();
   const [sessions, setSessions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filter, setFilter] = useState('all');
 
-  const fetchSessions = async () => {
-    if (!user?.id) return;
+  // Wrap trong useCallback để tránh re-create mỗi render
+  const fetchSessions = useCallback(async () => {
+    if (!userId) return;
     
     setIsLoading(true);
     setError(null);
     try {
-      const data = await chatService.getUserSessions(user.id);
+      const data = await chatService.getUserSessions(userId);
       setSessions(data || []);
     } catch (err) {
       console.error("Lỗi khi tải danh sách session:", err);
@@ -161,11 +162,27 @@ const ChatHistoryPage = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [userId]);
 
   useEffect(() => {
     fetchSessions();
-  }, [user]);
+  }, [fetchSessions]);
+
+  // Filter logic cho các tab "Gần nhất" / "Tháng này"
+  const filteredSessions = useMemo(() => {
+    const now = Date.now();
+    if (filter === 'recent') {
+      return sessions.filter(s => new Date(s.createdAt) > new Date(now - 7 * 86400000));
+    }
+    if (filter === 'month') {
+      const thisMonth = new Date();
+      return sessions.filter(s => {
+        const d = new Date(s.createdAt);
+        return d.getMonth() === thisMonth.getMonth() && d.getFullYear() === thisMonth.getFullYear();
+      });
+    }
+    return sessions;
+  }, [sessions, filter]);
 
   const handleDelete = (id) => {
     // Tạm thời chỉ xoá ở UI, sau này thêm API xoá
@@ -213,7 +230,7 @@ const ChatHistoryPage = () => {
           ))}
         </div>
 
-        // Danh sách chat hoặc Empty State
+        {/* Danh sách chat hoặc Empty State */}
         {isLoading ? (
           <div className="flex flex-col gap-4">
             <ChatCardSkeleton />
@@ -222,9 +239,9 @@ const ChatHistoryPage = () => {
           </div>
         ) : error ? (
           <ErrorState message={error} onRetry={fetchSessions} />
-        ) : sessions.length > 0 ? (
+        ) : filteredSessions.length > 0 ? (
           <div className="flex flex-col gap-4">
-            {sessions.map((session) => (
+            {filteredSessions.map((session) => (
               <ChatCard key={session.id} session={session} onDelete={handleDelete} />
             ))}
           </div>

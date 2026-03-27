@@ -6,6 +6,8 @@ import com.bot.entity.User;
 import com.bot.repository.ChatSessionRepository;
 import com.bot.repository.MessageRepository;
 import com.bot.repository.UserRepository;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,7 +26,9 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -250,74 +254,99 @@ public class ChatService {
      */
     @Async("chatTaskExecutor")
     public void streamAiResponse(SseEmitter emitter, UUID sessionId, String userMessage) {
-        // StringBuilder dùng để gom toàn bộ các token phản hồi thành nội dung hoàn chỉnh
+        // StringBuilder to accumulate the full AI response text
         StringBuilder fullResponse = new StringBuilder();
+        ObjectMapper mapper = new ObjectMapper();
 
         try {
             // -----------------------------------------------------------------
-            // Bước 1: Thiết lập kết nối HTTP POST tới AI Service (FastAPI)
+            // Step 1: Open HTTP POST connection to AI Service (FastAPI JSON API)
             // -----------------------------------------------------------------
-            URI uri = URI.create(aiServiceUrl + "/api/chat/stream");
+            URI uri = URI.create(aiServiceUrl + "/api/v1/ai/chat");
             HttpURLConnection connection = (HttpURLConnection) uri.toURL().openConnection();
             connection.setRequestMethod("POST");
             connection.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
-            connection.setRequestProperty("Accept", "text/event-stream");
+            connection.setRequestProperty("Accept", "application/json");
             connection.setDoOutput(true);
-            connection.setConnectTimeout(10_000);   // Timeout kết nối: 10 giây
-            connection.setReadTimeout(120_000);      // Timeout đọc dữ liệu: 2 phút
+            connection.setConnectTimeout(10_000);   // Connection timeout: 10s
+            connection.setReadTimeout(120_000);      // Read timeout: 2 min
 
             // -----------------------------------------------------------------
-            // Bước 2: Gửi nội dung tin nhắn User cho AI dưới dạng JSON
+            // Step 2: Send user message as JSON using ObjectMapper (safe encoding)
             // -----------------------------------------------------------------
-            String jsonPayload = "{\"message\": \"" + escapeJson(userMessage) + "\"}";
+            Map<String, Object> body = new HashMap<>();
+            body.put("message", userMessage);
+            body.put("session_id", sessionId.toString());
+            byte[] jsonBytes = mapper.writeValueAsBytes(body);
             try (OutputStream os = connection.getOutputStream()) {
-                os.write(jsonPayload.getBytes(StandardCharsets.UTF_8));
+                os.write(jsonBytes);
                 os.flush();
             }
 
             // -----------------------------------------------------------------
-            // Bước 3: Đọc phản hồi stream từ AI — từng dòng một (line-by-line)
+            // Step 3: Read full JSON response from AI Service
             // -----------------------------------------------------------------
+            StringBuilder jsonResponse = new StringBuilder();
             try (BufferedReader reader = new BufferedReader(
                     new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
-
                 String line;
                 while ((line = reader.readLine()) != null) {
-                    // Bỏ qua dòng trống (SSE protocol dùng dòng trống để phân tách sự kiện)
-                    if (line.isEmpty()) continue;
-
-                    // Loại bỏ prefix "data: " theo chuẩn SSE nếu có
-                    String token = line.startsWith("data: ") ? line.substring(6) : line;
-
-                    // Tín hiệu kết thúc stream từ AI Service
-                    if ("[DONE]".equals(token)) break;
-
-                    // Gom token vào nội dung hoàn chỉnh
-                    fullResponse.append(token);
-
-                    // Đẩy token ngay lập tức về Frontend qua SseEmitter
-                    emitter.send(SseEmitter.event()
-                            .name("message")
-                            .data(token));
+                    jsonResponse.append(line);
                 }
             }
 
+            // Parse JSON — field "message" (NOT "response")
+            JsonNode root = mapper.readTree(jsonResponse.toString());
+            String aiMessage = root.has("message") ? root.get("message").asText() : "";
+            JsonNode recommendations = root.get("recommendations");
+            String intent = root.has("intent") ? root.get("intent").asText() : "";
+
             // -----------------------------------------------------------------
-            // Bước 4: Stream hoàn tất — Gửi sự kiện kết thúc và lưu lịch sử
+            // Step 4: Simulate streaming — split into ~4-word chunks, 50ms delay
+            // OK to use Thread.sleep() because this method runs on chatTaskExecutor
+            // -----------------------------------------------------------------
+            String[] words = aiMessage.split("(?<=\\s)");
+            StringBuilder chunk = new StringBuilder();
+            for (int i = 0; i < words.length; i++) {
+                chunk.append(words[i]);
+                if ((i + 1) % 4 == 0 || i == words.length - 1) {
+                    emitter.send(SseEmitter.event().name("message").data(chunk.toString()));
+                    chunk.setLength(0);
+                    Thread.sleep(50);
+                }
+            }
+            fullResponse.append(aiMessage);
+
+            // -----------------------------------------------------------------
+            // Step 5: Send metadata event (recommendations + intent) for map pins
+            // -----------------------------------------------------------------
+            if (recommendations != null && !recommendations.isEmpty()) {
+                emitter.send(SseEmitter.event()
+                        .name("metadata")
+                        .data(mapper.writeValueAsString(Map.of(
+                                "recommendations", recommendations,
+                                "intent", intent
+                        ))));
+            }
+
+            // -----------------------------------------------------------------
+            // Step 6: Stream complete — send done event and save to DB
             // -----------------------------------------------------------------
             emitter.send(SseEmitter.event().name("done").data("[DONE]"));
             emitter.complete();
 
-            // Lưu toàn bộ phản hồi Bot vào database (bất đồng bộ, không block)
+            // Save bot response to database SYNCHRONOUSLY (already on async thread)
+            // NOTE: Do NOT call saveMessageAsync() here — Spring proxy does not
+            // intercept self-invocation, so @Async within same class is a no-op
             if (!fullResponse.isEmpty()) {
-                saveMessageAsync(sessionId, "BOT", fullResponse.toString(), null);
+                saveMessage(sessionId, "BOT", fullResponse.toString(), null);
             }
 
             log.info("[Stream] Hoàn tất streaming cho phiên {} — {} ký tự", sessionId, fullResponse.length());
 
         } catch (Exception e) {
             // -----------------------------------------------------------------
-            // Xử lý lỗi: Thông báo cho Frontend và đóng kết nối an toàn
+            // Error handling: notify Frontend and close connection gracefully
             // -----------------------------------------------------------------
             log.error("[Stream] Lỗi khi streaming AI cho phiên {}: {}", sessionId, e.getMessage());
             try {
@@ -335,21 +364,5 @@ public class ChatService {
     // TIỆN ÍCH NỘI BỘ (PRIVATE UTILITIES)
     // =========================================================================
 
-    /**
-     * Escape các ký tự đặc biệt trong chuỗi JSON để tránh lỗi parse.
-     *
-     * <p>Xử lý các ký tự: dấu nháy kép ("), backslash (\), xuống dòng (\n), tab (\t).</p>
-     *
-     * @param text Chuỗi gốc cần escape.
-     * @return Chuỗi đã được escape an toàn cho JSON.
-     */
-    private String escapeJson(String text) {
-        if (text == null) return "";
-        return text
-                .replace("\\", "\\\\")    // Escape backslash trước
-                .replace("\"", "\\\"")    // Escape dấu nháy kép
-                .replace("\n", "\\n")     // Escape xuống dòng
-                .replace("\r", "\\r")     // Escape carriage return
-                .replace("\t", "\\t");    // Escape tab
-    }
+    // escapeJson() method REMOVED — replaced by ObjectMapper for safe JSON encoding
 }

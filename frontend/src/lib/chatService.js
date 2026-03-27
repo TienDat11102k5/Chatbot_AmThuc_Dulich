@@ -75,101 +75,139 @@ const chatService = {
    * Gọi: POST /api/v1/chat/stream?sessionId=...
    * Body: { message: string }
    *
-   * ĐẶC BIỆT: Dùng native fetch thay vì Axios vì:
-   * - Axios KHÔNG hỗ trợ ReadableStream (response.body.getReader())
-   * - SSE cần đọc dữ liệu từng chunk khi nó đến, không đợi toàn bộ response
+   * Backend gửi các SSE event types:
+   *   - event: message  → text chunk (typing effect)
+   *   - event: metadata → recommendations + intent (JSON)
+   *   - event: error    → error message from server
+   *   - event: done     → stream finished
    *
-   * Luồng hoạt động:
-   *   1. Gửi POST request kèm JWT token trong header
-   *   2. Backend trả response dạng stream (Transfer-Encoding: chunked)
-   *   3. Frontend đọc từng chunk qua ReadableStream reader
-   *   4. Parse mỗi chunk theo format SSE: "data: {nội dung}"
-   *   5. Gọi onChunk(nội dung) cho mỗi token nhận được → hiển thị ngay trên giao diện
-   *   6. Khi nhận "data: [DONE]" → gọi onDone() → AI đã trả lời xong
-   *
-   * @param {string} sessionId   - ID phiên trò chuyện (tạo bởi createSession)
+   * @param {string} sessionId   - ID phiên trò chuyện
    * @param {string} message     - Tin nhắn của người dùng
-   * @param {Object} callbacks   - 3 callback functions:
-   * @param {Function} callbacks.onChunk - Gọi khi nhận được mỗi "mảnh" text từ AI
-   *                                       Ví dụ: onChunk("Xin") → onChunk(" chào") → hiển thị "Xin chào"
-   * @param {Function} callbacks.onDone  - Gọi khi AI trả lời xong hoàn toàn
-   * @param {Function} callbacks.onError - Gọi khi có lỗi (mất kết nối, timeout, ...)
+   * @param {Object} callbacks   - Callback functions
+   * @param {Function} callbacks.onChunk    - Nhận text chunk (typing effect)
+   * @param {Function} callbacks.onMetadata - Nhận metadata { recommendations, intent }
+   * @param {Function} callbacks.onDone     - Stream hoàn tất
+   * @param {Function} callbacks.onError    - Có lỗi xảy ra
+   * @param {AbortSignal} [signal] - Optional AbortController signal for cleanup
+   * @returns {Function} abort - Call to cancel the stream
    */
-  async streamChat(sessionId, message, { onChunk, onDone, onError }) {
-    try {
-      // Lấy JWT token từ localStorage để gắn vào header Authorization
-      let token = '';
+  streamChat(sessionId, message, { onChunk, onMetadata, onDone, onError }, signal) {
+    // AbortController to allow cancellation from outside
+    const controller = new AbortController();
+    const mergedSignal = signal || controller.signal;
+
+    // If external signal aborts, also abort our controller
+    if (signal) {
+      signal.addEventListener('abort', () => controller.abort(), { once: true });
+    }
+
+    const execute = async () => {
       try {
-        const userData = localStorage.getItem(STORAGE_KEY);
-        if (userData) {
-          token = JSON.parse(userData).token || '';
-        }
-      } catch (e) {
-        console.error('[ChatService] Lỗi đọc token:', e);
-      }
-
-      // Gửi POST request — dùng native fetch (KHÔNG phải Axios)
-      const response = await fetch(`/api/v1/chat/stream?sessionId=${sessionId}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { Authorization: `Bearer ${token}` }),
-        },
-        body: JSON.stringify({ message }),
-      });
-
-      // Kiểm tra HTTP status — nếu không phải 2xx thì ném lỗi
-      if (!response.ok) {
-        throw new Error(`Lỗi stream: HTTP ${response.status}`);
-      }
-
-      // Đọc stream bằng ReadableStream API
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = ''; // Buffer để ghép các chunk chưa hoàn chỉnh
-
-      // Vòng lặp đọc stream — chạy cho đến khi stream kết thúc
-      while (true) {
-        const { done, value } = await reader.read();
-
-        // Stream kết thúc (server đóng connection)
-        if (done) {
-          onDone?.();
-          break;
+        // Get JWT token from localStorage
+        let token = '';
+        try {
+          const userData = localStorage.getItem(STORAGE_KEY);
+          if (userData) {
+            token = JSON.parse(userData).token || '';
+          }
+        } catch (e) {
+          console.error('[ChatService] Error reading token:', e);
         }
 
-        // Decode bytes thành text và ghép vào buffer
-        buffer += decoder.decode(value, { stream: true });
+        // POST request using native fetch (Axios does NOT support ReadableStream)
+        const response = await fetch(`/api/v1/chat/stream?sessionId=${sessionId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token && { Authorization: `Bearer ${token}` }),
+          },
+          body: JSON.stringify({ message }),
+          signal: mergedSignal,
+        });
 
-        // Tách buffer thành các dòng theo ký tự xuống dòng
-        const lines = buffer.split('\n');
+        if (!response.ok) {
+          throw new Error(`Lỗi stream: HTTP ${response.status}`);
+        }
 
-        // Dòng cuối cùng có thể chưa hoàn chỉnh → giữ lại trong buffer
-        buffer = lines.pop() || '';
+        // Read stream via ReadableStream API
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
 
-        // Xử lý từng dòng SSE
-        for (const line of lines) {
-          // Chỉ xử lý dòng bắt đầu bằng "data: " (chuẩn SSE format)
-          if (line.startsWith('data: ')) {
-            const data = line.slice(6).trim(); // Cắt bỏ "data: " lấy nội dung
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) {
+            onDone?.();
+            break;
+          }
 
-            // "[DONE]" = tín hiệu kết thúc stream từ backend
-            if (data === '[DONE]') {
-              onDone?.();
-              return;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
+
+          // Parse SSE events — each event has "event:" and "data:" fields
+          let currentEventType = 'message'; // default event type
+          for (const line of lines) {
+            if (line.startsWith('event:')) {
+              currentEventType = line.slice(6).trim();
+              continue;
             }
 
-            // Gọi callback với nội dung text nhận được
-            if (data) {
-              onChunk?.(data);
+            if (line.startsWith('data:')) {
+              const data = line.slice(5).trim();
+
+              switch (currentEventType) {
+                case 'done':
+                  onDone?.();
+                  reader.cancel();
+                  return;
+
+                case 'error':
+                  onError?.(data || 'Lỗi không xác định từ server');
+                  reader.cancel();
+                  return;
+
+                case 'metadata':
+                  // Parse JSON metadata { recommendations, intent }
+                  try {
+                    const meta = JSON.parse(data);
+                    onMetadata?.(meta);
+                  } catch (parseErr) {
+                    console.warn('[ChatService] Failed to parse metadata:', parseErr);
+                  }
+                  break;
+
+                case 'message':
+                default:
+                  if (data && data !== '[DONE]') {
+                    onChunk?.(data);
+                  } else if (data === '[DONE]') {
+                    onDone?.();
+                    reader.cancel();
+                    return;
+                  }
+                  break;
+              }
+
+              // Reset event type after processing data line
+              currentEventType = 'message';
             }
           }
         }
+      } catch (error) {
+        if (error.name === 'AbortError') {
+          console.log('[ChatService] Stream cancelled by user');
+          return; // Don't call onError for intentional cancellation
+        }
+        console.error('[ChatService] Stream error:', error);
+        onError?.(error.message || 'Lỗi kết nối với AI');
       }
-    } catch (error) {
-      console.error('[ChatService] Lỗi stream:', error);
-      onError?.(error.message || 'Lỗi kết nối với AI');
-    }
+    };
+
+    execute();
+
+    // Return abort function for cleanup (e.g. component unmount)
+    return () => controller.abort();
   },
 };
 

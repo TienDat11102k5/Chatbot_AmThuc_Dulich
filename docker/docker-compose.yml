@@ -100,6 +100,11 @@ services:
     environment:
       - REDIS_HOST=redis    # [THÊM MỚI Phase 7] Kết nối Redis cho SemanticCache
       - REDIS_PORT=6379
+      - DB_HOST=database
+      - DB_PORT=5432
+      - DB_NAME=chatbot_db
+      - DB_USER=${DB_USERNAME:-admin}
+      - DB_PASSWORD=${DB_PASSWORD:-password}
     depends_on:
       - redis               # Redis phải sẵn sàng trước AI Service (dùng Semantic Cache)
     networks:

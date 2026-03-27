@@ -10,9 +10,13 @@ import './index.css';
  */
 const container = document.getElementById('root');
 const root = createRoot(container);
+
+// Fallback client ID nếu build time không nhận được biến môi trường VITE_GOOGLE_CLIENT_ID
+const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "725608355243-e3agptrmu79ga8fo092trsedsoqlatoj.apps.googleusercontent.com";
+
 root.render(
   <React.StrictMode>
-    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+    <GoogleOAuthProvider clientId={clientId}>
       <App />
     </GoogleOAuthProvider>
   </React.StrictMode>
