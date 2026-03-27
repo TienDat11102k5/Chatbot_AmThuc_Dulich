@@ -190,11 +190,13 @@ def _find_entities_in_text(text: str, dictionary: set) -> list:
     working_text = text
     
     for term in sorted_dict:
-        # Dùng Regex tìm xem từ `term` có xuất hiện trong câu không
-        # re.escape() là để thoát các ký tự đặc biệt trong Regex (nếu từ có dấu ngoặc, chấm...)
-        # \b...\b là ranh giới từ (word boundary) để tránh bắt nhầm "phở" trong "phospho"
-        # Tuy nhiên tiếng Việt có dấu nên ta dùng cách khác: kiểm tra `in` trực tiếp
-        if term in working_text:
+        # Dùng regex Vietnamese-safe word boundary thay vì substring match
+        # Lý do: `\b` của Python không nhận ký tự có dấu tiếng Việt (ă, â, ê, ô, ơ, ư)
+        # nên dùng negative lookbehind/lookahead với bộ ký tự Việt đầy đủ.
+        # Ví dụ: "ốc" sẽ KHÔNG match trong "Bitcoin" nhưng VẪN match trong "Bún ốc"
+        vn_char = r'a-zA-ZÀ-ỹ'
+        pattern = r'(?<![' + vn_char + r'])' + re.escape(term) + r'(?![' + vn_char + r'])'
+        if re.search(pattern, working_text):
             found.append(term)
             # Đánh dấu vùng đã bắt bằng cách thay thế bằng ký tự placeholder
             working_text = working_text.replace(term, "◆" * len(term), 1)

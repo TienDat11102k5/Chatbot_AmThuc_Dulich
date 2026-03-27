@@ -9,39 +9,136 @@ Mục đích: Định nghĩa API Endpoint chính cho AI Service.
           1. Nhận tin nhắn từ Backend → Validate bằng Pydantic Schema.
           2. Kiểm tra Semantic Cache (đã hỏi câu này chưa?).
           3. Phân loại Ý định (Intent) bằng Model SVM đã train.
-          4. Nếu intent là tìm món ăn/địa điểm → Gọi NER bóc thực thể.
-          5. Gọi Recommender Cosine Similarity tìm Top 3 kết quả.
-          6. Đóng gói Response JSON chuẩn và trả về.
+          4. [MỚI] Kiểm tra Out-of-Scope: 2 lớp phòng thủ (Intent OOS + Confidence Threshold).
+          5. Nếu intent là tìm món ăn/địa điểm → Gọi NER bóc thực thể.
+          6. Gọi Recommender Cosine Similarity tìm Top 3 kết quả.
+          7. Đóng gói Response JSON chuẩn và trả về.
 """
 
-from fastapi import APIRouter, HTTPException, Request  # Request để truy cập app.state
-from src.api.schemas import ChatRequest, ChatResponse, RecommendationItem  # Schema đã chuẩn bị
-from src.core.ner import extract_entities     # Hàm trích xuất thực thể từ Phase 3
-from src.core.location_handler import get_location_handler  # Xử lý câu hỏi "gần đây"
+import re      # Regex for gibberish detection
+import random  # Random response for OOS rejection
+from fastapi import APIRouter, HTTPException, Request
+from src.api.schemas import ChatRequest, ChatResponse, RecommendationItem
+from src.core.ner import extract_entities
+from src.core.location_handler import get_location_handler
+from src.core.oos_logger import log_rejected_query  # OOS logging module
 
 # ==============================================================================
 # KHỞI TẠO ROUTER
 # ==============================================================================
-# APIRouter giúp gom nhóm các endpoint lại, sau đó gắn vào app chính trong main.py
 router = APIRouter(
-    prefix="/api/v1/ai",  # Tất cả các endpoint sẽ bắt đầu bằng /api/v1/ai/...
-    tags=["AI Chat"]       # Nhãn hiển thị trên Swagger UI
+    prefix="/api/v1/ai",
+    tags=["AI Chat"]
 )
+
+# ==============================================================================
+# CẤU HÌNH NGƯỠNG CONFIDENCE (Tunable Parameter)
+# ==============================================================================
+# Nếu model dự đoán với confidence < ngưỡng này VÀ intent không phải giao tiếp
+# → tự động chuyển thành out_of_scope. Giá trị khởi điểm 0.4, điều chỉnh sau khi test.
+CONFIDENCE_THRESHOLD = 0.4
+
+# Danh sách các intent "giao tiếp" — KHÔNG áp dụng confidence threshold
+# vì các câu ngắn ("hi", "bye") thường có confidence thấp nhưng vẫn hợp lệ.
+CONVERSATION_INTENTS = {"chao_hoi", "cam_on", "tam_biet", "hoi_thong_tin"}
 
 # ==============================================================================
 # TỪ ĐIỂN CÂU TRẢ LỜI MẪU CHO TỪNG LOẠI Ý ĐỊNH (INTENT)
 # ==============================================================================
-# Khi AI phân loại được ý định, chúng ta cần một câu trả lời "mở đầu" tự nhiên
-# trước khi đưa ra kết quả gợi ý. Đây là các mẫu câu cho từng intent.
 INTENT_RESPONSES = {
     "tim_mon_an": "🍜 Đây là một số món ăn mà mình gợi ý cho bạn:",
     "tim_dia_diem": "📍 Đây là một số địa điểm du lịch mà mình gợi ý cho bạn:",
     "hoi_vi_tri": "🗺️ Mình sẽ giúp bạn tìm địa điểm gần đây:",
     "hoi_thoi_tiet": "🌤️ Mình chưa hỗ trợ tra cứu thời tiết trực tiếp. "
                       "Bạn có thể truy cập trang web dự báo thời tiết để biết thêm chi tiết nhé!",
-    "giao_tiep_bot": "👋 Xin chào! Mình là Chatbot Ẩm Thực & Du Lịch Việt Nam. "
-                      "Bạn có thể hỏi mình về các món ăn ngon hoặc địa điểm du lịch hấp dẫn nhé!"
+    # Phản hồi giao tiếp — cải thiện UX cho các câu ngắn
+    "chao_hoi": "👋 Xin chào! Mình là Chatbot Ẩm Thực & Du Lịch Việt Nam. "
+                "Bạn có thể hỏi mình về các món ăn ngon hoặc địa điểm du lịch hấp dẫn nhé!",
+    "cam_on": "😊 Cảm ơn bạn! Rất vui vì mình đã giúp được. "
+              "Nếu cần tìm thêm món ăn hay địa điểm nào, cứ hỏi mình nhé!",
+    "tam_biet": "👋 Tạm biệt bạn! Chúc bạn có những trải nghiệm ẩm thực "
+                "và du lịch thật tuyệt vời. Hẹn gặp lại nhé!",
+    "hoi_thong_tin": "ℹ️ Mình là Chatbot SavoryTrip — chuyên hỗ trợ tìm kiếm **món ăn ngon** "
+                     "và **địa điểm du lịch** trên khắp Việt Nam. "
+                     "Bạn có thể hỏi mình ví dụ:\n"
+                     "• \"Phở Hà Nội ở đâu ngon?\"\n"
+                     "• \"Gợi ý quán cà phê ở Đà Lạt\"\n"
+                     "• \"Tìm địa điểm du lịch ở Phú Quốc\"",
 }
+
+# ==============================================================================
+# CÂU TRẢ LỜI RANDOM KHI TỪ CHỐI OUT-OF-SCOPE (5 phiên bản)
+# ==============================================================================
+# Mỗi lần chatbot từ chối, chọn random 1 câu → tránh lặp lại nhàm chán.
+# Mỗi câu đều kèm gợi ý chuyển hướng về chủ đề ẩm thực/du lịch.
+OUT_OF_SCOPE_RESPONSES = [
+    "🤔 Câu hỏi này nằm ngoài khả năng của mình rồi! "
+    "Mình chỉ hỗ trợ về **ẩm thực** và **du lịch Việt Nam** thôi nhé.\n"
+    "💡 Thử hỏi: *\"Phở Hà Nội ở đâu ngon?\"*",
+
+    "😅 Xin lỗi, mình chưa được huấn luyện để trả lời câu hỏi này. "
+    "Mình chuyên về **món ăn ngon** và **địa điểm du lịch** trên khắp Việt Nam.\n"
+    "💡 Thử hỏi: *\"Gợi ý quán cà phê ở Đà Lạt\"*",
+
+    "🙏 Mình không thể giúp được với câu hỏi này. "
+    "Nhưng nếu bạn muốn khám phá **ẩm thực** hay **du lịch Việt Nam**, mình sẵn sàng!\n"
+    "💡 Thử hỏi: *\"Bánh mì Sài Gòn ở đâu ngon nhất?\"*",
+
+    "😊 Câu hỏi hay nhưng nằm ngoài chuyên môn của mình rồi! "
+    "Mình giỏi nhất về **tìm đồ ăn** và **gợi ý địa điểm du lịch** cơ.\n"
+    "💡 Thử hỏi: *\"Tìm địa điểm du lịch ở Phú Quốc\"*",
+
+    "🤖 Mình là chatbot chuyên về **ẩm thực & du lịch**, nên không trả lời được câu này. "
+    "Hãy thử hỏi mình về những điều mình biết nhé!\n"
+    "💡 Thử hỏi: *\"Bún chả Hà Nội quán nào ngon?\"*",
+]
+
+
+# ==============================================================================
+# HÀM PHÁT HIỆN CÂU VÔ NGHĨA (Gibberish Detector)
+# ==============================================================================
+# Mục đích: Chặn các input vô nghĩa ("asdfgh", "xyz123", "!!!")
+# trước khi gửi vào model SVM — vì model không được train xử lý gibberish.
+def _is_gibberish(text: str) -> bool:
+    """
+    Kiểm tra xem input có phải là chuỗi vô nghĩa không.
+    Trả về True nếu text bị coi là gibberish.
+    """
+    cleaned = text.strip()
+
+    # Rule 1: Quá ngắn (< 2 ký tự chữ cái)
+    alpha_chars = re.sub(r'[^a-zA-ZÀ-ỹ]', '', cleaned)
+    if len(alpha_chars) < 2:
+        return True
+
+    # Rule 2: Không chứa nguyên âm tiếng Việt nào
+    # Người Việt viết câu nào cũng có nguyên âm (a, e, i, o, u + dấu)
+    vietnamese_vowels = set(
+        'aeiouyàáảãạăắằẳẵặâấầẩẫậèéẻẽẹêếềểễệ'
+        'ìíỉĩịòóỏõọôốồổỗộơớờởỡợùúủũụưứừửữự'
+        'ỳýỷỹỵ'
+    )
+    lower_text = cleaned.lower()
+    has_vowel = any(ch in vietnamese_vowels for ch in lower_text)
+    if not has_vowel:
+        return True
+
+    # Rule 3: Có cluster phụ âm liên tiếp > 3 ký tự (e.g. "sdfg", "xyz")
+    # Tiếng Việt tối đa 2-3 phụ âm liền nhau ("ngh", "tr"), nên > 3 là gibberish
+    consonant_pattern = re.compile(r'[bcdfghjklmnpqrstvwxz]{4,}', re.IGNORECASE)
+    if consonant_pattern.search(lower_text):
+        return True
+
+    # Rule 4: String ngắn (≤ 6 chữ cái) có tỷ lệ phụ âm quá cao (>= 60%)
+    # Ví dụ: "xyz123" → 3 chữ cái, 67% phụ âm → gibberish
+    # Nhưng "Phở" → quá ngắn nên Rule 1 chặn rồi, "chào" → 25% phụ âm → OK
+    if len(alpha_chars) <= 6:
+        consonants = set('bcdfghjklmnpqrstvwxz')
+        cons_count = sum(1 for ch in alpha_chars.lower() if ch in consonants)
+        if len(alpha_chars) > 0 and cons_count / len(alpha_chars) >= 0.6:
+            return True
+
+    return False
 
 
 @router.post("/chat", response_model=ChatResponse)
@@ -49,88 +146,133 @@ async def chat_endpoint(request: ChatRequest, raw_request: Request):
     """
     🔥 ENDPOINT CHÍNH: POST /api/v1/ai/chat
     
-    Đây là hàm xử lý chính khi Backend gửi tin nhắn tới AI Service.
-    Tất cả logic AI đều chạy bên trong hàm này theo thứ tự Pipeline.
-    
-    Điểm khác biệt quan trọng:
-    - `request` (ChatRequest): JSON body do Pydantic validate tự động.
-    - `raw_request` (Request): Object FastAPI gốc, dùng để truy cập `app.state`
-      chứa Model AI, Recommender, và Cache đã được load sẵn trong lifespan (main.py).
-    
-    Trả về:
-        ChatResponse: JSON chứa intent, confidence, message, recommendations[], entities.
+    Pipeline xử lý (có Out-of-Scope Protection):
+    1. Cache check → 2. Intent Classification → 3. OOS Guard (2 lớp)
+    → 4. NER + Recommender → 5. Response + Cache
     """
     try:
         user_message = request.message
-        
-        # Lấy các đối tượng đã load sẵn trong RAM từ main.py lifespan
-        # Thay vì khởi tạo mới mỗi request → Tiết kiệm thời gian cực lớn!
-        classifier = raw_request.app.state.classifier      # Model SVM (đã load .pkl)
-        recommender = raw_request.app.state.recommender    # Recommender (đã tính Ma trận TF-IDF)
-        cache = raw_request.app.state.cache                # Semantic Cache (bộ nhớ đệm)
-        
+
+        # Load pre-initialized objects from app.state (lifespan)
+        classifier = raw_request.app.state.classifier
+        recommender = raw_request.app.state.recommender
+        cache = raw_request.app.state.cache
+
         # ==================================================================
-        # BƯỚC 1: KIỂM TRA SEMANTIC CACHE (Bộ nhớ đệm thông minh)
+        # BƯỚC 0: GIBBERISH DETECTION — Chặn câu vô nghĩa ngay từ đầu
         # ==================================================================
-        # Nếu câu hỏi này ĐÃ CÓ trong cache → Trả ngay kết quả cũ, bỏ qua mọi tính toán.
-        # Đây là tối ưu quan trọng nhất: giảm latency từ ~50ms xuống ~1ms cho câu hỏi lặp.
+        if _is_gibberish(user_message):
+            log_rejected_query(
+                user_message=user_message,
+                predicted_intent="gibberish",
+                confidence=0.0,
+                rejection_reason="gibberish_detected",
+            )
+            response_message = random.choice(OUT_OF_SCOPE_RESPONSES)
+            response_data = {
+                "intent": "out_of_scope",
+                "confidence": 0.0,
+                "message": response_message,
+                "recommendations": [],
+                "entities": None,
+                "ask_location": False,
+            }
+            cache.set(user_message, response_data)
+            return ChatResponse(**response_data)
+
+        # ==================================================================
+        # BƯỚC 1: KIỂM TRA SEMANTIC CACHE
+        # ==================================================================
         cached_result = cache.get(user_message)
         if cached_result is not None:
             return ChatResponse(**cached_result)
-        
+
         # ==================================================================
         # BƯỚC 2: PHÂN LOẠI Ý ĐỊNH (Intent Classification)
         # ==================================================================
-        # Gọi Model SVM đã train ở Phase 2, đã load sẵn trong RAM qua lifespan.
         intent_result = classifier.predict_intent(user_message)
-        
-        intent = intent_result["intent"]         # Ý định: tim_mon_an, tim_dia_diem,...
-        confidence = intent_result["confidence"] # Độ tự tin: 0.0 → 1.0
-        
+        intent = intent_result["intent"]
+        confidence = intent_result["confidence"]
+
         # ==================================================================
-        # BƯỚC 3: XỬ LÝ THEO TỪNG LOẠI Ý ĐỊNH
+        # BƯỚC 3: OUT-OF-SCOPE GUARD — Phòng thủ 2 lớp
+        # ==================================================================
+        # Lớp 1: Model trực tiếp classify là "out_of_scope"
+        # Lớp 2: Confidence thấp (< 0.4) cho các intent KHÔNG phải giao tiếp
+        #         → Model "không chắc chắn" → coi như out_of_scope
+        is_oos = False
+        rejection_reason = ""
+
+        if intent == "out_of_scope":
+            is_oos = True
+            rejection_reason = "intent_oos"
+        elif (
+            confidence < CONFIDENCE_THRESHOLD
+            and intent not in CONVERSATION_INTENTS
+        ):
+            is_oos = True
+            rejection_reason = "low_confidence"
+
+        # Nếu bị chặn → trả câu từ chối random + log + KHÔNG gọi NER/Recommender
+        if is_oos:
+            log_rejected_query(
+                user_message=user_message,
+                predicted_intent=intent,
+                confidence=confidence,
+                rejection_reason=rejection_reason,
+            )
+            response_message = random.choice(OUT_OF_SCOPE_RESPONSES)
+            response_data = {
+                "intent": "out_of_scope",
+                "confidence": confidence,
+                "message": response_message,
+                "recommendations": [],
+                "entities": None,
+                "ask_location": False,
+            }
+            cache.set(user_message, response_data)
+            return ChatResponse(**response_data)
+
+        # ==================================================================
+        # BƯỚC 4: XỬ LÝ THEO TỪNG LOẠI Ý ĐỊNH (Chỉ đến đây nếu in-scope)
         # ==================================================================
         recommendations = []
         entities = None
         response_message = INTENT_RESPONSES.get(
-            intent, 
+            intent,
             "Mình không hiểu lắm. Bạn thử hỏi cách khác nhé!"
         )
-        
-        # Chỉ gọi NER + Recommender khi intent là TÌM MÓN ĂN hoặc TÌM ĐỊA ĐIỂM
-        # Nếu intent là giao tiếp bình thường hoặc hỏi thời tiết → bỏ qua phần này
+
         if intent in ("tim_mon_an", "tim_dia_diem"):
-            
-            # Bước 3a: Trích xuất thực thể (NER) — Bắt food[] và location[]
+            # NER → Recommender → Format response
             entities = extract_entities(user_message)
-            
-            # Bước 3b: Gọi Recommender Cosine Similarity — Tìm Top 3 kết quả giống nhất
-            recommender_result = recommender.recommend(entities, intent=intent, top_k=3)
+            recommender_result = recommender.recommend(
+                entities, intent=intent, top_k=3
+            )
             raw_results = recommender_result["results"]
-            location_not_found = recommender_result.get("location_not_found", False)
-            searched_location = recommender_result.get("searched_location", None)
-            
-            # Bước 3c: Chuyển đổi kết quả thô thành Schema Pydantic chuẩn
+            location_not_found = recommender_result.get(
+                "location_not_found", False
+            )
+            searched_location = recommender_result.get(
+                "searched_location", None
+            )
+
             recommendations = [
                 RecommendationItem(**item) for item in raw_results
             ]
-            
-            # Bước 3d: Bổ sung chi tiết vào câu trả lời nếu có kết quả
+
             if recommendations:
-                # Nếu không tìm thấy ở địa phương, thông báo trước
                 if location_not_found and searched_location:
                     response_message = (
-                        f"😅 Mình không tìm thấy kết quả phù hợp tại {searched_location}. "
+                        f"😅 Mình không tìm thấy kết quả phù hợp tại"
+                        f" {searched_location}. "
                         f"Đây là một số gợi ý từ các tỉnh thành khác:\n"
                     )
-                
                 detail_lines = []
                 for i, rec in enumerate(recommendations, 1):
-                    # Thêm địa chỉ nếu có
                     location_info = rec.location
                     if rec.address and rec.address.strip():
                         location_info += f" - {rec.address}"
-                    
                     detail_lines.append(
                         f"\n{i}. **{rec.name}** ({location_info})\n"
                         f"   {rec.description}"
@@ -138,50 +280,43 @@ async def chat_endpoint(request: ChatRequest, raw_request: Request):
                 response_message += "\n" + "\n".join(detail_lines)
             else:
                 response_message = (
-                    "😅 Mình chưa tìm thấy kết quả phù hợp trong cơ sở dữ liệu. "
-                    "Bạn thử mô tả cụ thể hơn nhé!"
+                    "😅 Mình chưa tìm thấy kết quả phù hợp trong "
+                    "cơ sở dữ liệu. Bạn thử mô tả cụ thể hơn nhé!"
                 )
-        
+
         elif intent == "hoi_vi_tri":
-            # Bước 3e: Xử lý câu hỏi "gần đây có gì?"
             entities = extract_entities(user_message)
             location_handler = get_location_handler()
-            
-            # Lấy user_location từ request
             user_location = request.user_location
-            
-            location_result = location_handler.handle_nearby_query(entities, user_location)
-            
+            location_result = location_handler.handle_nearby_query(
+                entities, user_location
+            )
             response_message = location_result["message"]
-            # Chuyển đổi recommendations từ location_handler thành RecommendationItem
             raw_results = location_result.get("recommendations", [])
             recommendations = [
                 RecommendationItem(**item) for item in raw_results
             ]
-        
+
         # ==================================================================
-        # BƯỚC 4: ĐÓNG GÓI RESPONSE + LƯU VÀO CACHE
+        # BƯỚC 5: ĐÓNG GÓI RESPONSE + LƯU VÀO CACHE
         # ==================================================================
         ask_location = False
         if intent == "hoi_vi_tri":
             ask_location = location_result.get("ask_location", False)
-            
+
         response_data = {
             "intent": intent,
             "confidence": confidence,
             "message": response_message,
             "recommendations": [r.model_dump() for r in recommendations],
             "entities": entities,
-            "ask_location": ask_location
+            "ask_location": ask_location,
         }
-        
-        # Lưu kết quả vào Cache để lần sau không cần tính lại
+
         cache.set(user_message, response_data)
-        
         return ChatResponse(**response_data)
-        
+
     except Exception as e:
-        # Bắt mọi lỗi bất ngờ và trả về HTTP 500 kèm thông tin debug
         raise HTTPException(
             status_code=500,
             detail=f"Lỗi xử lý AI: {str(e)}"
