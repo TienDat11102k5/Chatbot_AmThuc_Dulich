@@ -246,8 +246,23 @@ async def chat_endpoint(request: ChatRequest, raw_request: Request):
         if intent in ("tim_mon_an", "tim_dia_diem"):
             # NER → Recommender → Format response
             entities = extract_entities(user_message)
+            
+            # CONTEXT AWARENESS: Nếu không có location trong câu hiện tại,
+            # thử extract location từ chat history (câu trước)
+            if not entities.get("location") and request.chat_history:
+                print("[Context] No location in current message, checking chat history...")
+                # Duyệt ngược chat history để tìm location gần nhất
+                for hist_msg in reversed(request.chat_history):
+                    if isinstance(hist_msg, dict) and "message" in hist_msg:
+                        hist_text = hist_msg["message"]
+                        hist_entities = extract_entities(hist_text)
+                        if hist_entities.get("location"):
+                            entities["location"] = hist_entities["location"]
+                            print(f"[Context] Found location from history: {entities['location']}")
+                            break
+            
             recommender_result = recommender.recommend(
-                entities, intent=intent, top_k=3
+                entities, intent=intent, top_k=3, user_message=user_message
             )
             raw_results = recommender_result["results"]
             location_not_found = recommender_result.get(

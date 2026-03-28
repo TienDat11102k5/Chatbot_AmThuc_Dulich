@@ -38,9 +38,9 @@ public class PlaceController {
      * @param categoryId Mã ID dạng Interger (Ví dụ: ID=1 - Ẩm thực / Nhà Hàng, ID=2 - Lưu trú / Khách Sạn).
      * @return Một List Object chứa riêng rẽ loại địa điểm đã chọn theo query Parameter ID.
      */
-    @GetMapping("/category/{categoryId}")
-    public ResponseEntity<List<Place>> getPlacesByCategoryId(@PathVariable Integer categoryId) {
-        return ResponseEntity.ok(placeService.getPlacesByCategory(categoryId));
+    @GetMapping("/category/{categoryVi}")
+    public ResponseEntity<List<Place>> getPlacesByCategoryId(@PathVariable String categoryVi) {
+        return ResponseEntity.ok(placeService.getPlacesByCategory(categoryVi));
     }
 
     /**
@@ -63,7 +63,7 @@ public class PlaceController {
      * @return Cấu trúc Model UserFavorite xác nhận ghi sự kiện thành công; trả HTTP 400 Bad Request nếu thao tác trùng lặp.
      */
     @PostMapping("/favorites/user/{userId}/{placeId}")
-    public ResponseEntity<UserFavorite> addFavorite(@PathVariable UUID userId, @PathVariable Integer placeId) {
+    public ResponseEntity<UserFavorite> addFavorite(@PathVariable UUID userId, @PathVariable String placeId) {
         try {
             return ResponseEntity.ok(placeService.addFavorite(userId, placeId));
         } catch (IllegalArgumentException e) {

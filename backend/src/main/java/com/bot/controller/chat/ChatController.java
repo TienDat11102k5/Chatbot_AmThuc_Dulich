@@ -102,6 +102,20 @@ public class ChatController {
     }
 
     /**
+     * Lấy lịch sử chat từ bảng chat_history theo session ID.
+     * 
+     * <p>Endpoint này trả về lịch sử chat đã được lưu trong bảng chat_history,
+     * bao gồm cả intent và confidence của mỗi tin nhắn.</p>
+     * 
+     * @param sessionId Session ID cần lấy lịch sử
+     * @return Danh sách ChatHistory
+     */
+    @GetMapping("/chat-history/{sessionId}")
+    public ResponseEntity<?> getChatHistory(@PathVariable String sessionId) {
+        return ResponseEntity.ok(chatService.getChatHistory(sessionId));
+    }
+
+    /**
      * Gửi và lưu một tin nhắn vào phiên Chat đang diễn ra.
      *
      * <p><b>Lưu ý:</b> API này dùng cho việc lưu tin nhắn ĐỒNG BỘ (synchronous).

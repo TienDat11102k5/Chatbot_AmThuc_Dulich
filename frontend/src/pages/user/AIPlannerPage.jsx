@@ -12,11 +12,12 @@
  */
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { Send, Plus, MapPin, Bookmark, X, RotateCcw } from 'lucide-react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { Send, Plus, MapPin, Bookmark, X, RotateCcw, Menu } from 'lucide-react';
 import DOMPurify from 'dompurify';
 import chatService from '../../lib/chatService';
 import useAuth from '../../hooks/useAuth';
+import ChatSidebar from '../../components/chat/ChatSidebar';
 
 // ─── Filter chips cho bản đồ ─────────────────────────────────────────────────
 const FILTERS = [
@@ -36,8 +37,12 @@ function sanitizeContent(html) {
 
 const AIPlannerPage = () => {
   const { userId } = useAuth();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const urlSessionId = searchParams.get('sessionId');
+
+  // Sidebar state
+  const [showSidebar, setShowSidebar] = useState(true);
 
   // Chat state
   const [messages, setMessages] = useState([]);
@@ -73,9 +78,9 @@ const AIPlannerPage = () => {
         if (data && data.length > 0) {
           setMessages(data.map((m, i) => ({
             id: m.id || i,
-            type: m.role === 'USER' ? 'user' : 'ai',
+            type: m.sender_type === 'USER' ? 'user' : 'ai',
             text: m.content || '',
-            timestamp: m.createdAt,
+            timestamp: m.timestamp,
           })));
         }
       } catch (err) {
@@ -89,6 +94,46 @@ const AIPlannerPage = () => {
   useEffect(() => {
     return () => { abortRef.current?.(); };
   }, []);
+
+  // ─── Handle session selection from sidebar ─────────────────────────────────
+  const handleSessionSelect = useCallback(async (sessionId) => {
+    try {
+      // Update URL with sessionId
+      setSearchParams({ sessionId });
+      sessionIdRef.current = sessionId;
+      
+      // Clear current messages and load session history
+      setMessages([]);
+      setMapPins([]);
+      setActivePin(null);
+      
+      const data = await chatService.getSessionMessages(sessionId);
+      if (data && data.length > 0) {
+        setMessages(data.map((m, i) => ({
+          id: m.id || i,
+          type: m.sender_type === 'USER' ? 'user' : 'ai',
+          text: m.content || '',
+          timestamp: m.timestamp,
+        })));
+      }
+    } catch (err) {
+      console.error('[AIPlannerPage] Failed to load session:', err);
+      setError('Không thể tải lịch sử chat');
+    }
+  }, [setSearchParams]);
+
+  // ─── Handle new chat ───────────────────────────────────────────────────────
+  const handleNewChat = useCallback(() => {
+    // Clear session and messages
+    sessionIdRef.current = null;
+    setMessages([]);
+    setMapPins([]);
+    setActivePin(null);
+    setError(null);
+    
+    // Remove sessionId from URL
+    setSearchParams({});
+  }, [setSearchParams]);
 
   // Toggle map filter
   const toggleFilter = (filterId) => {
@@ -120,6 +165,8 @@ const AIPlannerPage = () => {
       if (!sessionIdRef.current) {
         const session = await chatService.createSession(userId, trimmed);
         sessionIdRef.current = session.id;
+        // Update URL with new sessionId
+        setSearchParams({ sessionId: session.id });
       }
 
       // Stream AI response
@@ -195,7 +242,19 @@ const AIPlannerPage = () => {
   }, [handleSendMessage]);
 
   return (
-    <div className="flex flex-col h-[calc(100vh-64px)] overflow-hidden bg-slate-50">
+    <div className="flex h-[calc(100vh-64px)] overflow-hidden bg-slate-50">
+      {/* ═══════════════════════════════════════════════════
+       * SIDEBAR: CHAT HISTORY
+       * ═══════════════════════════════════════════════════ */}
+      {showSidebar && (
+        <ChatSidebar
+          userId={userId}
+          currentSessionId={sessionIdRef.current}
+          onSessionSelect={handleSessionSelect}
+          onNewChat={handleNewChat}
+        />
+      )}
+
       <main className="flex flex-1 overflow-hidden">
 
         {/* ═══════════════════════════════════════════════════
@@ -203,9 +262,18 @@ const AIPlannerPage = () => {
          * ═══════════════════════════════════════════════════ */}
         <aside className="w-full md:w-[450px] lg:w-[500px] flex flex-col border-r border-slate-200 bg-white shrink-0">
           {/* Header */}
-          <div className="p-6 border-b border-slate-100 shrink-0">
-            <h1 className="text-2xl font-bold text-slate-900">AI Travel Planner</h1>
-            <p className="text-sm text-slate-500 mt-1">Thiết kế hành trình ẩm thực của riêng bạn</p>
+          <div className="p-6 border-b border-slate-100 shrink-0 flex items-center justify-between">
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold text-slate-900">AI Travel Planner</h1>
+              <p className="text-sm text-slate-500 mt-1">Thiết kế hành trình ẩm thực của riêng bạn</p>
+            </div>
+            <button
+              onClick={() => setShowSidebar(!showSidebar)}
+              className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+              aria-label="Toggle sidebar"
+            >
+              <Menu size={20} className="text-slate-600" />
+            </button>
           </div>
 
           {/* Messages area */}

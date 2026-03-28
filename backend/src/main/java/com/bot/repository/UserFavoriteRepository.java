@@ -17,6 +17,6 @@ public interface UserFavoriteRepository extends JpaRepository<UserFavorite, UUID
     List<UserFavorite> findAllByUserIdOrderBySavedAtDesc(UUID userId);
     
     // Kiểm tra xem user này đã lưu địa điểm này chưa (tránh lưu trùng)
-    boolean existsByUserIdAndPlaceId(UUID userId, Integer placeId);
+    boolean existsByUserIdAndPlaceId(UUID userId, String placeId);
 }
 

@@ -3,11 +3,12 @@ package com.bot.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.List;
-
 /**
  * Thực thể đại diện cho Danh mục địa điểm (VD: Ẩm thực, Du lịch, Khách sạn...).
  * Dùng để phân loại các địa điểm trong hệ thống.
+ * 
+ * NOTE: Hiện tại không sử dụng bảng categories trong database.
+ * Category được lưu trực tiếp trong bảng places (category_vi, category_en).
  */
 @Entity
 @Table(name = "categories")
@@ -29,9 +30,4 @@ public class Category {
     // Mã danh mục dùng trong logic/url (VD: "AM_THUC", "DU_LICH")
     @Column(nullable = false, unique = true)
     private String code;
-
-    // Danh sách các địa điểm thuộc phân loại này
-    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
-    private List<Place> places;
 }
-

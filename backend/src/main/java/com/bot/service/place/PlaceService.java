@@ -65,7 +65,7 @@ public class PlaceService {
      */
     @Cacheable(value = "places", key = "'all_active'")
     public List<Place> getAllActivePlaces() {
-        return placeRepository.findAllByIsActiveTrue();
+        return placeRepository.findAll();
     }
 
     /**
@@ -80,9 +80,9 @@ public class PlaceService {
      * @param categoryId Mã ID của danh mục cần lọc (khớp với bảng categories).
      * @return Danh sách Place thuộc danh mục đang hoạt động. Rỗng nếu không tìm thấy.
      */
-    @Cacheable(value = "places", key = "'category_' + #categoryId")
-    public List<Place> getPlacesByCategory(Integer categoryId) {
-        return placeRepository.findByCategoryIdAndIsActiveTrue(categoryId);
+    @Cacheable(value = "places", key = "'category_' + #categoryVi")
+    public List<Place> getPlacesByCategory(String categoryVi) {
+        return placeRepository.findByCategoryVi(categoryVi);
     }
 
     // =========================================================================
@@ -128,7 +128,7 @@ public class PlaceService {
      * @throws IllegalArgumentException Nếu: (a) đã yêu thích trước đó, (b) User/Place không tồn tại.
      */
     @CacheEvict(value = "places", allEntries = true)
-    public UserFavorite addFavorite(UUID userId, Integer placeId) {
+    public UserFavorite addFavorite(UUID userId, String placeId) {
         // Bước 1: Kiểm tra trùng lặp
         if (userFavoriteRepository.existsByUserIdAndPlaceId(userId, placeId)) {
             throw new IllegalArgumentException("Địa điểm này đã nằm trong danh sách yêu thích");

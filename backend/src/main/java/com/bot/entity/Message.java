@@ -28,6 +28,7 @@ public class Message {
     // Phiên chat mà tin nhắn này thuộc về
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "session_id", nullable = false)
+    @com.fasterxml.jackson.annotation.JsonIgnore // Bỏ qua serialize session để tránh serialize lại ChatSession
     private ChatSession session;
 
     // Loại người gửi ("USER" hoặc "BOT")
@@ -46,6 +47,8 @@ public class Message {
     // Thời gian gửi tin
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
+    @com.fasterxml.jackson.databind.annotation.JsonSerialize(using = com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer.class)
+    @com.fasterxml.jackson.databind.annotation.JsonDeserialize(using = com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer.class)
     private LocalDateTime timestamp;
 }
 

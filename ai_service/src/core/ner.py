@@ -64,37 +64,144 @@ LOCATION_DICTIONARY = {
 # Khi người dùng gõ "Tìm quán phở ngon", chúng ta cần BẮT được từ "phở" 
 # để biết người dùng muốn tìm MÓN ĂN GÌ, từ đó ghép cùng địa điểm để search.
 FOOD_DICTIONARY = {
-    # --- Các món phổ biến 3 miền ---
-    "phở", "bún chả", "bún bò", "bún bò huế", "mì quảng", "cao lầu",
-    "cơm tấm", "bánh mì", "bánh xèo", "bánh cuốn", "bánh canh",
-    "hủ tiếu", "gỏi cuốn", "nem rán", "chả giò", "bún đậu",
-    "bún đậu mắm tôm", "bún thịt nướng", "bún ốc", "bún riêu",
-    "xôi", "xôi gà", "cháo lòng", "cháo", "lẩu", "lẩu bò",
-    "lẩu cá kèo", "lẩu thái", "bánh đập", "bánh tráng trộn", "bánh tráng",
+    # ================= PHỞ =================
+    "phở", "pho", "phở bò", "phở gà", "phở tái", "phở nạm",
+    "phở gân", "phở đặc biệt", "phở cuốn", "phở trộn",
     
-    # --- Các loại bánh ---
-    "bánh chuối", "bánh flan", "bánh bông lan", "bánh bao", "bánh chưng",
-    "bánh tét", "bánh ít", "bánh căn", "bánh khọt", "bánh tráng nướng",
-    "bánh ướt", "bánh bèo", "bánh nậm", "bánh lọc", "bánh ram ít",
-    "bánh pía", "bánh in", "bánh đậu xanh", "bánh dẻo", "bánh nướng",
+    # ================= BÚN =================
+    "bún", "bun",
+    "bún bò", "bún bò huế", "bun bo hue",
+    "bún chả", "bun cha",
+    "bún riêu", "bun rieu",
+    "bún ốc", "bun oc",
+    "bún mắm", "bun mam",
+    "bún thái", "bun thai",
+    "bún cá", "bun ca",
+    "bún đậu", "bún đậu mắm tôm", "bun dau",
+    "bún thịt nướng", "bun thit nuong",
+    "bún mọc", "bun moc",
+    
+    # ================= MÌ / HỦ TIẾU =================
+    "mì quảng", "mỳ quảng", "mi quang",
+    "mì xào", "mỳ xào", "mi xao",
+    "mì cay", "mỳ cay", "mi cay",
+    "mì hoành thánh", "mỳ hoành thánh", "mi hoanh thanh",
+    "cao lầu", "cao lau",
+    "hủ tiếu", "hu tieu",
+    "hủ tiếu nam vang", "hu tieu nam vang",
+    "hủ tiếu sa tế", "hu tieu sate",
+    
+    # ================= CƠM =================
+    "cơm", "com",
+    "cơm tấm", "com tam",
+    "cơm chiên", "com chien",
+    "cơm gà", "com ga",
+    "cơm sườn", "com suon",
+    "cơm rang", "com rang",
+    "cơm niêu", "com nieu",
+    "cơm cháy", "com chay",
+    
+    # ================= BÁNH =================
+    "bánh mì", "banh mi",
+    "bánh xèo", "banh xeo",
+    "bánh cuốn", "banh cuon",
+    "bánh canh", "banh canh",
+    "bánh bèo", "banh beo",
+    "bánh đập", "banh dap",
+    "bánh tráng", "banh trang",
+    "bánh tráng trộn", "banh trang tron",
+    "bánh hỏi", "banh hoi",
+    "bánh ướt", "banh uot",
+    "bánh căn", "banh can",
+    "bánh khọt", "banh khot",
+    "bánh pía", "banh pia",
+    "bánh tét", "banh tet",
+    "bánh chưng", "banh chung",
+    "bánh đa cua", "banh da cua",
+    "bánh chuối", "bánh flan", "bánh bông lan", "bánh bao",
+    "bánh ít", "bánh tráng nướng",
+    "bánh nậm", "bánh lọc", "bánh ram ít",
+    "bánh in", "bánh đậu xanh", "bánh dẻo", "bánh nướng",
     "bánh tiêu", "bánh cam", "bánh rán", "bánh su kem", "bánh pateso",
     
-    # --- Hải sản và đặc sản ---
-    "hải sản", "ốc", "ốc luộc", "cua", "tôm", "mực",
-    "vịt lịm", "vịt quay", "gà nướng", "gà luộc",
+    # ================= CUỐN / CHIÊN =================
+    "gỏi cuốn", "goi cuon",
+    "nem rán", "nem ran",
+    "chả giò", "cha gio",
+    "nem nướng", "nem nuong",
+    "chả cá", "cha ca",
+    "chả lụa", "cha lua",
     
-    # --- Đồ ngọt, nước uống ---
+    # ================= CHÁO / XÔI =================
+    "cháo", "chao",
+    "cháo lòng", "chao long",
+    "cháo gà", "chao ga",
+    "cháo vịt", "chao vit",
+    "xôi", "xoi",
+    "xôi gà", "xoi ga",
+    "xôi xéo", "xoi xeo",
+    "xôi đậu", "xoi dau",
+    
+    # ================= LẨU =================
+    "lẩu", "lau",
+    "lẩu bò", "lau bo",
+    "lẩu cá kèo", "lau ca keo",
+    "lẩu thái", "lau thai",
+    "lẩu hải sản", "lau hai san",
+    "lẩu dê", "lau de",
+    
+    # ================= NƯỚNG / CHIÊN =================
+    "thịt nướng", "thit nuong",
+    "gà nướng", "ga nuong",
+    "bò nướng", "bo nuong",
+    "heo quay", "heo quay",
+    "vịt quay", "vit quay",
+    "gà luộc", "vịt lịm",
+    
+    # ================= HẢI SẢN =================
+    "ốc", "oc", "ốc luộc",
+    "nghêu", "ngheu",
+    "sò", "so",
+    "cua", "cua",
+    "tôm", "tom",
+    "mực", "muc",
+    "hải sản", "hai san",
+    
+    # ================= MÓN ĐẶC SẢN =================
+    "bò kho", "bo kho",
+    "cà ri", "ca ri",
+    "bún cá hải phòng", "bun ca hai phong",
+    "súp cua",
+    
+    # ================= ĐỒ NGỌT =================
     "chè", "chè huế", "chè bắp", "chè đậu",
-    "trà sữa", "nước mía", "sinh tố", "kem",
+    "kem",
     
-    # --- Buffet, loại hình ăn uống ---
-    "buffet", "buffet nướng", "súp cua", "cơm gà",
-    "đặc sản", "đồ ăn", "thức ăn", "ăn sáng", "ăn trưa", "ăn tối",
+    # ================= ĐỒ ĂN VẶT =================
+    "trà sữa", "tra sua",
+    "trà chanh", "tra chanh",
+    "cà phê", "ca phe",
+    "sinh tố", "sinh to",
+    "nước mía", "nuoc mia",
+    "bắp xào", "bap xao",
+    "khoai tây chiên", "khoai tay chien",
+    "xúc xích", "xuc xich",
+    
+    # ================= STREET FOOD =================
+    "phá lấu", "pha lau",
+    "bột chiên", "bot chien",
+    "há cảo", "ha cao",
+    "sủi cảo", "sui cao",
+    "dim sum",
+    
+    # ================= BUFFET =================
+    "buffet", "buffet nướng",
     
     # --- Từ khóa liên quan đến ăn uống ---
     "ăn", "ăn gì", "món", "món ăn", "thức ăn", "đồ ăn",
-    "ngon", "ngon bổ rẻ", "đặc sản", "nổi tiếng", "truyền thống",
-    "địa phương", "bản địa", "dân dã", "quê nhà"
+    "đặc sản", "nổi tiếng", "truyền thống",
+    "địa phương", "bản địa", "dân dã", "quê nhà",
+    "ăn sáng", "ăn trưa", "ăn tối"
 }
 
 # ==============================================================================
@@ -106,10 +213,10 @@ FOOD_DICTIONARY = {
 # từ đó lọc kết quả chỉ trả về nhà hàng, không trả về quán cà phê.
 PLACE_TYPE_DICTIONARY = {
     "nhà hàng", "quán ăn", "quán", "quán cơm", "cơm bình dân",
-    "quán cà phê", "quán cafe", "cafe", "cà phê", "coffee",
-    "quán trà", "trà sữa", "quán nước", "quán giải khát",
+    "quán cà phê", "quán cafe", "cafe", "cà phê", "coffee", "cà_phê", "ca_phe",
+    "quán trà", "quán nước", "quán giải khát",
     "quán bia", "bia hơi", "bar", "pub",
-    "quán lẩu", "quán nướng", "quán buffet",
+    "quán lẩu", "quán nướng", "quán buffet", "buffet",
     "tiệm", "cửa hàng", "siêu thị", "chợ"
 }
 
@@ -147,10 +254,52 @@ def extract_entities(text: str) -> dict:
     found_place_types = _find_entities_in_text(text_lower, PLACE_TYPE_DICTIONARY)
     found_foods = _find_entities_in_text(text_lower, FOOD_DICTIONARY)
     
+    # Lọc bỏ các tính từ chung chung không phải món ăn thực sự
+    # Ví dụ: "ngon", "tốt", "hay", "đẹp" không phải món ăn
+    adjective_filter = {"ngon", "tốt", "hay", "đẹp", "rẻ", "bổ", "ngon bổ rẻ", 
+                       "nổi tiếng", "truyền thống", "địa phương", "bản địa", "dân dã", "quê nhà",
+                       "nhất", "tốt nhất", "ngon nhất", "hay nhất"}
+    found_foods = [f for f in found_foods if f not in adjective_filter]
+    
+    # Chuẩn hóa các lỗi chính tả phổ biến
+    # Map các biến thể sai dấu về dạng chuẩn
+    typo_corrections = {
+        "pho": "phở",
+        "bun": "bún",
+        "com": "cơm",
+        "banh": "bánh",
+        "cha": "chả",
+        "chao": "cháo",
+        "xoi": "xôi",
+        "lau": "lẩu",
+        "oc": "ốc",
+        "tom": "tôm",
+        "muc": "mực",
+        "ca": "cá",
+        "ga": "gà",
+        "bo": "bò",
+        "de": "dê",
+    }
+    found_foods = [typo_corrections.get(f, f) for f in found_foods]
+    
     # Ghép tất cả chữ tìm được thành 1 câu truy vấn gọn 
     # (được dung làm Input cho hàm Cosine Similarity ở recommender.py)
+    # QUAN TRỌNG: Nếu user hỏi tên quán cụ thể (ví dụ: "Phở Thìn Bờ Hồ"),
+    # cần giữ nguyên toàn bộ text thay vì chỉ lấy "phở"
     raw_query_parts = found_foods + found_locations
-    raw_query = " ".join(raw_query_parts) if raw_query_parts else text_lower
+    
+    # Nếu chỉ có món ăn đơn giản (phở, bún...) mà text gốc dài hơn nhiều
+    # → có thể là tên quán cụ thể, giữ nguyên text
+    # HOẶC nếu không có food entity nào → giữ nguyên text để search
+    if (len(found_foods) == 1 and len(text_lower.split()) > 3) or len(found_foods) == 0:
+        # Loại bỏ các từ dừng và giữ lại phần quan trọng
+        words_to_remove = ["ở", "tại", "ở đâu", "như thế nào", "thế nào", "ra sao", "?", ".", "!", "quán"]
+        cleaned_text = text_lower
+        for word in words_to_remove:
+            cleaned_text = cleaned_text.replace(word, "")
+        raw_query = cleaned_text.strip()
+    else:
+        raw_query = " ".join(raw_query_parts) if raw_query_parts else text_lower
     
     return {
         "food": found_foods,

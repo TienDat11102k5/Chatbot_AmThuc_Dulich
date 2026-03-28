@@ -74,7 +74,7 @@ const ChatCard = ({ session, onDelete }) => {
           </div>
         </div>
         <p className="text-slate-500 text-sm line-clamp-2 mb-4 leading-relaxed">
-          {session.status === 'ACTIVE' ? 'Đang hoạt động...' : 'Đã kết thúc.'}
+          {session.status === true || session.status === 'ACTIVE' ? 'Đang hoạt động...' : 'Đã kết thúc.'}
         </p>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5 text-slate-400 text-xs">
@@ -149,16 +149,23 @@ const ChatHistoryPage = () => {
 
   // Wrap trong useCallback để tránh re-create mỗi render
   const fetchSessions = useCallback(async () => {
-    if (!userId) return;
+    if (!userId) {
+      console.log('[ChatHistoryPage] No userId, skipping fetch');
+      setIsLoading(false);
+      return;
+    }
     
+    console.log('[ChatHistoryPage] Fetching sessions for userId:', userId);
     setIsLoading(true);
     setError(null);
     try {
       const data = await chatService.getUserSessions(userId);
+      console.log('[ChatHistoryPage] Received sessions:', data);
       setSessions(data || []);
     } catch (err) {
-      console.error("Lỗi khi tải danh sách session:", err);
-      setError("Không thể tải lịch sử trò chuyện. Vui lòng kiểm tra kết nối mạng.");
+      console.error("[ChatHistoryPage] Error loading sessions:", err);
+      console.error("[ChatHistoryPage] Error details:", err.response?.data || err.message);
+      setError(`Không thể tải lịch sử trò chuyện: ${err.response?.data?.message || err.message || 'Lỗi không xác định'}`);
     } finally {
       setIsLoading(false);
     }

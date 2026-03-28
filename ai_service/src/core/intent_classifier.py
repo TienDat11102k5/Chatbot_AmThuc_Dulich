@@ -99,8 +99,14 @@ class IntentClassifier:
         
         # 4. THỰC HIỆN HUẤN LUYỆN (FIT)
         print("[4] Đang khởi động thuật toán TfidfVectorizer + Support Vector Machine ...")
+        # Tạo pipeline mới để train
+        self.pipeline = Pipeline([
+            ('tfidf', TfidfVectorizer()),
+            ('clf', SVC(kernel='linear', C=1.0, probability=True)) 
+        ])
         self.pipeline.fit(x_train, y_train)
         self.model = self.pipeline # Cập nhật thuộc tính model của class thành bản đã Train xong
+        self.vectorizer = self.pipeline.named_steps['tfidf']  # Lưu vectorizer để dùng sau
         print("    -> Huấn luyện THÀNH CÔNG!")
         
         # 5. LÀM BÀI KIỂM TRA (ĐÁNH GIÁ METRICS ĐỒ ÁN MÔN HỌC)
@@ -139,7 +145,11 @@ class IntentClassifier:
         """
         os.makedirs(MODEL_DIR, exist_ok=True)
         joblib.dump(self.model, MODEL_FILE)
+        # Lưu vectorizer riêng để dùng khi predict
+        vectorizer_file = os.path.join(MODEL_DIR, "vectorizer.pkl")
+        joblib.dump(self.vectorizer, vectorizer_file)
         print(f"[💾] Đã gói gọn não bộ AI và Lưu trữ Model vật lý vô: {MODEL_FILE}")
+        print(f"[💾] Đã lưu Vectorizer vào: {vectorizer_file}")
         
     def _save_metrics_report(self, accuracy, report):
         """
@@ -218,29 +228,60 @@ class IntentClassifier:
                 # Normalize về 0-1
                 confidence = min(confidence / 2.0, 1.0)
             
-            # 4. Rule-based override: Nếu có món ăn cụ thể → override thành tim_mon_an
+            # 4. Rule-based override: QUAN TRỌNG - Ưu tiên place_type trước!
+            # Nếu có place_type ẩm thực (nhà hàng, quán cà phê...) → LUÔN là tim_mon_an
             # QUAN TRỌNG: Chỉ override nếu SVM KHÔNG predict out_of_scope
-            # Nếu SVM đã nhận là OOS → giữ nguyên, không cho NER ghi đè
             if prediction != "out_of_scope":
                 from src.core.ner import extract_entities
                 entities = extract_entities(user_message)
+                place_type_entities = entities.get("place_type", [])
                 food_entities = entities.get("food", [])
                 
-                # Danh sách từ chung chung — không đủ để override intent
-                generic_food_words = [
-                    "ăn", "ngon", "tốt", "hay", "đồ ăn", "thức ăn", "món ăn",
-                    "uống", "nước", "đồ uống",      # Từ uống chung chung
-                    "quán", "nhà hàng", "tiệm",     # Loại địa điểm
-                    "ở đâu", "chỗ nào", "gần đây",  # Từ hỏi vị trí
-                    "nổi tiếng", "truyền thống", "đặc sản",  # Tính từ chung
-                ]
-                
-                # Chỉ override nếu có tên món CỤ THỂ (phở, bún bò, bánh mì...)
-                specific_foods = [f for f in food_entities if f not in generic_food_words]
-                if specific_foods and prediction != "tim_mon_an":
-                    print(f"[Intent] Rule-based override: Found specific food {specific_foods}, changing intent to tim_mon_an")
+                # RULE -1: Nếu có từ "quán" + bất kỳ từ nào khác → chắc chắn là tim_mon_an
+                # Ví dụ: "quán bún mắm", "quán phở", "quán ăn ngon"
+                user_message_lower = user_message.lower()
+                if "quán" in user_message_lower:
+                    print(f"[Intent] Rule-based override: Found 'quán', changing intent to tim_mon_an")
                     prediction = "tim_mon_an"
-                    confidence = 1.0  # High confidence vì rule-based
+                    confidence = 1.0
+                
+                # RULE 0: Nếu có từ khóa về vui chơi/giải trí → chắc chắn là tim_dia_diem
+                elif any(keyword in user_message_lower for keyword in [
+                    "chơi", "vui chơi", "giải trí", "du lịch", "tham quan", 
+                    "checkin", "check in", "đi đâu", "có gì", "gì hay",
+                    "khám phá", "tour", "travel"
+                ]):
+                    # Kiểm tra xem có phải đang hỏi về món ăn không
+                    # Nếu không có food entities cụ thể và không có place_type ẩm thực
+                    if not food_entities and not place_type_entities:
+                        print(f"[Intent] Rule-based override: Found entertainment keyword, changing intent to tim_dia_diem")
+                        prediction = "tim_dia_diem"
+                        confidence = 1.0
+                
+                # RULE 1: Nếu có place_type (nhà hàng, quán cà phê...) → chắc chắn là tim_mon_an
+                # Ưu tiên cao nhất vì place_type rất rõ ràng
+                elif place_type_entities:
+                    print(f"[Intent] Rule-based override: Found place_type {place_type_entities}, changing intent to tim_mon_an")
+                    prediction = "tim_mon_an"
+                    confidence = 1.0
+                
+                # RULE 2: Nếu có món ăn cụ thể → override thành tim_mon_an
+                elif food_entities:
+                    # Danh sách từ chung chung — không đủ để override intent
+                    generic_food_words = [
+                        "ăn", "ngon", "tốt", "hay", "đồ ăn", "thức ăn", "món ăn",
+                        "uống", "nước", "đồ uống",      # Từ uống chung chung
+                        "quán", "nhà hàng", "tiệm",     # Loại địa điểm
+                        "ở đâu", "chỗ nào", "gần đây",  # Từ hỏi vị trí
+                        "nổi tiếng", "truyền thống", "đặc sản",  # Tính từ chung
+                    ]
+                    
+                    # Chỉ override nếu có tên món CỤ THỂ (phở, bún bò, bánh mì...)
+                    specific_foods = [f for f in food_entities if f not in generic_food_words]
+                    if specific_foods and prediction != "tim_mon_an":
+                        print(f"[Intent] Rule-based override: Found specific food {specific_foods}, changing intent to tim_mon_an")
+                        prediction = "tim_mon_an"
+                        confidence = 1.0  # High confidence vì rule-based
 
             
             return {

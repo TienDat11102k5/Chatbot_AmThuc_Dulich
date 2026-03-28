@@ -184,6 +184,13 @@
 			<version>4.0.0</version>
 		</dependency>
 
+		<!-- Jackson Datatype JSR310: Hỗ trợ Java 8 Date/Time API (LocalDateTime, LocalDate...)
+		     BẮT BUỘC để serialize/deserialize LocalDateTime trong JSON -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.datatype</groupId>
+			<artifactId>jackson-datatype-jsr310</artifactId>
+		</dependency>
+
 		<!-- ============================================================= -->
 		<!-- NHÓM 6: EMAIL                                                  -->
 		<!-- ============================================================= -->

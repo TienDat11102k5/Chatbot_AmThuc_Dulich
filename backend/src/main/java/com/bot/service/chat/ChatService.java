@@ -1,8 +1,10 @@
 package com.bot.service.chat;
 
+import com.bot.entity.ChatHistory;
 import com.bot.entity.ChatSession;
 import com.bot.entity.Message;
 import com.bot.entity.User;
+import com.bot.repository.ChatHistoryRepository;
 import com.bot.repository.ChatSessionRepository;
 import com.bot.repository.MessageRepository;
 import com.bot.repository.UserRepository;
@@ -62,6 +64,9 @@ public class ChatService {
 
     /** Repository thao tác với bảng users trong PostgreSQL. */
     private final UserRepository userRepository;
+    
+    /** Repository thao tác với bảng chat_history trong PostgreSQL. */
+    private final ChatHistoryRepository chatHistoryRepository;
 
     /**
      * URL kết nối tới AI Service (FastAPI).
@@ -272,11 +277,19 @@ public class ChatService {
             connection.setReadTimeout(120_000);      // Read timeout: 2 min
 
             // -----------------------------------------------------------------
-            // Step 2: Send user message as JSON using ObjectMapper (safe encoding)
+            // Step 2: Send user message as JSON with chat history
             // -----------------------------------------------------------------
             Map<String, Object> body = new HashMap<>();
             body.put("message", userMessage);
             body.put("session_id", sessionId.toString());
+            
+            // Include recent chat history for context awareness (last 5 messages)
+            List<ChatHistory> recentHistory = getRecentChatHistory(sessionId.toString(), 5);
+            List<Map<String, String>> chatHistory = recentHistory.stream()
+                .map(h -> Map.of("message", h.getMessage(), "response", h.getResponse() != null ? h.getResponse() : ""))
+                .toList();
+            body.put("chat_history", chatHistory);
+            
             byte[] jsonBytes = mapper.writeValueAsBytes(body);
             try (OutputStream os = connection.getOutputStream()) {
                 os.write(jsonBytes);
@@ -340,6 +353,16 @@ public class ChatService {
             // intercept self-invocation, so @Async within same class is a no-op
             if (!fullResponse.isEmpty()) {
                 saveMessage(sessionId, "BOT", fullResponse.toString(), null);
+                
+                // Save chat history for context awareness
+                saveChatHistory(
+                    sessionId.toString(),
+                    null, // userId - can be extracted from session if needed
+                    userMessage,
+                    fullResponse.toString(),
+                    intent,
+                    root.has("confidence") ? root.get("confidence").asDouble() : null
+                );
             }
 
             log.info("[Stream] Hoàn tất streaming cho phiên {} — {} ký tự", sessionId, fullResponse.length());
@@ -365,4 +388,59 @@ public class ChatService {
     // =========================================================================
 
     // escapeJson() method REMOVED — replaced by ObjectMapper for safe JSON encoding
+
+    // =========================================================================
+    // 4. QUẢN LÝ LỊCH SỬ CHAT (CHAT HISTORY MANAGEMENT)
+    // =========================================================================
+
+    /**
+     * Lưu lịch sử chat vào database
+     * 
+     * @param sessionId Session ID
+     * @param userId User ID (nullable)
+     * @param userMessage Tin nhắn của user
+     * @param botResponse Phản hồi của bot
+     * @param intent Intent được phân loại
+     * @param confidence Độ tin cậy của intent
+     */
+    @Transactional
+    public void saveChatHistory(String sessionId, Long userId, String userMessage, 
+                                String botResponse, String intent, Double confidence) {
+        try {
+            ChatHistory history = new ChatHistory();
+            history.setSessionId(sessionId);
+            history.setUserId(userId);
+            history.setMessage(userMessage);
+            history.setResponse(botResponse);
+            history.setIntent(intent);
+            history.setConfidence(confidence);
+            
+            chatHistoryRepository.save(history);
+            log.debug("[ChatHistory] Saved history for session: {}", sessionId);
+        } catch (Exception e) {
+            log.error("[ChatHistory] Error saving chat history: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * Lấy lịch sử chat theo session ID
+     * 
+     * @param sessionId Session ID
+     * @return List of chat history
+     */
+    public List<ChatHistory> getChatHistory(String sessionId) {
+        return chatHistoryRepository.findBySessionIdOrderByCreatedAtAsc(sessionId);
+    }
+
+    /**
+     * Lấy N tin nhắn gần nhất của session để gửi cho AI service
+     * 
+     * @param sessionId Session ID
+     * @param limit Số lượng tin nhắn tối đa
+     * @return List of recent chat history
+     */
+    public List<ChatHistory> getRecentChatHistory(String sessionId, int limit) {
+        List<ChatHistory> allHistory = chatHistoryRepository.findRecentBySessionId(sessionId);
+        return allHistory.stream().limit(limit).toList();
+    }
 }

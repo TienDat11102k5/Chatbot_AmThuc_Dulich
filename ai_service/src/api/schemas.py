@@ -30,7 +30,11 @@ class ChatRequest(BaseModel):
             "lat": 10.762622,
             "lng": 106.660172,
             "address": "TP. Hồ Chí Minh"
-        }
+        },
+        "chat_history": [
+            {"role": "user", "content": "Tôi muốn đi du lịch"},
+            {"role": "assistant", "content": "Bạn muốn đi đâu?"}
+        ]
     }
     """
     message: str = Field(
@@ -46,6 +50,10 @@ class ChatRequest(BaseModel):
     user_location: Optional[dict] = Field(
         default=None,
         description="Vị trí hiện tại của user (cho câu hỏi 'gần đây'). Format: {lat: float, lng: float, address: str}"
+    )
+    chat_history: Optional[List[dict]] = Field(
+        default=None,
+        description="Lịch sử chat gần đây (tối đa 5 tin nhắn). Format: [{role: 'user'|'assistant', content: str}]"
     )
 
 

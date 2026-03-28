@@ -7,6 +7,7 @@ Mục đích: Chứa các hàm tiền xử lý ngôn ngữ tự nhiên (NLP) cho
 """
 
 import re  # Thư viện xử lý Biểu thức chính quy (Regex) để xóa ký tự đặc biệt
+import unicodedata  # Thư viện chuẩn hóa Unicode
 from underthesea import word_tokenize  # Thư viện chuyên dụng cắt từ tiếng Việt chuẩn xác
 
 # ==============================================================================
@@ -20,6 +21,32 @@ VIETNAMESE_STOP_WORDS = {
     "cho", "với", "để", "thế", "này", "kia", "ấy", "nọ", "vậy", "rồi", "nữa",
     "cái", "con", "chiếc", "những", "các", "nhé", "nha", "đi", "nào", "ạ", "ơi"
 }
+
+def normalize_vietnamese_tone(text: str) -> str:
+    """
+    Hàm chuẩn hóa dấu tiếng Việt sai (normalize Vietnamese tone marks).
+    
+    Vấn đề: Người dùng thường gõ sai dấu, ví dụ:
+    - "phỏ" (dấu hỏi ỏ) thay vì "phở" (dấu hỏi ở)
+    - "bún bò Huẻ" (dấu hỏi ẻ) thay vì "bún bò Huế" (dấu sắc é)
+    
+    Giải pháp: Sử dụng Unicode NFD (Normalization Form Decomposed) để tách 
+    ký tự gốc và dấu ra, sau đó ghép lại đúng chuẩn với NFC.
+    
+    Tham số:
+        text (str): Chuỗi văn bản có thể chứa dấu sai.
+        
+    Trả về:
+        str: Chuỗi văn bản đã được chuẩn hóa dấu.
+    """
+    if not text:
+        return ""
+    
+    # Chuẩn hóa Unicode về dạng NFD (tách ký tự và dấu)
+    # sau đó ghép lại về NFC (ký tự + dấu đúng chuẩn)
+    normalized = unicodedata.normalize('NFC', text)
+    return normalized
+
 
 def clean_text(text: str) -> str:
     """
@@ -42,6 +69,9 @@ def clean_text(text: str) -> str:
     # Ép kiểu an toàn, nếu text là None thì coi như chuỗi rỗng
     if not isinstance(text, str):
         text = str(text) if text else ""
+    
+    # Bước 0: Chuẩn hóa dấu tiếng Việt
+    text = normalize_vietnamese_tone(text)
         
     # Bước 1: Chuyển về viết thường
     text = text.lower()
