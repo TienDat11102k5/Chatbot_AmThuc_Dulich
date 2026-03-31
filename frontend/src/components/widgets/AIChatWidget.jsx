@@ -14,7 +14,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { MessageCircle, X, Send, Sparkles, Bot, User, ExternalLink, LogIn, RotateCcw } from 'lucide-react';
-import DOMPurify from 'dompurify';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import chatService from '../../lib/chatService';
 import useAuth from '../../hooks/useAuth';
 
@@ -55,9 +56,17 @@ function formatChatTimestamp(ts) {
 }
 
 // ─── Sanitize markdown content ───────────────────────────────────────────────
-function sanitizeContent(html) {
-  return DOMPurify.sanitize(html, { ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'br', 'p', 'ul', 'ol', 'li', 'a'], ALLOWED_ATTR: ['href', 'target', 'rel'] });
-}
+// Dùng custom style cho markdown content (ul, ol, li, strong)
+const MarkdownComponents = {
+  p: ({ node, ...props }) => <p className="mb-2 last:mb-0 leading-relaxed" {...props} />,
+  strong: ({ node, ...props }) => <strong className="font-semibold text-primary-700" {...props} />,
+  ul: ({ node, ...props }) => <ul className="list-disc list-outside ml-4 mb-2 space-y-1" {...props} />,
+  ol: ({ node, ...props }) => <ol className="list-decimal list-outside ml-4 mb-2 space-y-1" {...props} />,
+  li: ({ node, ...props }) => <li className="pl-1" {...props} />,
+  a: ({ node, ...props }) => (
+    <a className="text-primary-600 hover:underline hover:text-primary-800 transition-colors" target="_blank" rel="noopener noreferrer" {...props} />
+  )
+};
 
 function AIChatWidget() {
   const { userId, isAuthenticated } = useAuth();
@@ -76,11 +85,25 @@ function AIChatWidget() {
   const isProcessingRef = useRef(false);
   const messagesEndRef = useRef(null);
   const lastUserMsgRef = useRef(null); // For retry functionality
+  const inputRef = useRef(null); // For auto-focusing input
 
   // Auto-scroll to newest message
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    // Sử dụng setTimeout ngắn để đảm bảo DOM render kịp chunk Text mới của ReactMarkdown.
+    // Việc này sửa lỗi "khựng, không cuộn sát dưới đáy" khi SSE stream dồn dập
+    const scrollToBottom = () => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
+    const timerId = setTimeout(scrollToBottom, 50);
+    return () => clearTimeout(timerId);
   }, [messages, isLoading]);
+
+  // Auto focus input when chat opens or AI finishes loading
+  useEffect(() => {
+    if (isOpen && isAuthenticated && !isLoading) {
+      setTimeout(() => inputRef.current?.focus(), 100);
+    }
+  }, [isOpen, isAuthenticated, isLoading]);
 
   // Listen for external "open chat" events (e.g. from LandingPage CTA)
   useEffect(() => {
@@ -278,18 +301,23 @@ function AIChatWidget() {
                   {msg.role === 'user' ? <User size={13} /> : <Bot size={13} />}
                 </div>
                 <div
-                  className={`max-w-[78%] px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-line ${
+                  className={`max-w-[85%] px-3.5 py-2 rounded-2xl text-[14.5px] leading-relaxed break-words ${
                     msg.role === 'user'
                       ? 'bg-primary-600 text-white rounded-tr-sm'
                       : 'bg-white text-slate-800 border border-slate-200 rounded-tl-sm shadow-sm'
                   }`}
-                  dangerouslySetInnerHTML={
-                    msg.role === 'assistant'
-                      ? { __html: sanitizeContent(msg.content) }
-                      : undefined
-                  }
                 >
-                  {msg.role === 'user' ? msg.content : undefined}
+                  {msg.role === 'user' ? (
+                    <span className="whitespace-pre-wrap">{msg.content}</span>
+                  ) : (
+                    <ReactMarkdown 
+                      remarkPlugins={[remarkGfm]} 
+                      components={MarkdownComponents}
+                      className="markdown-body"
+                    >
+                      {msg.content}
+                    </ReactMarkdown>
+                  )}
                 </div>
               </div>
             </div>
@@ -350,6 +378,7 @@ function AIChatWidget() {
         <div className="px-3 py-3 bg-white border-t border-slate-100 flex-shrink-0">
           <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus-within:border-primary-600 focus-within:ring-2 focus-within:ring-primary-600/10 transition-all">
             <input
+              ref={inputRef}
               type="text"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}

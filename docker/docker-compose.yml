@@ -135,6 +135,8 @@ services:
       timeout: 10s
       retries: 5
       start_period: 60s             # AI Service cần thời gian load model + import data
+    volumes:
+      - ai_models_data:/app/models    # Persist trained AI models across rebuilds
     networks:
       - chatbot_network
 
@@ -240,3 +242,4 @@ volumes:
   postgres_data:
   redis_data:
   rabbitmq_data:
+  ai_models_data:

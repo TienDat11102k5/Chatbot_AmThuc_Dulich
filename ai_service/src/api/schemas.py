@@ -114,7 +114,7 @@ class ChatResponse(BaseModel):
     }
     """
     intent: str = Field(
-        description="Ý định của người dùng (tim_mon_an, tim_dia_diem, hoi_vi_tri, hoi_thoi_tiet, giao_tiep_bot)"
+        description="Ý định của người dùng (tim_mon_an, tim_dia_diem, hoi_vi_tri, hoi_thoi_tiet, chao_hoi, cam_on, tam_biet, hoi_thong_tin, hoi_gia, so_sanh, danh_gia, out_of_scope)"
     )
     confidence: float = Field(
         description="Độ tự tin của AI khi dự đoán intent (0.0 → 1.0)"

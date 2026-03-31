@@ -154,7 +154,10 @@ const chatService = {
             }
 
             if (line.startsWith('data:')) {
-              const data = line.slice(5).trim();
+              // Spring Boot returns `data:payload` (no space after colon).
+              // If the chunk is a literal space " ", `line` is `data: `.
+              // We must NOT trim or slice the leading space otherwise we delete spaces!
+              const data = line.slice(5);
 
               switch (currentEventType) {
                 case 'done':
@@ -180,7 +183,19 @@ const chatService = {
                 case 'message':
                 default:
                   if (data && data !== '[DONE]') {
-                    onChunk?.(data);
+                    try {
+                      // Spring Boot is now sending JSON to preserve spaces and newlines
+                      // data: {"text": " chunk"}
+                      const payload = JSON.parse(data);
+                      // VITE FORCE HMR RELOAD LOG
+                      console.log('[SSE] Parsed payload:', payload);
+                      if (payload && payload.text !== undefined) {
+                        onChunk?.(payload.text);
+                      }
+                    } catch (e) {
+                      // Fallback in case of raw text (legacy)
+                      onChunk?.(data);
+                    }
                   } else if (data === '[DONE]') {
                     onDone?.();
                     reader.cancel();

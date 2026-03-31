@@ -31,8 +31,13 @@ from src.core.location_handler import get_location_handler
 from src.core.oos_logger import log_rejected_query  # OOS logging module
 from src.core.context_manager import ContextManager, is_follow_up_question, detect_topic_change  # Context management
 from src.core.clarification import should_ask_clarification, generate_clarification_message  # Clarification
-from src.core.sentiment import analyze_sentiment, get_sentiment_response  # Sentiment analysis
+from src.core.sentiment import analyze_sentiment  # Sentiment analysis
 from src.core.trip_planner import is_planning_request, extract_duration, generate_trip_plan  # Trip planner
+from src.core.response_generator import (  # Response Generator — Phase 1 Optimization
+    generate_greeting_response, format_recommendations, generate_no_results_response,
+    generate_pagination_message, get_sentiment_response_text,
+    OUT_OF_SCOPE_RESPONSES,
+)
 
 # ==============================================================================
 # KHỞI TẠO ROUTER & CONTEXT MANAGER
@@ -57,58 +62,12 @@ CONFIDENCE_THRESHOLD = 0.4
 
 # Danh sách các intent "giao tiếp" — KHÔNG áp dụng confidence threshold
 # vì các câu ngắn ("hi", "bye") thường có confidence thấp nhưng vẫn hợp lệ.
-CONVERSATION_INTENTS = {"chao_hoi", "cam_on", "tam_biet", "hoi_thong_tin"}
+CONVERSATION_INTENTS = {"chao_hoi", "cam_on", "tam_biet", "hoi_thong_tin", "hoi_gia", "so_sanh", "danh_gia"}
 
 # ==============================================================================
-# TỪ ĐIỂN CÂU TRẢ LỜI MẪU CHO TỪNG LOẠI Ý ĐỊNH (INTENT)
+# INTENT_RESPONSES & OUT_OF_SCOPE_RESPONSES → Đã chuyển sang response_generator.py  
+# Import ở đầu file: from src.core.response_generator import ...
 # ==============================================================================
-INTENT_RESPONSES = {
-    "tim_mon_an": "🍜 Đây là một số món ăn mà mình gợi ý cho bạn:",
-    "tim_dia_diem": "📍 Đây là một số địa điểm du lịch mà mình gợi ý cho bạn:",
-    "hoi_vi_tri": "🗺️ Mình sẽ giúp bạn tìm địa điểm gần đây:",
-    "hoi_thoi_tiet": "🌤️ Mình chưa hỗ trợ tra cứu thời tiết trực tiếp. "
-                      "Bạn có thể truy cập trang web dự báo thời tiết để biết thêm chi tiết nhé!",
-    # Phản hồi giao tiếp — cải thiện UX cho các câu ngắn
-    "chao_hoi": "👋 Xin chào! Mình là Chatbot Ẩm Thực & Du Lịch Việt Nam. "
-                "Bạn có thể hỏi mình về các món ăn ngon hoặc địa điểm du lịch hấp dẫn nhé!",
-    "cam_on": "😊 Cảm ơn bạn! Rất vui vì mình đã giúp được. "
-              "Nếu cần tìm thêm món ăn hay địa điểm nào, cứ hỏi mình nhé!",
-    "tam_biet": "👋 Tạm biệt bạn! Chúc bạn có những trải nghiệm ẩm thực "
-                "và du lịch thật tuyệt vời. Hẹn gặp lại nhé!",
-    "hoi_thong_tin": "ℹ️ Mình là Chatbot SavoryTrip — chuyên hỗ trợ tìm kiếm **món ăn ngon** "
-                     "và **địa điểm du lịch** trên khắp Việt Nam. "
-                     "Bạn có thể hỏi mình ví dụ:\n"
-                     "• \"Phở Hà Nội ở đâu ngon?\"\n"
-                     "• \"Gợi ý quán cà phê ở Đà Lạt\"\n"
-                     "• \"Tìm địa điểm du lịch ở Phú Quốc\"",
-}
-
-# ==============================================================================
-# CÂU TRẢ LỜI RANDOM KHI TỪ CHỐI OUT-OF-SCOPE (5 phiên bản)
-# ==============================================================================
-# Mỗi lần chatbot từ chối, chọn random 1 câu → tránh lặp lại nhàm chán.
-# Mỗi câu đều kèm gợi ý chuyển hướng về chủ đề ẩm thực/du lịch.
-OUT_OF_SCOPE_RESPONSES = [
-    "🤔 Câu hỏi này nằm ngoài khả năng của mình rồi! "
-    "Mình chỉ hỗ trợ về **ẩm thực** và **du lịch Việt Nam** thôi nhé.\n"
-    "💡 Thử hỏi: *\"Phở Hà Nội ở đâu ngon?\"*",
-
-    "😅 Xin lỗi, mình chưa được huấn luyện để trả lời câu hỏi này. "
-    "Mình chuyên về **món ăn ngon** và **địa điểm du lịch** trên khắp Việt Nam.\n"
-    "💡 Thử hỏi: *\"Gợi ý quán cà phê ở Đà Lạt\"*",
-
-    "🙏 Mình không thể giúp được với câu hỏi này. "
-    "Nhưng nếu bạn muốn khám phá **ẩm thực** hay **du lịch Việt Nam**, mình sẵn sàng!\n"
-    "💡 Thử hỏi: *\"Bánh mì Sài Gòn ở đâu ngon nhất?\"*",
-
-    "😊 Câu hỏi hay nhưng nằm ngoài chuyên môn của mình rồi! "
-    "Mình giỏi nhất về **tìm đồ ăn** và **gợi ý địa điểm du lịch** cơ.\n"
-    "💡 Thử hỏi: *\"Tìm địa điểm du lịch ở Phú Quốc\"*",
-
-    "🤖 Mình là chatbot chuyên về **ẩm thực & du lịch**, nên không trả lời được câu này. "
-    "Hãy thử hỏi mình về những điều mình biết nhé!\n"
-    "💡 Thử hỏi: *\"Bún chả Hà Nội quán nào ngon?\"*",
-]
 
 
 # ==============================================================================
@@ -284,10 +243,8 @@ async def chat_endpoint(request: ChatRequest, raw_request: Request):
         entities = None
         total_found = 0
         remaining = 0
-        response_message = INTENT_RESPONSES.get(
-            intent,
-            "Mình không hiểu lắm. Bạn thử hỏi cách khác nhé!"
-        )
+        # [Phase 1] Dùng Response Generator thay vì INTENT_RESPONSES dict
+        response_message = generate_greeting_response(intent)
 
         # ==================================================================
         # TRIP PLANNER CHECK (Phase 4) — trước intent handler bình thường
@@ -346,17 +303,18 @@ async def chat_endpoint(request: ChatRequest, raw_request: Request):
                     entities = context_manager.merge_entities(entities, saved_context)
             
             # Fallback: Nếu không có location trong câu hiện tại và không phải follow-up,
-            # thử extract location từ chat history (câu trước)
+            # thử extract location từ chat history (câu trước).
+            # [Fix Phase 5]: CHỈ lấy lịch sử của USER, BỎ QUA của ASSISTANT để tránh bị loạn Context.
             if not entities.get("location") and request.chat_history and not is_follow_up:
-                print("[Context] No location in current message, checking chat history...")
-                # Duyệt ngược chat history để tìm location gần nhất
+                print("[Context] No location in current message, checking user chat history...")
+                # Duyệt ngược chat history để tìm location gần nhất do user hỏi
                 for hist_msg in reversed(request.chat_history):
-                    if isinstance(hist_msg, dict) and "message" in hist_msg:
-                        hist_text = hist_msg["message"]
+                    if isinstance(hist_msg, dict) and hist_msg.get("role") == "user":
+                        hist_text = hist_msg.get("content", "")
                         hist_entities = extract_entities(hist_text)
                         if hist_entities.get("location"):
                             entities["location"] = hist_entities["location"]
-                            print(f"[Context] Found location from history: {entities['location']}")
+                            print(f"[Context] Found location from user history: {entities['location']}")
                             break
             
             # ==================================================================
@@ -426,47 +384,28 @@ async def chat_endpoint(request: ChatRequest, raw_request: Request):
             ]
 
             if recommendations:
-                # Tùy chỉnh message cho follow-up
-                if is_follow_up and saved_context:
-                    if intent == "tim_mon_an":
-                        response_message = "🍜 Đây là thêm một số gợi ý khác cho bạn:"
-                    elif intent == "tim_dia_diem":
-                        response_message = "📍 Đây là thêm một số địa điểm khác:"
-                elif location_not_found and searched_location:
-                    response_message = (
-                        f"😅 Mình không tìm thấy kết quả phù hợp tại"
-                        f" {searched_location}. "
-                        f"Đây là một số gợi ý từ các tỉnh thành khác:\n"
-                    )
-                
-                detail_lines = []
-                for i, rec in enumerate(recommendations, 1):
-                    location_info = rec.location
-                    if rec.address and rec.address.strip():
-                        location_info += f" - {rec.address}"
-                    detail_lines.append(
-                        f"\n{i}. **{rec.name}** ({location_info})\n"
-                        f"   {rec.description}"
-                    )
-                response_message += "\n" + "\n".join(detail_lines)
-                
-                # Pagination message — thông báo còn kết quả khác
-                if remaining > 0:
-                    response_message += f"\n\n📄 Còn {remaining} kết quả khác. Hỏi \"còn quán nào\" để xem tiếp!"
+                # [Phase 1] Dùng Response Generator — greeting đa dạng + format đẹp
+                response_message = generate_greeting_response(
+                    intent=intent,
+                    entities=entities,
+                    is_follow_up=(is_follow_up and bool(saved_context)),
+                    location_not_found=location_not_found,
+                    searched_location=searched_location,
+                )
+                # Format recommendations với medal, rating, giá
+                response_message += format_recommendations(
+                    recommendations, intent,
+                    is_follow_up=(is_follow_up and bool(saved_context)),
+                )
+                # Pagination message
+                response_message += generate_pagination_message(remaining)
             else:
                 remaining = 0
                 total_found = 0
-                # Không còn gợi ý mới sau khi filter
-                if previous_rec_ids and is_follow_up:
-                    response_message = (
-                        "😅 Mình đã gợi ý hết các địa điểm phù hợp rồi! "
-                        "Bạn có thể thử hỏi về địa điểm khác hoặc thay đổi tiêu chí tìm kiếm nhé."
-                    )
-                else:
-                    response_message = (
-                        "😅 Mình chưa tìm thấy kết quả phù hợp trong "
-                        "cơ sở dữ liệu. Bạn thử mô tả cụ thể hơn nhé!"
-                    )
+                response_message = generate_no_results_response(
+                    is_follow_up=is_follow_up,
+                    had_previous=bool(previous_rec_ids),
+                )
 
         elif intent == "hoi_vi_tri":
             entities = extract_entities(user_message)
@@ -480,6 +419,108 @@ async def chat_endpoint(request: ChatRequest, raw_request: Request):
             recommendations = [
                 RecommendationItem(**item) for item in raw_results
             ]
+
+        # ==================================================================
+        # PHASE 3: HANDLER CHO 3 INTENT MỚI
+        # ==================================================================
+        elif intent == "hoi_gia":
+            entities = extract_entities(user_message)
+            # Tìm kết quả liên quan để lấy thông tin giá
+            recommender_result = recommender.search(
+                entities, intent="tim_mon_an", top_k=5, user_message=user_message
+            )
+            raw_results = recommender_result["results"][:3]
+            recommendations = [RecommendationItem(**item) for item in raw_results]
+            
+            if recommendations:
+                response_message = "💰 Đây là thông tin giá cả tham khảo:\n"
+                for i, rec in enumerate(recommendations, 1):
+                    price_info = rec.price_range if rec.price_range and rec.price_range.strip() else "Chưa có thông tin giá"
+                    rating_str = f" ⭐{rec.rating:.1f}" if rec.rating and float(rec.rating) > 0 else ""
+                    response_message += (
+                        f"\n{i}. **{rec.name}**{rating_str}\n"
+                        f"   📍 {rec.location}\n"
+                        f"   💵 {price_info}\n"
+                    )
+                response_message += (
+                    "\n💡 *Giá có thể thay đổi theo mùa và thời điểm. "
+                    "Liên hệ trực tiếp quán để biết giá chính xác nhé!*"
+                )
+            else:
+                response_message = (
+                    "💰 Mình chưa có thông tin giá cụ thể cho câu hỏi này.\n"
+                    "💡 Thử hỏi cụ thể hơn, ví dụ: \"Giá phở ở Hà Nội bao nhiêu?\""
+                )
+
+        elif intent == "so_sanh":
+            entities = extract_entities(user_message)
+            foods = entities.get("food", [])
+            locations = entities.get("location", [])
+            
+            if len(foods) >= 2:
+                # So sánh 2 món ăn
+                response_message = f"⚖️ So sánh **{foods[0]}** và **{foods[1]}**:\n\n"
+                for food in foods[:2]:
+                    food_entities = {"food": [food], "location": locations}
+                    result = recommender.search(
+                        food_entities, intent="tim_mon_an", top_k=1, user_message=food
+                    )
+                    if result["results"]:
+                        r = result["results"][0]
+                        rating = f"⭐{r.get('rating', 0):.1f}" if r.get('rating', 0) > 0 else "Chưa có rating"
+                        price = r.get('price_range', 'N/A') or 'N/A'
+                        response_message += (
+                            f"🍜 **{food.title()}**:\n"
+                            f"   Quán tiêu biểu: {r['name']} ({r['location']})\n"
+                            f"   Rating: {rating} | Giá: {price}\n\n"
+                        )
+                response_message += "💡 *Mỗi món đều có nét đặc trưng riêng. Tốt nhất bạn nên thử cả hai!*"
+            elif len(locations) >= 2:
+                # So sánh 2 địa điểm
+                response_message = f"⚖️ So sánh du lịch **{locations[0]}** và **{locations[1]}**:\n\n"
+                for loc in locations[:2]:
+                    loc_entities = {"location": [loc], "food": []}
+                    result = recommender.search(
+                        loc_entities, intent="tim_dia_diem", top_k=3, user_message=loc
+                    )
+                    count = len(result["results"])
+                    response_message += (
+                        f"📍 **{loc}**: {count}+ điểm du lịch trong database\n"
+                    )
+                response_message += "\n💡 *Cả hai đều là điểm đến tuyệt vời! Hỏi mình chi tiết về từng nơi nhé.*"
+            else:
+                response_message = (
+                    "⚖️ Mình cần biết rõ hơn bạn muốn so sánh gì!\n"
+                    "💡 Thử hỏi: \"So sánh phở và bún bò\" hoặc \"Nên đi Đà Nẵng hay Nha Trang?\""
+                )
+
+        elif intent == "danh_gia":
+            entities = extract_entities(user_message)
+            # Tìm kết quả có rating cao nhất
+            recommender_result = recommender.search(
+                entities, intent="tim_mon_an", top_k=5, user_message=user_message
+            )
+            raw_results = recommender_result["results"][:3]
+            recommendations = [RecommendationItem(**item) for item in raw_results]
+            
+            if recommendations:
+                response_message = "⭐ Đây là đánh giá và review tổng hợp:\n"
+                for i, rec in enumerate(recommendations, 1):
+                    rating_str = f"⭐ {rec.rating:.1f}/5.0" if rec.rating and float(rec.rating) > 0 else "Chưa có đánh giá"
+                    response_message += (
+                        f"\n{i}. **{rec.name}** — {rating_str}\n"
+                        f"   📍 {rec.location}\n"
+                        f"   📝 {rec.description}\n"
+                    )
+                response_message += (
+                    "\n💡 *Rating dựa trên dữ liệu thu thập từ nhiều nguồn. "
+                    "Bạn nên đọc thêm review trên Google Maps để có cái nhìn chi tiết hơn!*"
+                )
+            else:
+                response_message = (
+                    "⭐ Mình chưa tìm thấy đánh giá phù hợp.\n"
+                    "💡 Thử hỏi cụ thể hơn, ví dụ: \"Review phở Thìn Hà Nội\""
+                )
 
         # ==================================================================
         # BƯỚC 5: LƯU CONTEXT VÀO REDIS (trước khi return)
@@ -500,10 +541,10 @@ async def chat_endpoint(request: ChatRequest, raw_request: Request):
             ask_location = location_result.get("ask_location", False)
 
         # ==================================================================
-        # BƯỚC 5.5: SENTIMENT ANALYSIS (Phase 3)
+        # BƯỚC 5.5: SENTIMENT ANALYSIS (Phase 1 — đa dạng hóa)
         # ==================================================================
         sentiment, sentiment_score = analyze_sentiment(user_message)
-        sentiment_msg = get_sentiment_response(sentiment, sentiment_score)
+        sentiment_msg = get_sentiment_response_text(sentiment, sentiment_score)
         
         # Nếu phát hiện cảm xúc mạnh → prepend vào response
         if sentiment_msg:

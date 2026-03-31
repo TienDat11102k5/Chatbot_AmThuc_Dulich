@@ -114,4 +114,4 @@ echo "=================================================="
 echo " Starting AI Service (Uvicorn)..."
 echo "=================================================="
 
-exec uvicorn src.main:app --host 0.0.0.0 --port 8000
+exec uvicorn src.main:app --host 0.0.0.0 --port 8000 --workers 2

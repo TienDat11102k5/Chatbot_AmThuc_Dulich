@@ -170,14 +170,18 @@ class RecommenderSystem:
                 continue
                 
             row = self.df.iloc[idx]  # Lấy dòng dữ liệu tại vị trí index
+            
+            def safe_str(val):
+                return "" if pd.isna(val) else str(val)
+
             results.append({
-                "id": row['id'],
-                "name": row['name'],
-                "type": row['type'],
-                "description": row['description'],
-                "location": row['province'],
-                "address": row.get('address', ''),  # Lấy địa chỉ nếu có
-                "tags": row['category_vi'],
+                "id": safe_str(row['id']),
+                "name": safe_str(row['name']),
+                "type": safe_str(row['type']),
+                "description": safe_str(row['description']),
+                "location": safe_str(row['province']),
+                "address": safe_str(row.get('address', '')),
+                "tags": safe_str(row['category_vi']),
                 "score": round(float(score), 4)  # Làm tròn 4 chữ số thập phân
             })
         

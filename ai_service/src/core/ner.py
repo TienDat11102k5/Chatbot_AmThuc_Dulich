@@ -464,6 +464,15 @@ def extract_entities(text: str) -> dict:
                        "nhất", "tốt nhất", "ngon nhất", "hay nhất"}
     found_foods = [f for f in found_foods if f not in adjective_filter]
     
+    # Phase 4: Lọc bỏ từ khóa giao tiếp bị nhầm thành món ăn
+    # Ngăn "chào"/"chao" bị typo_corrections sửa thành "cháo" (món ăn)
+    # → tránh rule-based override sai intent về tim_mon_an khi user chỉ chào hỏi
+    CONVERSATION_KEYWORDS = {
+        "chao", "chào",           # chào hỏi ≠ cháo (món ăn)
+        "cam", "cám",             # cảm ơn ≠ cam (trái cây) - phòng hờ
+    }
+    found_foods = [f for f in found_foods if f not in CONVERSATION_KEYWORDS]
+    
     # Chuẩn hóa các lỗi chính tả phổ biến
     # Map các biến thể sai dấu về dạng chuẩn
     typo_corrections = {

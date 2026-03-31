@@ -286,7 +286,11 @@ public class ChatService {
             // Include recent chat history for context awareness (last 5 messages)
             List<ChatHistory> recentHistory = getRecentChatHistory(sessionId.toString(), 5);
             List<Map<String, String>> chatHistory = recentHistory.stream()
-                .map(h -> Map.of("message", h.getMessage(), "response", h.getResponse() != null ? h.getResponse() : ""))
+                .flatMap(h -> java.util.stream.Stream.of(
+                        Map.of("role", "user", "content", h.getMessage()),
+                        Map.of("role", "assistant", "content", h.getResponse() != null ? h.getResponse() : "")
+                ))
+                .filter(m -> !m.get("content").isEmpty()) // Bỏ qua đoạn hội thoại rỗng
                 .toList();
             body.put("chat_history", chatHistory);
             
@@ -315,18 +319,20 @@ public class ChatService {
             String intent = root.has("intent") ? root.get("intent").asText() : "";
 
             // -----------------------------------------------------------------
-            // Step 4: Simulate streaming — split into ~4-word chunks, 50ms delay
-            // OK to use Thread.sleep() because this method runs on chatTaskExecutor
+            // Step 4: Simulate streaming — Character-based (Mượt mà như ChatGPT, tránh lặp từ)
+            // Cắt mỗi lần 1-3 ký tự, delay 15-20ms.
             // -----------------------------------------------------------------
-            String[] words = aiMessage.split("(?<=\\s)");
-            StringBuilder chunk = new StringBuilder();
-            for (int i = 0; i < words.length; i++) {
-                chunk.append(words[i]);
-                if ((i + 1) % 4 == 0 || i == words.length - 1) {
-                    emitter.send(SseEmitter.event().name("message").data(chunk.toString()));
-                    chunk.setLength(0);
-                    Thread.sleep(50);
-                }
+            int chunkSize = 2; // Gửi 2 ký tự mỗi lần
+            for (int i = 0; i < aiMessage.length(); i += chunkSize) {
+                int end = Math.min(i + chunkSize, aiMessage.length());
+                String chunkString = aiMessage.substring(i, end);
+                
+                // Wrap in Map (JSON) to preserve whitespaces and newlines in SSE
+                Map<String, String> chunkPayload = new HashMap<>();
+                chunkPayload.put("text", chunkString);
+                emitter.send(SseEmitter.event().name("message").data(chunkPayload));
+                
+                Thread.sleep(15); // Delay mượt mà để cuộn ko bị giật
             }
             fullResponse.append(aiMessage);
 
