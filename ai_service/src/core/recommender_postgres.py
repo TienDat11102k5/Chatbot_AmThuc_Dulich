@@ -257,23 +257,48 @@ class RecommenderSystem:
                 # Filter theo location entities (nếu có) - ưu tiên cao
                 if location_entities and len(filtered_df) > 0:
                     location_mask = pd.Series([False] * len(filtered_df), index=filtered_df.index)
+                    
+                    # Phân loại locations: quận/huyện cụ thể vs tỉnh/thành phố chung
+                    specific_districts = []  # Quận 1, Quận 2, etc.
+                    general_locations = []   # Hồ Chí Minh, Hà Nội, etc.
+                    
                     for location in location_entities:
                         location_lower = location.lower()
-                        # Xử lý đặc biệt cho TP.HCM
-                        if location_lower in ["hồ chí minh", "hồ chín minh", "tphcm", "tp.hcm", "hcm", "sài gòn", "saigon"]:
-                            # CHỈ tìm trong LOCATION với tên quận, KHÔNG tìm "sài gòn" trong ADDRESS
-                            hcm_patterns = ["quận 1", "quận 2", "quận 3", "quận 4", "quận 5", "quận 6", "quận 7", 
-                                            "quận 8", "quận 9", "quận 10", "quận 11", "quận 12", 
-                                            "bình thạnh", "tân bình", "tân phú", "phú nhuận", 
-                                            "gò vấp", "bình tán", "thủ đức"]
-                            mask = pd.Series([False] * len(filtered_df), index=filtered_df.index)
-                            for pattern in hcm_patterns:
-                                mask = mask | filtered_df['location'].str.lower().str.contains(pattern, na=False)
-                                mask = mask | filtered_df['address'].str.lower().str.contains(pattern, na=False)
+                        # Check nếu là quận/huyện cụ thể
+                        if any(keyword in location_lower for keyword in ["quận", "huyện", "thị xã", "thành phố"]):
+                            specific_districts.append(location_lower)
                         else:
-                            # CHỈ tìm trong LOCATION, KHÔNG tìm trong ADDRESS
-                            mask = filtered_df['location'].str.lower().str.contains(location_lower, na=False)
-                        location_mask = location_mask | mask
+                            general_locations.append(location_lower)
+                    
+                    # Ưu tiên 1: Nếu có quận/huyện cụ thể → CHỈ tìm theo đó
+                    if specific_districts:
+                        print(f"[Recommender] Searching for specific districts: {specific_districts}")
+                        for district in specific_districts:
+                            mask = (
+                                filtered_df['location'].str.lower().str.contains(district, na=False) |
+                                filtered_df['address'].str.lower().str.contains(district, na=False)
+                            )
+                            location_mask = location_mask | mask
+                    # Ưu tiên 2: Nếu không có quận cụ thể, tìm theo tỉnh/thành phố
+                    elif general_locations:
+                        print(f"[Recommender] Searching for general locations: {general_locations}")
+                        for location in general_locations:
+                            location_lower = location.lower()
+                            # Xử lý đặc biệt cho TP.HCM (không có quận cụ thể)
+                            if location_lower in ["hồ chí minh", "hồ chín minh", "tphcm", "tp.hcm", "hcm", "sài gòn", "saigon"]:
+                                # Tìm TẤT CẢ các quận trong HCM
+                                hcm_patterns = ["quận 1", "quận 2", "quận 3", "quận 4", "quận 5", "quận 6", "quận 7", 
+                                                "quận 8", "quận 9", "quận 10", "quận 11", "quận 12", 
+                                                "bình thạnh", "tân bình", "tân phú", "phú nhuận", 
+                                                "gò vấp", "bình tán", "thủ đức"]
+                                mask = pd.Series([False] * len(filtered_df), index=filtered_df.index)
+                                for pattern in hcm_patterns:
+                                    mask = mask | filtered_df['location'].str.lower().str.contains(pattern, na=False)
+                                    mask = mask | filtered_df['address'].str.lower().str.contains(pattern, na=False)
+                            else:
+                                # CHỈ tìm trong LOCATION, KHÔNG tìm trong ADDRESS
+                                mask = filtered_df['location'].str.lower().str.contains(location_lower, na=False)
+                            location_mask = location_mask | mask
                     
                     location_filtered = filtered_df[location_mask]
                     print(f"[Recommender] After location filter: {len(location_filtered)} records")

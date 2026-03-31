@@ -7,29 +7,42 @@ Mục đích: Định nghĩa API Endpoint chính cho AI Service.
           
           Luồng xử lý bên trong (Pipeline):
           1. Nhận tin nhắn từ Backend → Validate bằng Pydantic Schema.
-          2. Kiểm tra Semantic Cache (đã hỏi câu này chưa?).
-          3. Phân loại Ý định (Intent) bằng Model SVM đã train.
-          4. [MỚI] Kiểm tra Out-of-Scope: 2 lớp phòng thủ (Intent OOS + Confidence Threshold).
-          5. Nếu intent là tìm món ăn/địa điểm → Gọi NER bóc thực thể.
-          6. Gọi Recommender Cosine Similarity tìm Top 3 kết quả.
-          7. Đóng gói Response JSON chuẩn và trả về.
+          2. [MỚI] Load context từ Redis (nếu có) để nhớ ngữ cảnh hội thoại.
+          3. [MỚI] Detect follow-up question ("còn quán nào không?").
+          4. Kiểm tra Semantic Cache (đã hỏi câu này chưa?).
+          5. Phân loại Ý định (Intent) bằng Model SVM đã train.
+          6. [MỚI] Kiểm tra Out-of-Scope: 2 lớp phòng thủ (Intent OOS + Confidence Threshold).
+          7. Nếu intent là tìm món ăn/địa điểm → Gọi NER bóc thực thể.
+          8. [MỚI] Merge entities với context đã lưu (nếu là follow-up).
+          9. Gọi Recommender Cosine Similarity tìm Top 3 kết quả.
+          10. [MỚI] Filter bỏ các gợi ý đã đưa ra trước đó (tránh lặp).
+          11. [MỚI] Lưu context mới vào Redis.
+          12. Đóng gói Response JSON chuẩn và trả về.
 """
 
 import re      # Regex for gibberish detection
 import random  # Random response for OOS rejection
+import os      # Environment variables
 from fastapi import APIRouter, HTTPException, Request
 from src.api.schemas import ChatRequest, ChatResponse, RecommendationItem
 from src.core.ner import extract_entities
 from src.core.location_handler import get_location_handler
 from src.core.oos_logger import log_rejected_query  # OOS logging module
+from src.core.context_manager import ContextManager, is_follow_up_question  # Context management
 
 # ==============================================================================
-# KHỞI TẠO ROUTER
+# KHỞI TẠO ROUTER & CONTEXT MANAGER
 # ==============================================================================
 router = APIRouter(
     prefix="/api/v1/ai",
     tags=["AI Chat"]
 )
+
+# Khởi tạo ContextManager với Redis
+# Trong Docker: REDIS_HOST=redis, local: REDIS_HOST=localhost
+redis_host = os.getenv("REDIS_HOST", "localhost")
+redis_port = int(os.getenv("REDIS_PORT", "6379"))
+context_manager = ContextManager(redis_host=redis_host, redis_port=redis_port)
 
 # ==============================================================================
 # CẤU HÌNH NGƯỠNG CONFIDENCE (Tunable Parameter)
@@ -181,11 +194,22 @@ async def chat_endpoint(request: ChatRequest, raw_request: Request):
             return ChatResponse(**response_data)
 
         # ==================================================================
-        # BƯỚC 1: KIỂM TRA SEMANTIC CACHE
+        # BƯỚC 1: LOAD CONTEXT & DETECT FOLLOW-UP (trước cache check)
         # ==================================================================
-        cached_result = cache.get(user_message)
-        if cached_result is not None:
-            return ChatResponse(**cached_result)
+        session_id = request.session_id
+        saved_context = context_manager.get_context(session_id)
+        is_follow_up = is_follow_up_question(user_message)
+        
+        print(f"[Chat] Session: {session_id[:8] if session_id else 'None'}..., Follow-up: {is_follow_up}")
+        
+        # ==================================================================
+        # BƯỚC 1.5: KIỂM TRA SEMANTIC CACHE (skip nếu là follow-up)
+        # ==================================================================
+        # Follow-up questions KHÔNG được cache vì phụ thuộc vào context
+        if not is_follow_up:
+            cached_result = cache.get(user_message)
+            if cached_result is not None:
+                return ChatResponse(**cached_result)
 
         # ==================================================================
         # BƯỚC 2: PHÂN LOẠI Ý ĐỊNH (Intent Classification)
@@ -193,6 +217,16 @@ async def chat_endpoint(request: ChatRequest, raw_request: Request):
         intent_result = classifier.predict_intent(user_message)
         intent = intent_result["intent"]
         confidence = intent_result["confidence"]
+        
+        # ==================================================================
+        # BƯỚC 2.5: OVERRIDE INTENT FOR FOLLOW-UP QUESTIONS
+        # ==================================================================
+        # Nếu là follow-up và có saved context → dùng intent từ context
+        # Bỏ qua OOS guard vì follow-up questions thường ngắn và có confidence thấp
+        if is_follow_up and saved_context and saved_context.get("last_intent"):
+            intent = saved_context["last_intent"]
+            confidence = 1.0  # Override confidence để bypass OOS guard
+            print(f"[Chat] Follow-up detected, using saved intent: {intent}")
 
         # ==================================================================
         # BƯỚC 3: OUT-OF-SCOPE GUARD — Phòng thủ 2 lớp
@@ -244,12 +278,24 @@ async def chat_endpoint(request: ChatRequest, raw_request: Request):
         )
 
         if intent in ("tim_mon_an", "tim_dia_diem"):
-            # NER → Recommender → Format response
+            # NER → Extract entities từ câu hiện tại
             entities = extract_entities(user_message)
             
-            # CONTEXT AWARENESS: Nếu không có location trong câu hiện tại,
+            # ==================================================================
+            # CONTEXT AWARENESS: Merge với context đã lưu (nếu là follow-up)
+            # ==================================================================
+            if is_follow_up and saved_context:
+                print("[Chat] Detected follow-up question, merging with saved context")
+                entities = context_manager.merge_entities(entities, saved_context)
+                
+                # Nếu là follow-up, dùng intent từ context cũ
+                if saved_context.get("last_intent"):
+                    intent = saved_context["last_intent"]
+                    print(f"[Chat] Using saved intent: {intent}")
+            
+            # Fallback: Nếu không có location trong câu hiện tại và không phải follow-up,
             # thử extract location từ chat history (câu trước)
-            if not entities.get("location") and request.chat_history:
+            if not entities.get("location") and request.chat_history and not is_follow_up:
                 print("[Context] No location in current message, checking chat history...")
                 # Duyệt ngược chat history để tìm location gần nhất
                 for hist_msg in reversed(request.chat_history):
@@ -261,8 +307,9 @@ async def chat_endpoint(request: ChatRequest, raw_request: Request):
                             print(f"[Context] Found location from history: {entities['location']}")
                             break
             
+            # Gọi recommender với top_k=10 để có dự phòng cho việc filter
             recommender_result = recommender.recommend(
-                entities, intent=intent, top_k=3, user_message=user_message
+                entities, intent=intent, top_k=10, user_message=user_message
             )
             raw_results = recommender_result["results"]
             location_not_found = recommender_result.get(
@@ -271,18 +318,51 @@ async def chat_endpoint(request: ChatRequest, raw_request: Request):
             searched_location = recommender_result.get(
                 "searched_location", None
             )
+            
+            # ==================================================================
+            # FILTER PREVIOUS RECOMMENDATIONS (tránh lặp lại gợi ý)
+            # ==================================================================
+            previous_rec_ids = context_manager.get_previous_recommendations(session_id)
+            if previous_rec_ids:
+                print(f"[Chat] Filtering {len(previous_rec_ids)} previous recommendations")
+                # Filter bỏ các gợi ý đã đưa ra trước đó
+                filtered_results = [
+                    rec for rec in raw_results 
+                    if rec.get("id") not in previous_rec_ids
+                ]
+                
+                # Nếu sau khi filter không còn đủ 3 gợi ý, giữ nguyên top 3 từ filtered
+                if len(filtered_results) >= 3:
+                    raw_results = filtered_results[:3]
+                elif len(filtered_results) > 0:
+                    # Có ít hơn 3 gợi ý mới, lấy hết
+                    raw_results = filtered_results
+                else:
+                    # Không còn gợi ý mới nào
+                    print("[Chat] No new recommendations available after filtering")
+                    raw_results = []
+            else:
+                # Không có previous recommendations, lấy top 3
+                raw_results = raw_results[:3]
 
             recommendations = [
                 RecommendationItem(**item) for item in raw_results
             ]
 
             if recommendations:
-                if location_not_found and searched_location:
+                # Tùy chỉnh message cho follow-up
+                if is_follow_up and saved_context:
+                    if intent == "tim_mon_an":
+                        response_message = "🍜 Đây là thêm một số gợi ý khác cho bạn:"
+                    elif intent == "tim_dia_diem":
+                        response_message = "📍 Đây là thêm một số địa điểm khác:"
+                elif location_not_found and searched_location:
                     response_message = (
                         f"😅 Mình không tìm thấy kết quả phù hợp tại"
                         f" {searched_location}. "
                         f"Đây là một số gợi ý từ các tỉnh thành khác:\n"
                     )
+                
                 detail_lines = []
                 for i, rec in enumerate(recommendations, 1):
                     location_info = rec.location
@@ -294,10 +374,17 @@ async def chat_endpoint(request: ChatRequest, raw_request: Request):
                     )
                 response_message += "\n" + "\n".join(detail_lines)
             else:
-                response_message = (
-                    "😅 Mình chưa tìm thấy kết quả phù hợp trong "
-                    "cơ sở dữ liệu. Bạn thử mô tả cụ thể hơn nhé!"
-                )
+                # Không còn gợi ý mới sau khi filter
+                if previous_rec_ids and is_follow_up:
+                    response_message = (
+                        "😅 Mình đã gợi ý hết các địa điểm phù hợp rồi! "
+                        "Bạn có thể thử hỏi về địa điểm khác hoặc thay đổi tiêu chí tìm kiếm nhé."
+                    )
+                else:
+                    response_message = (
+                        "😅 Mình chưa tìm thấy kết quả phù hợp trong "
+                        "cơ sở dữ liệu. Bạn thử mô tả cụ thể hơn nhé!"
+                    )
 
         elif intent == "hoi_vi_tri":
             entities = extract_entities(user_message)
@@ -313,7 +400,18 @@ async def chat_endpoint(request: ChatRequest, raw_request: Request):
             ]
 
         # ==================================================================
-        # BƯỚC 5: ĐÓNG GÓI RESPONSE + LƯU VÀO CACHE
+        # BƯỚC 5: LƯU CONTEXT VÀO REDIS (trước khi return)
+        # ==================================================================
+        if intent in ("tim_mon_an", "tim_dia_diem") and recommendations:
+            context_manager.save_context(
+                session_id=session_id,
+                entities=entities,
+                intent=intent,
+                recommendations=[r.model_dump() for r in recommendations]
+            )
+        
+        # ==================================================================
+        # BƯỚC 6: ĐÓNG GÓI RESPONSE + LƯU VÀO CACHE (skip cache cho follow-up)
         # ==================================================================
         ask_location = False
         if intent == "hoi_vi_tri":
@@ -328,7 +426,10 @@ async def chat_endpoint(request: ChatRequest, raw_request: Request):
             "ask_location": ask_location,
         }
 
-        cache.set(user_message, response_data)
+        # Chỉ cache nếu KHÔNG phải follow-up (follow-up phụ thuộc context)
+        if not is_follow_up:
+            cache.set(user_message, response_data)
+        
         return ChatResponse(**response_data)
 
     except Exception as e:

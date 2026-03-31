@@ -58,6 +58,68 @@ LOCATION_DICTIONARY = {
 }
 
 # ==============================================================================
+# MAPPING THÀNH PHỐ → TỈNH
+# Vì database lưu location theo tên TỈNH, nhưng user thường hỏi theo tên THÀNH PHỐ
+# Ví dụ: User hỏi "Đà Lạt" nhưng DB lưu "Lâm Đồng"
+# ==============================================================================
+CITY_TO_PROVINCE_MAPPING = {
+    # Thành phố → Tỉnh
+    "đà lạt": "lâm đồng",
+    "da lat": "lâm đồng",
+    "nha trang": "khánh hòa",
+    "phan thiết": "bình thuận",
+    "mũi né": "bình thuận",
+    "vũng tàu": "bà rịa vũng tàu",
+    "hội an": "quảng nam",
+    "sapa": "lào cai",
+    "sa pa": "lào cai",
+    "huế": "thừa thiên huế",
+    "quy nhơn": "bình định",
+    "phan rang": "ninh thuận",
+    "buôn ma thuột": "đắk lắk",
+    "buon ma thuot": "đắk lắk",
+    "pleiku": "gia lai",
+    "long xuyên": "an giang",
+    "rạch giá": "kiên giang",
+    "rach gia": "kiên giang",
+    "cà mau": "cà mau",
+    "bạc liêu": "bạc liêu",
+    "sóc trăng": "sóc trăng",
+    "vĩnh long": "vĩnh long",
+    "mỹ tho": "tiền giang",
+    "my tho": "tiền giang",
+    "bến tre": "bến tre",
+    "ben tre": "bến tre",
+    "trà vinh": "trà vinh",
+    "tra vinh": "trà vinh",
+    "cao lãnh": "đồng tháp",
+    "cao lanh": "đồng tháp",
+    "sa đéc": "đồng tháp",
+    "sa dec": "đồng tháp",
+    "châu đốc": "an giang",
+    "chau doc": "an giang",
+    "hạ long": "quảng ninh",
+    "ha long": "quảng ninh",
+    "móng cái": "quảng ninh",
+    "mong cai": "quảng ninh",
+    "tam kỳ": "quảng nam",
+    "tam ky": "quảng nam",
+    "đông hà": "quảng trị",
+    "dong ha": "quảng trị",
+    "đông hới": "quảng bình",
+    "dong hoi": "quảng bình",
+    "vinh": "nghệ an",
+    "thanh hóa": "thanh hóa",
+    "ninh bình": "ninh bình",
+    "hải dương": "hải dương",
+    "hưng yên": "hưng yên",
+    "bắc ninh": "bắc ninh",
+    "thái nguyên": "thái nguyên",
+    "lạng sơn": "lạng sơn",
+    "cao bằng": "cao bằng",
+}
+
+# ==============================================================================
 # 2. TỪ ĐIỂN MÓN ĂN — DANH SÁCH CÁC MÓN/LOẠI THỰC PHẨM PHỔ BIẾN VIỆT NAM
 # ==============================================================================
 # Tại sao cần danh sách này?
@@ -254,6 +316,29 @@ def extract_entities(text: str) -> dict:
     found_place_types = _find_entities_in_text(text_lower, PLACE_TYPE_DICTIONARY)
     found_foods = _find_entities_in_text(text_lower, FOOD_DICTIONARY)
     
+    # MAP THÀNH PHỐ → TỈNH
+    # Vì database lưu location theo tên TỈNH, cần convert tên thành phố sang tên tỉnh
+    # Ví dụ: "đà lạt" → "lâm đồng"
+    mapped_locations = []
+    for loc in found_locations:
+        # Nếu location là thành phố, map sang tỉnh
+        if loc in CITY_TO_PROVINCE_MAPPING:
+            province = CITY_TO_PROVINCE_MAPPING[loc]
+            # Thêm cả tỉnh vào list (để search)
+            if province not in mapped_locations:
+                mapped_locations.append(province)
+            # Giữ lại tên thành phố gốc để hiển thị cho user
+            if loc not in mapped_locations:
+                mapped_locations.append(loc)
+        else:
+            # Nếu đã là tỉnh hoặc không có trong mapping, giữ nguyên
+            if loc not in mapped_locations:
+                mapped_locations.append(loc)
+    
+    # Nếu không có mapping nào, giữ nguyên found_locations
+    if not mapped_locations:
+        mapped_locations = found_locations
+    
     # Lọc bỏ các tính từ chung chung không phải món ăn thực sự
     # Ví dụ: "ngon", "tốt", "hay", "đẹp" không phải món ăn
     adjective_filter = {"ngon", "tốt", "hay", "đẹp", "rẻ", "bổ", "ngon bổ rẻ", 
@@ -286,7 +371,7 @@ def extract_entities(text: str) -> dict:
     # (được dung làm Input cho hàm Cosine Similarity ở recommender.py)
     # QUAN TRỌNG: Nếu user hỏi tên quán cụ thể (ví dụ: "Phở Thìn Bờ Hồ"),
     # cần giữ nguyên toàn bộ text thay vì chỉ lấy "phở"
-    raw_query_parts = found_foods + found_locations
+    raw_query_parts = found_foods + mapped_locations
     
     # Nếu chỉ có món ăn đơn giản (phở, bún...) mà text gốc dài hơn nhiều
     # → có thể là tên quán cụ thể, giữ nguyên text
@@ -303,7 +388,7 @@ def extract_entities(text: str) -> dict:
     
     return {
         "food": found_foods,
-        "location": found_locations,
+        "location": mapped_locations,  # Dùng mapped_locations thay vì found_locations
         "place_type": found_place_types,
         "raw_query": raw_query
     }
