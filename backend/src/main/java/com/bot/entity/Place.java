@@ -51,6 +51,21 @@ public class Place {
     @Column(columnDefinition = "TEXT")
     private String description;
     
+    // Location/address (from V1 migration)
+    @Column(length = 500)
+    private String location;
+
+    // Rating (1.0 - 5.0)
+    private Float rating;
+
+    // Price range (e.g. "50k-100k")
+    @Column(name = "price_range", length = 50)
+    private String priceRange;
+
+    // Active status
+    @Column(name = "is_active")
+    private Boolean isActive;
+
     // Search text (for full-text search)
     @Column(name = "search_text", columnDefinition = "TEXT")
     private String searchText;

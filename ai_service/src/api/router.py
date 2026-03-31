@@ -23,12 +23,16 @@ Mục đích: Định nghĩa API Endpoint chính cho AI Service.
 import re      # Regex for gibberish detection
 import random  # Random response for OOS rejection
 import os      # Environment variables
+import uuid    # Generate temp session_id when None
 from fastapi import APIRouter, HTTPException, Request
 from src.api.schemas import ChatRequest, ChatResponse, RecommendationItem
 from src.core.ner import extract_entities
 from src.core.location_handler import get_location_handler
 from src.core.oos_logger import log_rejected_query  # OOS logging module
-from src.core.context_manager import ContextManager, is_follow_up_question  # Context management
+from src.core.context_manager import ContextManager, is_follow_up_question, detect_topic_change  # Context management
+from src.core.clarification import should_ask_clarification, generate_clarification_message  # Clarification
+from src.core.sentiment import analyze_sentiment, get_sentiment_response  # Sentiment analysis
+from src.core.trip_planner import is_planning_request, extract_duration, generate_trip_plan  # Trip planner
 
 # ==============================================================================
 # KHỞI TẠO ROUTER & CONTEXT MANAGER
@@ -197,10 +201,16 @@ async def chat_endpoint(request: ChatRequest, raw_request: Request):
         # BƯỚC 1: LOAD CONTEXT & DETECT FOLLOW-UP (trước cache check)
         # ==================================================================
         session_id = request.session_id
+        
+        # Guard Clause: tạo UUID tạm nếu session_id không có
+        if not session_id:
+            session_id = str(uuid.uuid4())
+            print(f"[Chat] ⚠️ No session_id provided, generated temp: {session_id[:8]}...")
+        
         saved_context = context_manager.get_context(session_id)
         is_follow_up = is_follow_up_question(user_message)
         
-        print(f"[Chat] Session: {session_id[:8] if session_id else 'None'}..., Follow-up: {is_follow_up}")
+        print(f"[Chat] Session: {session_id[:8]}..., Follow-up: {is_follow_up}")
         
         # ==================================================================
         # BƯỚC 1.5: KIỂM TRA SEMANTIC CACHE (skip nếu là follow-up)
@@ -272,26 +282,68 @@ async def chat_endpoint(request: ChatRequest, raw_request: Request):
         # ==================================================================
         recommendations = []
         entities = None
+        total_found = 0
+        remaining = 0
         response_message = INTENT_RESPONSES.get(
             intent,
             "Mình không hiểu lắm. Bạn thử hỏi cách khác nhé!"
         )
+
+        # ==================================================================
+        # TRIP PLANNER CHECK (Phase 4) — trước intent handler bình thường
+        # ==================================================================
+        if is_planning_request(user_message):
+            entities = extract_entities(user_message)
+            destination = entities.get("location", [""])[0] if entities.get("location") else ""
+            duration = extract_duration(user_message)
+            
+            if destination:
+                print(f"[Chat] 🗺️ Trip planning: {destination} for {duration} days")
+                
+                # Lấy data từ recommender cho destination
+                food_result = recommender.recommend(
+                    {"location": [destination], "food": [], "place_type": [], "raw_query": f"đặc sản {destination}"},
+                    intent="tim_mon_an", top_k=duration * 2, user_message=f"món ăn {destination}"
+                )
+                spot_result = recommender.recommend(
+                    {"location": [destination], "food": [], "place_type": [], "raw_query": f"địa điểm {destination}"},
+                    intent="tim_dia_diem", top_k=duration * 2, user_message=f"địa điểm du lịch {destination}"
+                )
+                
+                response_message = generate_trip_plan(
+                    destination=destination,
+                    duration=duration,
+                    food_places=food_result.get("results", []),
+                    tourist_spots=spot_result.get("results", []),
+                )
+                
+                return ChatResponse(
+                    intent="lap_ke_hoach",
+                    confidence=1.0,
+                    message=response_message,
+                    recommendations=[],
+                    entities=entities,
+                    ask_location=False,
+                )
+            # Nếu không có destination → fall through to normal flow
 
         if intent in ("tim_mon_an", "tim_dia_diem"):
             # NER → Extract entities từ câu hiện tại
             entities = extract_entities(user_message)
             
             # ==================================================================
-            # CONTEXT AWARENESS: Merge với context đã lưu (nếu là follow-up)
+            # CONTEXT AWARENESS: Topic Change Detection + Merge
             # ==================================================================
             if is_follow_up and saved_context:
-                print("[Chat] Detected follow-up question, merging with saved context")
-                entities = context_manager.merge_entities(entities, saved_context)
-                
-                # Nếu là follow-up, dùng intent từ context cũ
-                if saved_context.get("last_intent"):
-                    intent = saved_context["last_intent"]
-                    print(f"[Chat] Using saved intent: {intent}")
+                # Check topic change TRƯỚC khi merge
+                if detect_topic_change(entities, saved_context):
+                    print("[Chat] 🔄 Topic change detected! Clearing old context")
+                    context_manager.clear_context(session_id)
+                    saved_context = {}
+                    is_follow_up = False  # Reset — không merge context cũ
+                else:
+                    print("[Chat] Detected follow-up question, merging with saved context")
+                    entities = context_manager.merge_entities(entities, saved_context)
             
             # Fallback: Nếu không có location trong câu hiện tại và không phải follow-up,
             # thử extract location từ chat history (câu trước)
@@ -306,6 +358,22 @@ async def chat_endpoint(request: ChatRequest, raw_request: Request):
                             entities["location"] = hist_entities["location"]
                             print(f"[Context] Found location from history: {entities['location']}")
                             break
+            
+            # ==================================================================
+            # CLARIFICATION: Hỏi lại nếu thiếu location (Phase 2)
+            # ==================================================================
+            # Chỉ hỏi lại khi: (1) không phải follow-up, (2) có food nhưng không có location
+            if not is_follow_up and should_ask_clarification(entities, intent):
+                clarification_msg = generate_clarification_message(entities)
+                print(f"[Chat] Clarification needed: missing location")
+                return ChatResponse(
+                    intent=intent,
+                    confidence=confidence,
+                    message=clarification_msg,
+                    recommendations=[],
+                    entities=entities,
+                    ask_location=True,
+                )
             
             # Gọi recommender với top_k=10 để có dự phòng cho việc filter
             recommender_result = recommender.recommend(
@@ -344,6 +412,14 @@ async def chat_endpoint(request: ChatRequest, raw_request: Request):
             else:
                 # Không có previous recommendations, lấy top 3
                 raw_results = raw_results[:3]
+            
+            # ==================================================================
+            # PAGINATION INFO: Tính toán số kết quả còn lại
+            # ==================================================================
+            total_found = len(recommender_result["results"])
+            shown_count = len(raw_results)
+            previous_count = len(previous_rec_ids) if previous_rec_ids else 0
+            remaining = max(0, total_found - previous_count - shown_count)
 
             recommendations = [
                 RecommendationItem(**item) for item in raw_results
@@ -373,7 +449,13 @@ async def chat_endpoint(request: ChatRequest, raw_request: Request):
                         f"   {rec.description}"
                     )
                 response_message += "\n" + "\n".join(detail_lines)
+                
+                # Pagination message — thông báo còn kết quả khác
+                if remaining > 0:
+                    response_message += f"\n\n📄 Còn {remaining} kết quả khác. Hỏi \"còn quán nào\" để xem tiếp!"
             else:
+                remaining = 0
+                total_found = 0
                 # Không còn gợi ý mới sau khi filter
                 if previous_rec_ids and is_follow_up:
                     response_message = (
@@ -417,6 +499,21 @@ async def chat_endpoint(request: ChatRequest, raw_request: Request):
         if intent == "hoi_vi_tri":
             ask_location = location_result.get("ask_location", False)
 
+        # ==================================================================
+        # BƯỚC 5.5: SENTIMENT ANALYSIS (Phase 3)
+        # ==================================================================
+        sentiment, sentiment_score = analyze_sentiment(user_message)
+        sentiment_msg = get_sentiment_response(sentiment, sentiment_score)
+        
+        # Nếu phát hiện cảm xúc mạnh → prepend vào response
+        if sentiment_msg:
+            print(f"[Chat] Sentiment: {sentiment} (score={sentiment_score:.2f})")
+            response_message = sentiment_msg + "\n\n" + response_message
+
+        # Tính pagination cho non-search intents
+        _total = total_found if intent in ("tim_mon_an", "tim_dia_diem") else 0
+        _remaining = remaining if intent in ("tim_mon_an", "tim_dia_diem") else 0
+        
         response_data = {
             "intent": intent,
             "confidence": confidence,
@@ -424,6 +521,10 @@ async def chat_endpoint(request: ChatRequest, raw_request: Request):
             "recommendations": [r.model_dump() for r in recommendations],
             "entities": entities,
             "ask_location": ask_location,
+            "has_more_results": _remaining > 0,
+            "total_results": _total,
+            "remaining_results": _remaining,
+            "sentiment": sentiment if sentiment != "neutral" else None,
         }
 
         # Chỉ cache nếu KHÔNG phải follow-up (follow-up phụ thuộc context)

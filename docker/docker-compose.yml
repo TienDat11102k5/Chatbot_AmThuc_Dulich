@@ -29,6 +29,12 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d chatbot_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     networks:
       - chatbot_network
 
@@ -54,6 +60,12 @@ services:
     command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
     volumes:
       - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     networks:
       - chatbot_network
 
@@ -79,6 +91,12 @@ services:
       RABBITMQ_DEFAULT_PASS: password  # Mật khẩu (đổi khi lên Production!)
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "check_running"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
     networks:
       - chatbot_network
 
@@ -90,10 +108,11 @@ services:
   # Biến môi trường:
   #   REDIS_HOST: Kết nối Redis để dùng Semantic Cache (không mất khi restart)
   # ===========================================================================
-  aiservice:
+  ai_service:
     build:
       context: ../ai_service
-    container_name: aiservice
+    container_name: ai_service
+    hostname: aiservice     # Giữ hostname cũ để Backend Java gọi được (RFC 952 không cho underscore)
     ports:
       - "8000:8000"
     environment:
@@ -105,7 +124,17 @@ services:
       - DB_USER=${DB_USERNAME:-admin}
       - DB_PASSWORD=${DB_PASSWORD:-password}
     depends_on:
-      - redis               # Redis phải sẵn sàng trước AI Service (dùng Semantic Cache)
+      database:
+        condition: service_healthy   # Chờ PostgreSQL healthy trước khi start
+      redis:
+        condition: service_healthy   # Chờ Redis healthy trước khi start
+    restart: on-failure              # Tự restart nếu entrypoint fail
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/docs')\""]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s             # AI Service cần thời gian load model + import data
     networks:
       - chatbot_network
 
@@ -132,7 +161,7 @@ services:
       SPRING_DATASOURCE_USERNAME: ${DB_USERNAME:-admin}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-password}
       
-      AI_SERVICE_URL: http://aiservice:8000      # URL AI Service trong mạng Docker (không dùng underscore — Java reject theo RFC 952)
+      AI_SERVICE_URL: http://aiservice:8000      # Dùng hostname (không underscore, tuân thủ RFC 952)
       SPRING_DATA_REDIS_HOST: redis              # Redis trong mạng Docker
       SPRING_DATA_REDIS_PORT: 6379
       
@@ -141,12 +170,22 @@ services:
       RABBITMQ_USER: admin
       RABBITMQ_PASS: password
     depends_on:
-      - database      # Database phải sẵn sàng trước Backend
-      - aiservice     # AI Service phải sẵn sàng trước Backend
-      - redis         # Redis phải sẵn sàng trước Backend
-      - rabbitmq      # [THÊM MỚI Phase 6] RabbitMQ phải sẵn sàng trước Backend
+      database:
+        condition: service_healthy   # Chờ PostgreSQL healthy (Flyway migration cần DB sẵn sàng)
+      ai_service:
+        condition: service_healthy   # Chờ AI Service healthy
+      redis:
+        condition: service_healthy   # Chờ Redis healthy
+      rabbitmq:
+        condition: service_healthy   # Chờ RabbitMQ healthy
     volumes:
       - ./data/uploads:/app/uploads  # Ánh xạ thư mục vật lý chứa ảnh avatar ra ngoài host
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f java || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 45s
     networks:
       - chatbot_network
 
@@ -168,7 +207,8 @@ services:
     environment:
       - NODE_ENV=production          # Môi trường production (Vite build đã tối ưu bundle)
     depends_on:
-      - backend                      # Backend phải sẵn sàng trước khi Frontend lên
+      backend:
+        condition: service_healthy   # Chờ Backend healthy
     networks:
       - chatbot_network
     restart: unless-stopped          # Tự khởi động lại trừ khi dừng thủ công

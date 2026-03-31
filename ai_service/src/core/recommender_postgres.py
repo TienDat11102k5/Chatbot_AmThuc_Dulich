@@ -53,7 +53,9 @@ class RecommenderSystem:
                 p.description as description,
                 COALESCE(p.province, p.district) as location,
                 COALESCE(p.address, '') as address,
-                COALESCE(p.domain, '') as tags
+                COALESCE(p.domain, '') as tags,
+                COALESCE(p.price_range, '') as price_range,
+                COALESCE(p.rating, 0) as rating
             FROM places p
             WHERE p.name IS NOT NULL 
             AND p.description IS NOT NULL
@@ -458,6 +460,8 @@ class RecommenderSystem:
                 "location": row['location'],
                 "address": row.get('address', ''),
                 "tags": row['tags'],
+                "price_range": row.get('price_range', ''),
+                "rating": float(row.get('rating', 0)),
                 "score": round(float(score), 4)
             })
             

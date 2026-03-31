@@ -80,7 +80,7 @@ class RecommenderSystem:
             return
         
         # Kiểm tra các cột bắt buộc
-        required_cols = ['name', 'description', 'region', 'tags']
+        required_cols = ['name', 'description', 'province', 'category_vi']
         missing_cols = [c for c in required_cols if c not in self.df.columns]
         if missing_cols:
             print(f"[Recommender] ⚠️ CẢNH BÁO: Thiếu cột {missing_cols} trong knowledge_base.csv")
@@ -89,14 +89,14 @@ class RecommenderSystem:
             
         print(f"[Recommender] Đã nạp {len(self.df)} bản ghi từ knowledge_base.csv")
         
-        # Bước 3: Tạo cột phụ "combined_text" = ghép nội dung "description" + "tags" + "name" + "region"
+        # Bước 3: Tạo cột phụ "combined_text" = ghép nội dung "description" + "category_vi" + "name" + "province"
         # Mục đích: Cho TF-IDF có nhiều thông tin hơn để so sánh chính xác hơn.
         # Ví dụ sẽ ra dạng: "Phở Bò Hà Nội phở bò hà nội miền bắc truyền thống..."
         self.df['combined_text'] = (
             self.df['name'].fillna('') + " " +
             self.df['description'].fillna('') + " " +
-            self.df['region'].fillna('') + " " +
-            self.df['tags'].fillna('')
+            self.df['province'].fillna('') + " " +
+            self.df['category_vi'].fillna('')
         )
         
         # Bước 4: Tiền xử lý NLP cho cột ghép (cắt từ tiếng Việt + loại bỏ stop words)
@@ -175,9 +175,9 @@ class RecommenderSystem:
                 "name": row['name'],
                 "type": row['type'],
                 "description": row['description'],
-                "location": row['region'],
+                "location": row['province'],
                 "address": row.get('address', ''),  # Lấy địa chỉ nếu có
-                "tags": row['tags'],
+                "tags": row['category_vi'],
                 "score": round(float(score), 4)  # Làm tròn 4 chữ số thập phân
             })
         

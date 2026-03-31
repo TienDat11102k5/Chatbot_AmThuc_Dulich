@@ -283,6 +283,118 @@ PLACE_TYPE_DICTIONARY = {
 }
 
 
+# ==============================================================================
+# 4. SYNONYM MAP — TỪ ĐỒNG NGHĨA / BIỆT DANH → TỪ CHUẨN
+# ==============================================================================
+# Purpose: User gõ "lẩu cay ma la" → expand thành "lẩu thái" hoặc "lẩu cay"
+# Giúp recommender tìm đúng kết quả hơn vì DB lưu tên chuẩn.
+SYNONYM_MAP = {
+    # === Đồ uống ===
+    "trà đá": "trà",
+    "nước chè": "trà",
+    "nước đá chanh": "trà chanh",
+    "cafe": "cà phê",
+    "coffee": "cà phê",
+    "caphe": "cà phê",
+    "ca phe": "cà phê",
+    "milk tea": "trà sữa",
+    "tra sua": "trà sữa",
+    "smoothie": "sinh tố",
+    "juice": "nước ép",
+    
+    # === Món ăn biệt danh ===
+    "spring rolls": "gỏi cuốn",
+    "nem cuốn": "gỏi cuốn",
+    "fried spring rolls": "nem rán",
+    "egg rolls": "chả giò",
+    "noodle soup": "phở",
+    "pho": "phở",
+    "rice paper": "bánh tráng",
+    "baguette": "bánh mì",
+    "banh mi": "bánh mì",
+    "sandwich": "bánh mì",
+    "hotpot": "lẩu",
+    "hot pot": "lẩu",
+    "lau cay": "lẩu cay",
+    "lẩu cay ma la": "lẩu cay",
+    "grilled": "nướng",
+    "bbq": "nướng",
+    "barbeque": "nướng",
+    "seafood": "hải sản",
+    
+    # === Biệt danh vùng miền ===
+    "phố cổ": "hà nội",
+    "thành phố hoa": "đà lạt",
+    "đảo ngọc": "phú quốc",
+    "thành phố biển": "đà nẵng",
+    "cố đô": "huế",
+    "thủ đô": "hà nội",
+    
+    # === Loại hình ===
+    "restaurant": "nhà hàng",
+    "res": "nhà hàng",
+    "quán nhậu": "quán bia",
+    "pub": "quán bia",
+    "beer": "bia",
+    "bia tươi": "bia hơi",
+    "beer club": "quán bia",
+}
+
+
+# ==============================================================================
+# 5. BẢNG SỬA LỖI CHÍNH TẢ MỞ RỘNG — STATIC TYPO MAP
+# ==============================================================================
+# Purpose: Sửa các lỗi gõ sai phổ biến TRƯỚC khi chạy NER.
+# VD: "fở" → "phở", "bùn bò" → "bún bò", "đà lạc" → "đà lạt"
+TYPO_MAP = {
+    # === Lỗi phụ âm đầu ===
+    "fở": "phở",
+    "fở bò": "phở bò",
+    "fở gà": "phở gà",
+    "fở cuốn": "phở cuốn",
+    
+    # === Lỗi dấu thanh ===
+    "bùn bò": "bún bò",
+    "bùn bò huế": "bún bò huế",
+    "bùn chả": "bún chả",
+    "bùn riêu": "bún riêu",
+    "bùn đậu": "bún đậu",
+    "bùn ốc": "bún ốc",
+    "bùn cá": "bún cá",
+    "bành mì": "bánh mì",
+    "bành xèo": "bánh xèo",
+    "bành cuốn": "bánh cuốn",
+    "bành canh": "bánh canh",
+    "lâu bò": "lẩu bò",
+    "lâu thái": "lẩu thái",
+    "lâu hải sản": "lẩu hải sản",
+    "côm tấm": "cơm tấm",
+    "côm gà": "cơm gà",
+    "côm chiên": "cơm chiên",
+    "côm sườn": "cơm sườn",
+    
+    # === Lỗi nguyên âm ===
+    "mỳ quảng": "mì quảng",  # mỳ → mì (chuẩn hóa)
+    "hủ tiểu": "hủ tiếu",
+    
+    # === Lỗi location phổ biến ===
+    "đà lạc": "đà lạt",  # c → t
+    "đa lạt": "đà lạt",  # thiếu dấu
+    "da lat": "đà lạt",
+    "hà nôi": "hà nội",  # ô → ội
+    "ha noi": "hà nội",
+    "sài gon": "sài gòn",
+    "sai gon": "sài gòn",
+    "đà nãng": "đà nẵng",  # ã → ẵ
+    "da nang": "đà nẵng",
+    "nha trag": "nha trang",  # thiếu n
+    "phú quốk": "phú quốc",
+    "phu quoc": "phú quốc",
+    "hội ann": "hội an",
+    "hoi an": "hội an",
+}
+
+
 def extract_entities(text: str) -> dict:
     """
     Hàm chính: Trích xuất Thực thể (Entity Extraction) từ câu chat.
@@ -310,6 +422,12 @@ def extract_entities(text: str) -> dict:
     """
     # Chuẩn hóa: Chuyển hết về chữ thường để so sánh công bằng
     text_lower = text.lower().strip()
+    
+    # Step 0: Spelling Correction — sửa lỗi chính tả TRƯỚC khi tìm entities
+    text_lower = _apply_typo_correction(text_lower)
+    
+    # Step 0.5: Synonym Expansion — thay thế từ đồng nghĩa bằng từ chuẩn
+    text_lower = _apply_synonym_expansion(text_lower)
     
     # Gọi hàm phụ để tìm kiếm từng loại Thực thể
     found_locations = _find_entities_in_text(text_lower, LOCATION_DICTIONARY)
@@ -364,6 +482,14 @@ def extract_entities(text: str) -> dict:
         "ga": "gà",
         "bo": "bò",
         "de": "dê",
+        "nem": "nem",
+        "che": "chè",
+        "kem": "kem",
+        "nuong": "nướng",
+        "chien": "chiên",
+        "luoc": "luộc",
+        "hap": "hấp",
+        "xao": "xào",
     }
     found_foods = [typo_corrections.get(f, f) for f in found_foods]
     
@@ -436,6 +562,30 @@ def _find_entities_in_text(text: str, dictionary: set) -> list:
             working_text = working_text.replace(term, "◆" * len(term), 1)
     
     return found
+
+
+def _apply_typo_correction(text: str) -> str:
+    """
+    Áp dụng sửa lỗi chính tả từ TYPO_MAP trước khi chạy NER.
+    Ưu tiên cụm từ dài nhất trước (same strategy as _find_entities_in_text).
+    """
+    sorted_typos = sorted(TYPO_MAP.keys(), key=len, reverse=True)
+    for typo in sorted_typos:
+        if typo in text:
+            text = text.replace(typo, TYPO_MAP[typo])
+    return text
+
+
+def _apply_synonym_expansion(text: str) -> str:
+    """
+    Thay thế từ đồng nghĩa bằng từ chuẩn từ SYNONYM_MAP.
+    Ưu tiên cụm từ dài nhất trước.
+    """
+    sorted_synonyms = sorted(SYNONYM_MAP.keys(), key=len, reverse=True)
+    for synonym in sorted_synonyms:
+        if synonym in text:
+            text = text.replace(synonym, SYNONYM_MAP[synonym])
+    return text
 
 
 # ==============================================================================

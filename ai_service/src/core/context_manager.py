@@ -224,11 +224,17 @@ def is_follow_up_question(message: str) -> bool:
     
     # Danh sách từ khóa follow-up
     follow_up_keywords = [
-        "còn", "con", "thêm", "them", "nữa", "nua", 
-        "khác", "khac", "tiếp", "tiep", "và", "va",
-        "hoặc", "hoac", "hay", "hay là", "hay la",
+        # Core follow-up: rõ ràng là hỏi tiếp
+        "còn", "con", "thêm", "them", "nữa", "nua",
+        "khác", "khac", "tiếp", "tiep",
+        # Phrases chính xác
         "còn không", "con khong", "còn gì", "con gi",
-        "thế còn", "the con", "vậy còn", "vay con"
+        "thế còn", "the con", "vậy còn", "vay con",
+        "gợi ý thêm", "cho thêm", "xem thêm", "có gì nữa",
+        "cho xem", "gợi ý khác", "quán khác", "chỗ khác",
+        "món khác", "cái khác", "nơi khác"
+        # NOTE: Đã bỏ "hay", "và", "hoặc" — quá chung chung, gây false positive
+        # VD: "Phở hay bún bò?" bị nhận nhầm là follow-up
     ]
     
     # Câu ngắn (≤ 5 từ) + có từ khóa follow-up → likely follow-up
@@ -238,3 +244,46 @@ def is_follow_up_question(message: str) -> bool:
     
     # Câu dài hơn nhưng bắt đầu bằng từ khóa follow-up
     return any(message_lower.startswith(keyword) for keyword in follow_up_keywords)
+
+
+def detect_topic_change(current_entities: Dict, saved_context: Dict) -> bool:
+    """
+    Phát hiện user chuyển chủ đề hoàn toàn.
+    
+    Rule: Nếu câu hiện tại có food MỚI VÀ location MỚI (khác hẳn context cũ)
+    → user đã đổi chủ đề → cần clear context cũ.
+    
+    Ví dụ:
+        Saved: {food: ["cà phê"], location: ["đà lạt"]}
+        Current: {food: ["phở"], location: ["hà nội"]}
+        → Topic change! (cả food lẫn location đều mới)
+        
+        Saved: {food: ["cà phê"], location: ["đà lạt"]}
+        Current: {food: ["trà sữa"], location: []}
+        → KHÔNG phải topic change (chỉ đổi food, location vẫn dùng saved)
+    
+    Args:
+        current_entities: Entities extract từ câu hỏi hiện tại
+        saved_context: Context đã lưu từ Redis
+        
+    Returns:
+        bool: True nếu user đã đổi chủ đề hoàn toàn
+    """
+    saved_entities = saved_context.get("entities", {})
+    
+    current_food = set(current_entities.get("food", []))
+    saved_food = set(saved_entities.get("food", []))
+    current_loc = set(current_entities.get("location", []))
+    saved_loc = set(saved_entities.get("location", []))
+    
+    # Chỉ detect topic change khi CẢ HAI đều có giá trị mới
+    has_new_food = current_food and saved_food and not current_food.intersection(saved_food)
+    has_new_location = current_loc and saved_loc and not current_loc.intersection(saved_loc)
+    
+    if has_new_food and has_new_location:
+        print(f"[ContextManager] 🔄 Topic change detected! "
+              f"Food: {saved_food} → {current_food}, "
+              f"Location: {saved_loc} → {current_loc}")
+        return True
+    
+    return False

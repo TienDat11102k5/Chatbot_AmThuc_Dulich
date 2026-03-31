@@ -83,6 +83,8 @@ class RecommendationItem(BaseModel):
     location: str = Field(description="Vị trí địa lý (tỉnh/thành phố)")
     address: str = Field(default="", description="Địa chỉ chi tiết (nếu có)")
     tags: str = Field(description="Các thẻ tag phân loại, ngăn cách bởi dấu phẩy")
+    price_range: str = Field(default="", description="Khoảng giá (VD: '50k-100k', 'Cao cấp')")
+    rating: float = Field(default=0.0, description="Đánh giá trung bình (0.0 → 5.0)")
     score: float = Field(description="Điểm tương đồng Cosine (0.0 → 1.0)")
 
 
@@ -131,6 +133,24 @@ class ChatResponse(BaseModel):
     ask_location: bool = Field(
         default=False,
         description="True nếu AI cần hỏi lại vị trí user (cho intent hoi_vi_tri)"
+    )
+    # Pagination fields — Phase 1
+    has_more_results: bool = Field(
+        default=False,
+        description="True nếu còn kết quả khác chưa hiển thị (user hỏi 'còn quán nào' để xem tiếp)"
+    )
+    total_results: int = Field(
+        default=0,
+        description="Tổng số kết quả tìm được (VD: tìm được 15 quán, hiện 3 quán đầu)"
+    )
+    remaining_results: int = Field(
+        default=0,
+        description="Số kết quả còn lại chưa hiển thị"
+    )
+    # Sentiment field — Phase 3
+    sentiment: Optional[str] = Field(
+        default=None,
+        description="Cảm xúc phát hiện được: 'positive', 'negative', 'neutral' hoặc None"
     )
 
 
