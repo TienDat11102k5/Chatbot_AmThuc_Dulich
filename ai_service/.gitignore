@@ -165,4 +165,7 @@ models/*.log
 models/temp/
 
 # Chỉ ignore file .data, giữ lại CSV
-data/*.data
+# Tạm thời bỏ qua các module lịch sử
+archive/
+old_data/
+old_scripts/

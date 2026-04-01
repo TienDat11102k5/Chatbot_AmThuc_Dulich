@@ -310,13 +310,14 @@ function AIChatWidget() {
                   {msg.role === 'user' ? (
                     <span className="whitespace-pre-wrap">{msg.content}</span>
                   ) : (
-                    <ReactMarkdown 
-                      remarkPlugins={[remarkGfm]} 
-                      components={MarkdownComponents}
-                      className="markdown-body"
-                    >
-                      {msg.content}
-                    </ReactMarkdown>
+                    <div className="markdown-body">
+                      <ReactMarkdown 
+                        remarkPlugins={[remarkGfm]} 
+                        components={MarkdownComponents}
+                      >
+                        {msg.content}
+                      </ReactMarkdown>
+                    </div>
                   )}
                 </div>
               </div>

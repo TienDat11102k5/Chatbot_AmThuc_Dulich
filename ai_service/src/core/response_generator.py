@@ -234,19 +234,19 @@ LOCATION_NOT_FOUND_RESPONSES = [
 # ==============================================================================
 
 FOOD_FOLLOW_UP_SUGGESTIONS = [
-    "\n\n💡 Bạn muốn xem thêm quán khác không? Hỏi \"*còn quán nào?*\"",
-    "\n\n☕ Ngoài ra bạn có muốn tìm quán **cà phê** gần đây không?",
-    "\n\n📍 Bạn muốn tìm thêm **địa điểm du lịch** ở đây không?",
-    "",  # Sometimes no suggestion
-    "",
+    ("\n\n💡 Bạn muốn xem thêm quán khác không? Hỏi \"*còn quán nào?*\"", "none"),
+    ("\n\n☕ Ngoài ra bạn có muốn tìm quán **cà phê** gần đây không?", "cafe"),
+    ("\n\n📍 Bạn muốn tìm thêm **địa điểm du lịch** ở đây không?", "place"),
+    ("", "none"),
+    ("", "none"),
 ]
 
 PLACE_FOLLOW_UP_SUGGESTIONS = [
-    "\n\n💡 Bạn muốn xem thêm điểm đến khác không? Hỏi \"*còn chỗ nào?*\"",
-    "\n\n🍜 Ngoài ra bạn có muốn tìm **món ăn đặc sản** ở đây không?",
-    "\n\n🏨 Bạn cần mình gợi ý **khách sạn** gần đây không?",
-    "",
-    "",
+    ("\n\n💡 Bạn muốn xem thêm điểm đến khác không? Hỏi \"*còn chỗ nào?*\"", "none"),
+    ("\n\n🍜 Ngoài ra bạn có muốn tìm **món ăn đặc sản** ở đây không?", "food"),
+    ("\n\n🏨 Bạn cần mình gợi ý **khách sạn** gần đây không?", "hotel"),
+    ("", "none"),
+    ("", "none"),
 ]
 
 # ==============================================================================
@@ -416,7 +416,7 @@ def format_recommendation_item(rec, index: int) -> str:
 
 
 def format_recommendations(recommendations: list, intent: str,
-                           is_follow_up: bool = False) -> str:
+                           is_follow_up: bool = False) -> tuple[str, str]:
     """
     Format toàn bộ danh sách recommendations.
     
@@ -426,23 +426,26 @@ def format_recommendations(recommendations: list, intent: str,
         is_follow_up: Có phải follow-up không
     
     Returns:
-        str: Formatted string cho tất cả items + follow-up suggestion
+        tuple[str, str]: (Formatted string for all items, suggestion_type)
     """
     if not recommendations:
-        return ""
+        return "", "none"
     
     items_text = ""
     for i, rec in enumerate(recommendations, 1):
         items_text += format_recommendation_item(rec, i)
     
+    suggestion_type = "none"
     # Add follow-up suggestion (random, sometimes empty)
     if not is_follow_up:
         if intent == "tim_mon_an":
-            items_text += random.choice(FOOD_FOLLOW_UP_SUGGESTIONS)
+            suggestion_msg, suggestion_type = random.choice(FOOD_FOLLOW_UP_SUGGESTIONS)
+            items_text += suggestion_msg
         elif intent == "tim_dia_diem":
-            items_text += random.choice(PLACE_FOLLOW_UP_SUGGESTIONS)
+            suggestion_msg, suggestion_type = random.choice(PLACE_FOLLOW_UP_SUGGESTIONS)
+            items_text += suggestion_msg
     
-    return items_text
+    return items_text, suggestion_type
 
 
 def generate_no_results_response(is_follow_up: bool = False,

@@ -51,7 +51,7 @@ class ContextManager:
             self.redis_client = None
     
     def save_context(self, session_id: str, entities: Dict, intent: str, 
-                    recommendations: List[Dict]) -> bool:
+                    recommendations: List[Dict], last_suggestion: str = None) -> bool:
         """
         Lưu context của session vào Redis.
         
@@ -60,6 +60,7 @@ class ContextManager:
             entities: Dict chứa food, location, place_type
             intent: Intent của câu hỏi (tim_mon_an, tim_dia_diem)
             recommendations: List các gợi ý đã trả về
+            last_suggestion: Loại gợi ý follow-up vừa đưa ra (hotel, food, none)
             
         Returns:
             bool: True nếu lưu thành công, False nếu thất bại
@@ -82,6 +83,7 @@ class ContextManager:
                 "entities": entities,
                 "last_intent": intent,
                 "previous_recommendations": all_rec_ids,
+                "last_suggestion": last_suggestion,
                 "conversation_count": old_context.get("conversation_count", 0) + 1
             }
             
@@ -232,18 +234,24 @@ def is_follow_up_question(message: str) -> bool:
         "thế còn", "the con", "vậy còn", "vay con",
         "gợi ý thêm", "cho thêm", "xem thêm", "có gì nữa",
         "cho xem", "gợi ý khác", "quán khác", "chỗ khác",
-        "món khác", "cái khác", "nơi khác"
+        "món khác", "cái khác", "nơi khác",
+        # Affirmative/Agreement keywords for follow-up suggestions
+        "có", "ok", "được", "yes", "ừ", "uh", "dạ có",
+        "liệt kê ra", "liệt kê đi", "gợi ý đi", "tìm đi", "xem thử", "lịch trình"
         # NOTE: Đã bỏ "hay", "và", "hoặc" — quá chung chung, gây false positive
         # VD: "Phở hay bún bò?" bị nhận nhầm là follow-up
     ]
     
+    # Thêm khoảng trắng hai đầu để tìm chính xác cụm từ (tránh "khác" match "khách sạn")
+    message_padded = f" {message_lower} "
+    
     # Câu ngắn (≤ 5 từ) + có từ khóa follow-up → likely follow-up
     words = message_lower.split()
     if len(words) <= 5:
-        return any(keyword in message_lower for keyword in follow_up_keywords)
+        return any(f" {keyword} " in message_padded for keyword in follow_up_keywords)
     
     # Câu dài hơn nhưng bắt đầu bằng từ khóa follow-up
-    return any(message_lower.startswith(keyword) for keyword in follow_up_keywords)
+    return any(message_lower.startswith(keyword + " ") for keyword in follow_up_keywords)
 
 
 def detect_topic_change(current_entities: Dict, saved_context: Dict) -> bool:

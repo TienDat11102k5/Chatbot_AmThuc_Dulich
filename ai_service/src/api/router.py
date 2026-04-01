@@ -178,6 +178,24 @@ async def chat_endpoint(request: ChatRequest, raw_request: Request):
         if not is_follow_up:
             cached_result = cache.get(user_message)
             if cached_result is not None:
+                # [Fix]: Tuy trả kết quả từ Cache nhưng VẪN PHẢI LƯU CONTEXT cho session hiện tại,
+                # để các câu hỏi follow-up (như "có", "liệt kê ra") có thể hoạt động.
+                c_intent = cached_result.get("intent")
+                c_recs = cached_result.get("recommendations", [])
+                c_entities = cached_result.get("entities", {})
+                c_suggestion = cached_result.get("last_suggestion", "none")
+                
+                if c_intent in ("tim_mon_an", "tim_dia_diem") and c_recs:
+                    print(f"[Cache] 🟢 HIT - Saving context for session {session_id[:8]} from cached result")
+                    context_manager.save_context(
+                        session_id=session_id,
+                        entities=c_entities,
+                        intent=c_intent,
+                        recommendations=c_recs,
+                        last_suggestion=c_suggestion
+                    )
+                else:
+                    print(f"[Cache] 🟢 HIT - No context saved (intent={c_intent})")
                 return ChatResponse(**cached_result)
 
         # ==================================================================
@@ -196,6 +214,19 @@ async def chat_endpoint(request: ChatRequest, raw_request: Request):
             intent = saved_context["last_intent"]
             confidence = 1.0  # Override confidence để bypass OOS guard
             print(f"[Chat] Follow-up detected, using saved intent: {intent}")
+            
+            # Nếu bot vừa suggest 1 thứ gì đó (khách sạn, quán cafe) và user đồng ý (ví dụ: "có", "liệt kê ra")
+            last_suggestion = saved_context.get("last_suggestion", "none")
+            if last_suggestion != "none":
+                if last_suggestion == "hotel":
+                    intent = "tim_dia_diem"
+                elif last_suggestion == "cafe":
+                    intent = "tim_mon_an"
+                elif last_suggestion == "food":
+                    intent = "tim_mon_an"
+                elif last_suggestion == "place":
+                    intent = "tim_dia_diem"
+                print(f"[Chat] Follow-up suggestion detected: {last_suggestion}, hijacked intent to: {intent}")
 
         # ==================================================================
         # BƯỚC 3: OUT-OF-SCOPE GUARD — Phòng thủ 2 lớp
@@ -301,6 +332,22 @@ async def chat_endpoint(request: ChatRequest, raw_request: Request):
                 else:
                     print("[Chat] Detected follow-up question, merging with saved context")
                     entities = context_manager.merge_entities(entities, saved_context)
+                    
+                    # Nếu user đồng ý với suggestion trước đó, inject entity tương ứng để search
+                    last_suggestion = saved_context.get("last_suggestion", "none")
+                    if last_suggestion != "none":
+                        print(f"[Chat] Injecting entities for suggestion: {last_suggestion}")
+                        if last_suggestion == "hotel":
+                            entities["place_type"] = ["khách sạn"]
+                            entities["food"] = [] # Clear food context
+                        elif last_suggestion == "cafe":
+                            entities["food"] = ["cà phê"]
+                            entities["place_type"] = []
+                        elif last_suggestion == "food":
+                            entities["place_type"] = []
+                        elif last_suggestion == "place":
+                            entities["food"] = []
+                            entities["place_type"] = []
             
             # Fallback: Nếu không có location trong câu hiện tại và không phải follow-up,
             # thử extract location từ chat history (câu trước).
@@ -393,10 +440,11 @@ async def chat_endpoint(request: ChatRequest, raw_request: Request):
                     searched_location=searched_location,
                 )
                 # Format recommendations với medal, rating, giá
-                response_message += format_recommendations(
+                items_text, suggestion_type = format_recommendations(
                     recommendations, intent,
                     is_follow_up=(is_follow_up and bool(saved_context)),
                 )
+                response_message += items_text
                 # Pagination message
                 response_message += generate_pagination_message(remaining)
             else:
@@ -530,7 +578,8 @@ async def chat_endpoint(request: ChatRequest, raw_request: Request):
                 session_id=session_id,
                 entities=entities,
                 intent=intent,
-                recommendations=[r.model_dump() for r in recommendations]
+                recommendations=[r.model_dump() for r in recommendations],
+                last_suggestion=suggestion_type if 'suggestion_type' in locals() else "none"
             )
         
         # ==================================================================
@@ -566,6 +615,7 @@ async def chat_endpoint(request: ChatRequest, raw_request: Request):
             "total_results": _total,
             "remaining_results": _remaining,
             "sentiment": sentiment if sentiment != "neutral" else None,
+            "last_suggestion": suggestion_type if 'suggestion_type' in locals() else "none"
         }
 
         # Chỉ cache nếu KHÔNG phải follow-up (follow-up phụ thuộc context)

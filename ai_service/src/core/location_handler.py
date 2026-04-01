@@ -7,9 +7,10 @@ Mục đích: Xử lý logic cho intent "hoi_vi_tri" (câu hỏi "gần đây c�
           3. Trả về Top 3 địa điểm gần nhất
 """
 
-import psycopg2
 import os
 from typing import Dict, List, Optional
+from sqlalchemy import text
+from src.core.recommender_postgres import get_engine
 
 # Cấu hình database từ environment variables
 def get_db_config():
@@ -101,8 +102,7 @@ class LocationHandler:
         Returns:
             List[Dict]: Danh sách địa điểm gần nhất với thông tin khoảng cách
         """
-        conn = psycopg2.connect(**self.db_config)
-        cursor = conn.cursor()
+        engine = get_engine()
         
         try:
             # Query tìm địa điểm gần với filter món ăn (nếu có)
@@ -117,51 +117,57 @@ class LocationHandler:
                     COALESCE(domain, '') as tags,
                     latitude,
                     longitude,
-                    calculate_distance(%s, %s, latitude, longitude) as distance_km
+                    calculate_distance(:user_lat, :user_lng, latitude, longitude) as distance_km
                 FROM places 
                 WHERE latitude IS NOT NULL 
                 AND longitude IS NOT NULL
-                AND calculate_distance(%s, %s, latitude, longitude) <= %s
+                AND calculate_distance(:user_lat, :user_lng, latitude, longitude) <= :radius_km
             """
             
-            params = [user_lat, user_lng, user_lat, user_lng, radius_km]
+            params = {
+                "user_lat": user_lat, 
+                "user_lng": user_lng, 
+                "radius_km": radius_km,
+                "limit": limit
+            }
             
             # Thêm filter món ăn nếu có
             if food_filter:
                 food_conditions = []
-                for food in food_filter:
-                    food_conditions.append("(LOWER(name) LIKE %s OR LOWER(description) LIKE %s OR LOWER(domain) LIKE %s)")
-                    params.extend([f'%{food.lower()}%', f'%{food.lower()}%', f'%{food.lower()}%'])
+                for i, food in enumerate(food_filter):
+                    param_name = f"food_{i}"
+                    food_conditions.append(f"(LOWER(name) LIKE :{param_name} OR LOWER(description) LIKE :{param_name} OR LOWER(domain) LIKE :{param_name})")
+                    params[param_name] = f"%{food.lower()}%"
                 
                 base_query += " AND (" + " OR ".join(food_conditions) + ")"
             
             # Sắp xếp theo khoảng cách và giới hạn kết quả
-            base_query += " ORDER BY distance_km ASC LIMIT %s"
-            params.append(limit)
+            base_query += " ORDER BY distance_km ASC LIMIT :limit"
             
-            cursor.execute(base_query, params)
-            results = cursor.fetchall()
+            with engine.connect() as conn:
+                resultproxy = conn.execute(text(base_query), params)
+                results = resultproxy.fetchall()
             
             # Format kết quả
             places = []
             for row in results:
                 places.append({
-                    "id": row[0],
-                    "name": row[1],
-                    "type": row[2],
-                    "description": row[3],
-                    "location": row[4],
-                    "address": row[5],
-                    "tags": row[6],
-                    "distance_km": round(float(row[9]), 2),
-                    "score": 1.0 - (float(row[9]) / radius_km)  # Score dựa trên khoảng cách
+                    "id": row._mapping['id'] if hasattr(row, '_mapping') else row[0],
+                    "name": row._mapping['name'] if hasattr(row, '_mapping') else row[1],
+                    "type": row._mapping['type'] if hasattr(row, '_mapping') else row[2],
+                    "description": row._mapping['description'] if hasattr(row, '_mapping') else row[3],
+                    "location": row._mapping['location'] if hasattr(row, '_mapping') else row[4],
+                    "address": row._mapping['address'] if hasattr(row, '_mapping') else row[5],
+                    "tags": row._mapping['tags'] if hasattr(row, '_mapping') else row[6],
+                    "distance_km": round(float(row._mapping['distance_km'] if hasattr(row, '_mapping') else row[9]), 2),
+                    "score": 1.0 - (float(row._mapping['distance_km'] if hasattr(row, '_mapping') else row[9]) / radius_km)  # Score dựa trên khoảng cách
                 })
             
             return places
             
-        finally:
-            cursor.close()
-            conn.close()
+        except Exception as e:
+            print(f"[LocationHandler] Lỗi truy vấn database khi tìm địa điểm gần: {e}")
+            return []
 
 # Singleton instance để tái sử dụng
 _location_handler = None

@@ -134,3 +134,37 @@ async def get_intents():
         total_samples=total_samples,
         intents=intents
     )
+
+@admin_router.get(
+    "/oos-logs",
+    summary="Danh sách câu hỏi Out of Scope",
+    description="Truy xuất dữ liệu câu hỏi mà người dùng gọi bị Bot reject (Out of Scope)."
+)
+async def get_oos_logs(limit: int = 50):
+    """
+    Đọc từ file data/oos_rejected.jsonl và trả về top N dòng mới nhất.
+    """
+    import json
+    
+    log_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "oos_rejected.jsonl")
+    resolved_path = os.path.abspath(log_path)
+    
+    if not os.path.exists(resolved_path):
+        return {"total": 0, "logs": []}
+    
+    logs = []
+    try:
+        with open(resolved_path, "r", encoding="utf-8") as f:
+            for line in f:
+                if line.strip():
+                    logs.append(json.loads(line.strip()))
+    except Exception as e:
+        print(f"[Admin] ⚠️ Không đọc được oos logs: {e}")
+        return {"total": 0, "logs": []}
+    
+    # Lấy N record mới nhất (đảo ngược mảng)
+    logs.reverse()
+    return {
+        "total": len(logs),
+        "logs": logs[:limit]
+    }

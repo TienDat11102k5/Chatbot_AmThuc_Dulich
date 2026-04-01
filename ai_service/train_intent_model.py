@@ -30,6 +30,27 @@ for intent, count in df['intent'].value_counts().items():
     print(f"   {intent}: {count:,} ({percentage:.2f}%)")
 
 # ============================================================
+# BƯỚC 1.5: KIỂM TRA DỮ LIỆU (VALIDATION)
+# ============================================================
+print("\n🛡️ BƯỚC 1.5: Validate dữ liệu...")
+if 'text' not in df.columns or 'intent' not in df.columns:
+    print("❌ LỖI: Dataset thiều cột 'text' hoặc 'intent'. Hủy quá trình huấn luyện!")
+    exit(1)
+
+missing_intents = df['intent'].isnull().sum()
+missing_texts = df['text'].isnull().sum()
+if missing_intents > 0 or missing_texts > 0:
+    print(f"⚠️ CẢNH BÁO: Phát hiện {missing_texts} dòng thiếu text, {missing_intents} dòng thiếu intent. Đang loại bỏ...")
+    df = df.dropna(subset=['text', 'intent'])
+
+unique_intents = df['intent'].unique()
+if len(unique_intents) < 2:
+    print("❌ LỖI: Dataset phải có ít nhất 2 intents để phân loại. Hủy quá trình huấn luyện!")
+    exit(1)
+
+print("   ✅ Dữ liệu hợp lệ chuẩn cấu trúc!")
+
+# ============================================================
 # BƯỚC 2: TIỀN XỬ LÝ DỮ LIỆU
 # ============================================================
 print("\n🔄 BƯỚC 2: Tiền xử lý dữ liệu...")
@@ -141,11 +162,21 @@ print(cm)
 # BƯỚC 7: LƯU MODEL
 # ============================================================
 print("\n💾 BƯỚC 7: Lưu model...")
+from datetime import datetime
+import shutil
+import os
+
+os.makedirs('models', exist_ok=True)
 
 # Lưu model
 with open('models/intent_model.pkl', 'wb') as f:
     pickle.dump(model, f)
 print(f"   ✅ Đã lưu: models/intent_model.pkl")
+
+# Versioning
+timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+shutil.copy2('models/intent_model.pkl', f'models/intent_model_{timestamp}.pkl')
+print(f"   ✅ Đã phân bản: models/intent_model_{timestamp}.pkl")
 
 # Lưu vectorizer
 with open('models/vectorizer.pkl', 'wb') as f:

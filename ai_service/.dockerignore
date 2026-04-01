@@ -1,3 +1,16 @@
-# Ignore file môi trường chứa key bảo mật
+__pycache__/
+*.pyc
+*.pyo
+.git/
 .env
-.env.*
+.DS_Store
+pytest_cache/
+tests/
+test_*.py
+generate_*.py
+scripts/
+docs/
+archive/
+*.md
+data/oos_rejected.jsonl
+models/intent_model_*.pkl

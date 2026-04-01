@@ -23,12 +23,8 @@ from typing import Dict, List, Optional, Tuple
 PLANNING_KEYWORDS = [
     "kế hoạch", "ke hoach", "lập kế hoạch", "lap ke hoach",
     "lịch trình", "lich trinh", "plan", "planning",
-    "du lịch", "du lich", "chuyến đi", "chuyen di",
-    "đi chơi", "di choi", "travel",
-    "ngày", "ngay",  # "đi Đà Lạt 3 ngày"
-    "hành trình", "hanh trinh", "itinerary",
+    "hành trình", "hanh trinh", "itinerary", "chuyến đi", "chuyen di"
 ]
-
 
 def is_planning_request(text: str) -> bool:
     """
@@ -42,17 +38,21 @@ def is_planning_request(text: str) -> bool:
     """
     text_lower = text.lower().strip()
     
-    # Must contain at least 1 planning keyword
-    has_planning = any(kw in text_lower for kw in PLANNING_KEYWORDS)
+    # Strong keyword → chắc chắn muốn lập kế hoạch
+    has_strong = any(kw in text_lower for kw in PLANNING_KEYWORDS)
+    
+    # Weak keyword + số ngày → muốn lập kế hoạch
+    has_duration = bool(re.search(r'\d+\s*(?:ngày|ngay|day|days)', text_lower))
+    WEAK_KW = ["du lịch", "du lich", "đi chơi", "di choi", "travel"]
+    has_weak = any(kw in text_lower for kw in WEAK_KW)
     
     # Must contain a location reference (to know where to plan)
-    # Simple check: contains "đi" + location, or "du lịch" + location
-    has_destination_context = any(kw in text_lower for kw in [
+    has_destination = any(kw in text_lower for kw in [
         "đi", "di", "tại", "tai", "ở", "o", "về", "ve",
         "đến", "den", "thăm", "tham", "khám phá", "kham pha"
     ])
     
-    return has_planning and has_destination_context
+    return (has_strong and has_destination) or (has_weak and has_duration and has_destination)
 
 
 def extract_duration(text: str) -> int:

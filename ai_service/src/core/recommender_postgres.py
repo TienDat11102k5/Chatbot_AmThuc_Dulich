@@ -83,6 +83,32 @@ def get_db_url():
     password = os.getenv('DB_PASSWORD', '123456')
     return f"postgresql+psycopg2://{user}:{password}@{host}:{port}/{dbname}"
 
+# Singleton Engine cho toàn hệ thống
+_engine = None
+
+def get_engine():
+    """Tạo hoặc lấy SQLAlchemy Engine singleton để tối ưu connection pool"""
+    global _engine
+    if _engine is None:
+        _engine = create_engine(
+            get_db_url(), 
+            pool_size=5, 
+            max_overflow=10, 
+            pool_recycle=1800, # Recycle connections sau 30 phút
+            pool_pre_ping=True # Kiểm tra connection trước khi dùng
+        )
+    return _engine
+
+# ==============================================================================
+# HẰNG SỐ DÙNG CHUNG
+# ==============================================================================
+HCM_DISTRICTS = [
+    "quận 1", "quận 2", "quận 3", "quận 4", "quận 5", "quận 6", "quận 7", 
+    "quận 8", "quận 9", "quận 10", "quận 11", "quận 12", 
+    "bình thạnh", "tân bình", "tân phú", "phú nhuận", 
+    "gò vấp", "bình tân", "thủ đức"
+]
+
 class RecommenderSystem:
     """
     Recommender System đọc dữ liệu từ PostgreSQL
@@ -107,7 +133,7 @@ class RecommenderSystem:
     
     def load_data_from_db(self):
         """Load dữ liệu từ PostgreSQL dùng SQLAlchemy engine (bắt buộc cho pandas 2.x)"""
-        engine = create_engine(self.db_url)
+        engine = get_engine()
         
         # Load places từ PostgreSQL
         places_query = """
@@ -128,7 +154,6 @@ class RecommenderSystem:
         with engine.connect() as conn:
             self.df = pd.read_sql(places_query, conn)
         
-        engine.dispose()
         print(f"[Recommender] Đã nạp {len(self.df)} bản ghi từ PostgreSQL")
     
     def build_tfidf_matrix(self):
@@ -266,10 +291,7 @@ class RecommenderSystem:
                 # Xử lý đặc biệt cho TP.HCM
                 if location_lower in ["hồ chí minh", "hồ chín minh", "tphcm", "tp.hcm", "hcm", "sài gòn", "saigon"]:
                     # Tìm các quận thuộc TP.HCM
-                    hcm_patterns = ["quận 1", "quận 2", "quận 3", "quận 4", "quận 5", "quận 6", "quận 7", 
-                                    "quận 8", "quận 9", "quận 10", "quận 11", "quận 12", 
-                                    "bình thạnh", "tân bình", "tân phú", "phú nhuận", 
-                                    "gò vấp", "bình tán", "thủ đức"]
+                    hcm_patterns = HCM_DISTRICTS
                     mask = pd.Series([False] * len(filtered_df), index=filtered_df.index)
                     for pattern in hcm_patterns:
                         mask = mask | filtered_df['location'].str.lower().str.contains(pattern, na=False)
@@ -297,10 +319,7 @@ class RecommenderSystem:
                     # Tìm tất cả các quận thuộc TP.HCM
                     # CHỈ match trong location và address với tên quận cụ thể
                     # KHÔNG match "hồ chí minh" trong address vì có thể là tên đường
-                    hcm_patterns = ["quận 1", "quận 2", "quận 3", "quận 4", "quận 5", "quận 6", "quận 7", 
-                                    "quận 8", "quận 9", "quận 10", "quận 11", "quận 12", 
-                                    "bình thạnh", "tân bình", "tân phú", "phú nhuận", 
-                                    "gò vấp", "bình tán", "thủ đức", "tp.hcm", "tphcm"]
+                    hcm_patterns = HCM_DISTRICTS + ["tp.hcm", "tphcm"]
                     # Tìm trong location hoặc address có chứa tên quận HCM
                     mask = pd.Series([False] * len(filtered_df), index=filtered_df.index)
                     for pattern in hcm_patterns:
@@ -369,10 +388,7 @@ class RecommenderSystem:
                             # Xử lý đặc biệt cho TP.HCM (không có quận cụ thể)
                             if location_lower in ["hồ chí minh", "hồ chín minh", "tphcm", "tp.hcm", "hcm", "sài gòn", "saigon"]:
                                 # Tìm TẤT CẢ các quận trong HCM
-                                hcm_patterns = ["quận 1", "quận 2", "quận 3", "quận 4", "quận 5", "quận 6", "quận 7", 
-                                                "quận 8", "quận 9", "quận 10", "quận 11", "quận 12", 
-                                                "bình thạnh", "tân bình", "tân phú", "phú nhuận", 
-                                                "gò vấp", "bình tán", "thủ đức"]
+                                hcm_patterns = HCM_DISTRICTS
                                 mask = pd.Series([False] * len(filtered_df), index=filtered_df.index)
                                 for pattern in hcm_patterns:
                                     mask = mask | filtered_df['location'].str.lower().str.contains(pattern, na=False)

@@ -283,7 +283,18 @@ class IntentClassifier:
                 confidence = max(confidence, 0.85)
             
             # ==================================================================
-            # 4. Rule-based override: Uu tien place_type truoc!
+            # 4. Extract Entities SỚM để phục vụ Rule-based override
+            # ==================================================================
+            from src.core.ner import extract_entities
+            entities = extract_entities(user_message)
+            place_type_entities = entities.get("place_type", [])
+            food_entities = entities.get("food", [])
+            location_entities = entities.get("location", [])
+            
+            user_message_lower = user_message.lower()
+
+            # ==================================================================
+            # 5. Rule-based override: Uu tien place_type truoc!
             # PROTECTED_INTENTS: Dynamic - chi protect intent moi khi co keyword
             # ==================================================================
             PROTECTED_INTENTS = {
@@ -293,41 +304,70 @@ class IntentClassifier:
             if has_price: PROTECTED_INTENTS.add("hoi_gia")
             if has_review: PROTECTED_INTENTS.add("danh_gia")
             if has_compare: PROTECTED_INTENTS.add("so_sanh")
+            
+            # GIẢI PHÓNG out_of_scope NẾU LÀ CÂU TÌM KIẾM CỤ THỂ
+            # Ví dụ: "địa điểm du lịch ở phú quốc" -> model có thể bị nhầm out_of_scope vì ngắn
+            # Nếu NER tìm thấy location hoặc user dùng từ khóa tìm địa điểm, gỡ bỏ khiên bảo vệ
+            LISTING_PLACE_PATTERNS = [
+                "địa điểm", "điểm du lịch", "điểm đến", "nơi nào", "chỗ nào",
+                "có những", "những gì", "danh lam", "thắng cảnh", "tham quan",
+                "khách sạn", "nhà nghỉ", "resort", "homestay", "villa"
+            ]
+            if "out_of_scope" in PROTECTED_INTENTS:
+                if location_entities or place_type_entities or food_entities or any(p in user_message_lower for p in LISTING_PLACE_PATTERNS):
+                    PROTECTED_INTENTS.remove("out_of_scope")
+
             if prediction not in PROTECTED_INTENTS:
-                from src.core.ner import extract_entities
-                entities = extract_entities(user_message)
-                place_type_entities = entities.get("place_type", [])
-                food_entities = entities.get("food", [])
                 
-                # RULE -1: Nếu có từ "quán" + bất kỳ từ nào khác → chắc chắn là tim_mon_an
-                # Ví dụ: "quán bún mắm", "quán phở", "quán ăn ngon"
-                user_message_lower = user_message.lower()
+                LISTING_FOOD_PATTERNS = [
+                    "món gì", "ăn gì", "món nào", "đặc sản", "nổi tiếng",
+                    "nên ăn", "thử gì", "gì ngon", "ẩm thực",
+                    "đồ ăn", "thức ăn", "món ăn"
+                ]
+                LISTING_PLACE_PATTERNS = [
+                    "địa điểm", "điểm du lịch", "điểm đến", "nơi nào", "chỗ nào",
+                    "có những", "những gì", "danh lam", "thắng cảnh", "tham quan",
+                    "khách sạn", "nhà nghỉ", "resort", "homestay", "villa", "khu nghỉ dưỡng"
+                ]
+
+                ACCOMMODATION_TYPES = ["khách sạn", "hotel", "homestay", "resort", "nhà nghỉ", "villa", "khu nghỉ dưỡng"]
+                is_accommodation = any(ptype in ACCOMMODATION_TYPES for ptype in place_type_entities)
+
+                # Bắt đầu chuỗi nếu (if-elif) ưu tiên để không bị ghi đè lẫn nhau:
                 if "quán" in user_message_lower:
                     print(f"[Intent] Rule-based override: Found 'quán', changing intent to tim_mon_an")
                     prediction = "tim_mon_an"
                     confidence = 1.0
+
+                elif any(p in user_message_lower for p in LISTING_PLACE_PATTERNS) and entities.get("location"):
+                    print(f"[Intent] Rule-based override: Found list place pattern, changing intent to tim_dia_diem")
+                    prediction = "tim_dia_diem"
+                    confidence = 0.95
+
+                elif any(p in user_message_lower for p in LISTING_FOOD_PATTERNS) and entities.get("location"):
+                    print(f"[Intent] Rule-based override: Found list food pattern, changing intent to tim_mon_an")
+                    prediction = "tim_mon_an"
+                    confidence = 0.95
                 
-                # RULE 0: Nếu có từ khóa về vui chơi/giải trí → chắc chắn là tim_dia_diem
                 elif any(keyword in user_message_lower for keyword in [
                     "chơi", "vui chơi", "giải trí", "du lịch", "tham quan", 
                     "checkin", "check in", "đi đâu", "có gì", "gì hay",
                     "khám phá", "tour", "travel"
-                ]):
-                    # Kiểm tra xem có phải đang hỏi về món ăn không
-                    # Nếu không có food entities cụ thể và không có place_type ẩm thực
-                    if not food_entities and not place_type_entities:
-                        print(f"[Intent] Rule-based override: Found entertainment keyword, changing intent to tim_dia_diem")
-                        prediction = "tim_dia_diem"
-                        confidence = 1.0
-                
-                # RULE 1: Nếu có place_type (nhà hàng, quán cà phê...) → chắc chắn là tim_mon_an
-                # Ưu tiên cao nhất vì place_type rất rõ ràng
-                elif place_type_entities:
-                    print(f"[Intent] Rule-based override: Found place_type {place_type_entities}, changing intent to tim_mon_an")
-                    prediction = "tim_mon_an"
+                ]) and not food_entities and not (place_type_entities and not is_accommodation):
+                    print(f"[Intent] Rule-based override: Found entertainment keyword without F&B intent, changing to tim_dia_diem")
+                    prediction = "tim_dia_diem"
                     confidence = 1.0
                 
-                # RULE 2: Nếu có món ăn cụ thể → override thành tim_mon_an
+                elif place_type_entities:
+                    if is_accommodation:
+                        print(f"[Intent] Rule-based override: Found accommodation place type, changing intent to tim_dia_diem")
+                        prediction = "tim_dia_diem"
+                        confidence = 1.0
+                    else:
+                        print(f"[Intent] Rule-based override: Found F&B place type, changing intent to tim_mon_an")
+                        prediction = "tim_mon_an"
+                        confidence = 1.0
+                
                 elif food_entities:
                     # Danh sách từ chung chung — không đủ để override intent
                     generic_food_words = [

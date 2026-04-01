@@ -279,6 +279,7 @@ PLACE_TYPE_DICTIONARY = {
     "quán trà", "quán nước", "quán giải khát",
     "quán bia", "bia hơi", "bar", "pub",
     "quán lẩu", "quán nướng", "quán buffet", "buffet",
+    "khách sạn", "hotel", "homestay", "resort", "nhà nghỉ", "villa", "khu nghỉ dưỡng",
     "tiệm", "cửa hàng", "siêu thị", "chợ"
 }
 
@@ -338,6 +339,9 @@ SYNONYM_MAP = {
     "beer": "bia",
     "bia tươi": "bia hơi",
     "beer club": "quán bia",
+    "khach san": "khách sạn",
+    "khu nghỉ dưỡng": "resort",
+    "nha nghi": "nhà nghỉ"
 }
 
 
