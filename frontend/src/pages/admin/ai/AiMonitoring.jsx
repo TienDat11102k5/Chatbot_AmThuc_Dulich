@@ -212,7 +212,12 @@ const AiMonitoring = () => {
               const colors = {
                 tim_mon_an: 'bg-orange-500',
                 tim_dia_diem: 'bg-blue-500',
-                hoi_thoi_tiet: 'bg-cyan-500',
+                hoi_vi_tri: 'bg-teal-500',
+                chao_hoi: 'bg-green-500',
+                cam_on: 'bg-pink-500',
+                tam_biet: 'bg-purple-500',
+                hoi_thong_tin: 'bg-indigo-500',
+                out_of_scope: 'bg-slate-500',
               };
               return (
                 <div key={tag} className="p-4 bg-slate-50 rounded-xl">

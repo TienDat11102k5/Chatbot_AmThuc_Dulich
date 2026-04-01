@@ -26,16 +26,14 @@ import os      # Environment variables
 import uuid    # Generate temp session_id when None
 from fastapi import APIRouter, HTTPException, Request
 from src.api.schemas import ChatRequest, ChatResponse, RecommendationItem
-from src.core.ner import extract_entities
+from src.core.ner import extract_entities, MERGED_PROVINCES
 from src.core.location_handler import get_location_handler
 from src.core.oos_logger import log_rejected_query  # OOS logging module
 from src.core.context_manager import ContextManager, is_follow_up_question, detect_topic_change  # Context management
 from src.core.clarification import should_ask_clarification, generate_clarification_message  # Clarification
-from src.core.sentiment import analyze_sentiment  # Sentiment analysis
-from src.core.trip_planner import is_planning_request, extract_duration, generate_trip_plan  # Trip planner
 from src.core.response_generator import (  # Response Generator — Phase 1 Optimization
     generate_greeting_response, format_recommendations, generate_no_results_response,
-    generate_pagination_message, get_sentiment_response_text,
+    generate_pagination_message,
     OUT_OF_SCOPE_RESPONSES,
 )
 
@@ -62,7 +60,7 @@ CONFIDENCE_THRESHOLD = 0.4
 
 # Danh sách các intent "giao tiếp" — KHÔNG áp dụng confidence threshold
 # vì các câu ngắn ("hi", "bye") thường có confidence thấp nhưng vẫn hợp lệ.
-CONVERSATION_INTENTS = {"chao_hoi", "cam_on", "tam_biet", "hoi_thong_tin", "hoi_gia", "so_sanh", "danh_gia"}
+CONVERSATION_INTENTS = {"chao_hoi", "cam_on", "tam_biet", "hoi_thong_tin"}
 
 # ==============================================================================
 # INTENT_RESPONSES & OUT_OF_SCOPE_RESPONSES → Đã chuyển sang response_generator.py  
@@ -117,6 +115,90 @@ def _is_gibberish(text: str) -> bool:
     return False
 
 
+# ==============================================================================
+# HÀM PHÁT HIỆN CODE/SCRIPT INJECTION
+# ==============================================================================
+# Mục đích: Chặn các input là code lập trình (JavaScript, HTML, SQL, Python...)
+# bị gửi nhầm vào chatbot — vì model không phải là trình biên dịch code.
+def _is_code_injection(text: str) -> bool:
+    """
+    Kiểm tra xem input có phải là code lập trình / script injection không.
+    Trả về True nếu text chứa pattern code rõ ràng.
+    """
+    lower = text.lower().strip()
+
+    # Pattern 1: JavaScript / TypeScript keywords + patterns
+    js_patterns = [
+        r'document\.',           # document.querySelector, document.getElementById
+        r'window\.',             # window.location, window.alert
+        r'console\.',            # console.log
+        r'\bvar\s+\w+\s*=',      # var x =
+        r'\blet\s+\w+\s*=',      # let x =
+        r'\bconst\s+\w+\s*=',    # const x =
+        r'function\s*\(',        # function(
+        r'=>\s*\{',              # arrow function
+        r'querySelector',        # DOM manipulation
+        r'getElementById',       # DOM manipulation
+        r'addEventListener',     # Event listeners
+        r'\.prototype\.',        # Prototype access
+        r'new\s+\w+\(',          # new Object(
+        r'import\s+.*\s+from',   # ES6 import
+        r'require\(',            # Node.js require
+        r'module\.exports',      # Node.js export
+    ]
+
+    # Pattern 2: HTML / XSS injection
+    html_patterns = [
+        r'<\s*script',           # <script>
+        r'<\s*iframe',           # <iframe>
+        r'<\s*img\s+.*on\w+=',   # <img onerror=
+        r'<\s*div',              # <div>
+        r'<\s*style',            # <style>
+        r'javascript\s*:',       # javascript: URL protocol
+        r'on(click|load|error|mouseover)\s*=',  # Event handlers
+    ]
+
+    # Pattern 3: SQL injection
+    sql_patterns = [
+        r'\bSELECT\s+.+\s+FROM\b',      # SELECT * FROM
+        r'\bINSERT\s+INTO\b',            # INSERT INTO
+        r'\bDROP\s+(TABLE|DATABASE)\b',   # DROP TABLE
+        r'\bDELETE\s+FROM\b',            # DELETE FROM
+        r'\bUNION\s+SELECT\b',           # UNION SELECT
+        r"'\s*OR\s+'1'\s*=\s*'1",        # ' OR '1'='1
+        r'--\s*$',                        # SQL comment
+    ]
+
+    # Pattern 4: Python / General programming
+    code_patterns = [
+        r'\bdef\s+\w+\s*\(',             # def function(
+        r'\bclass\s+\w+\s*[:\(]',         # class Name:
+        r'\bimport\s+\w+',               # import os
+        r'print\s*\(',                    # print(
+        r'\bfor\s+\w+\s+in\s+',          # for x in
+        r'\bwhile\s+.*:',                # while True:
+        r'\{\s*\{.*\}\s*\}',             # {{ template }}
+        r'process\.env',                  # process.env
+        r'__\w+__',                      # __init__, __name__
+        r'\$\(\s*[\'"]',                 # jQuery $("")
+        r'\.addEventListener\s*\(',       # addEventListener
+    ]
+
+    # Pattern 5: Dấu hiệu chung của code (nhiều ký tự đặc biệt)
+    special_char_count = sum(1 for c in text if c in '{}[]();=<>|&$#@')
+    # Nếu >20% ký tự là special chars → khả năng cao là code
+    if len(text) > 10 and special_char_count / len(text) > 0.15:
+        return True
+
+    # Kiểm tra tất cả patterns
+    all_patterns = js_patterns + html_patterns + sql_patterns + code_patterns
+    for pattern in all_patterns:
+        if re.search(pattern, text, re.IGNORECASE):
+            return True
+
+    return False
+
+
 @router.post("/chat", response_model=ChatResponse)
 async def chat_endpoint(request: ChatRequest, raw_request: Request):
     """
@@ -149,6 +231,34 @@ async def chat_endpoint(request: ChatRequest, raw_request: Request):
                 "intent": "out_of_scope",
                 "confidence": 0.0,
                 "message": response_message,
+                "recommendations": [],
+                "entities": None,
+                "ask_location": False,
+            }
+            cache.set(user_message, response_data)
+            return ChatResponse(**response_data)
+
+        # ==================================================================
+        # BƯỚC 0.5: CODE/SCRIPT INJECTION DETECTION
+        # Chặn input là code lập trình (JS, HTML, SQL, Python...)
+        # ==================================================================
+        if _is_code_injection(user_message):
+            log_rejected_query(
+                user_message=user_message,
+                predicted_intent="code_injection",
+                confidence=0.0,
+                rejection_reason="code_script_detected",
+            )
+            code_reject_msg = (
+                "🚫 Xin lỗi, mình là trợ lý **ẩm thực & du lịch**, "
+                "không phải trình biên dịch code nha! 😄\n\n"
+                "💡 Thử hỏi mình: *\"Quán phở ngon ở Hà Nội\"* "
+                "hoặc *\"Địa điểm du lịch Đà Nẵng\"*"
+            )
+            response_data = {
+                "intent": "out_of_scope",
+                "confidence": 0.0,
+                "message": code_reject_msg,
                 "recommendations": [],
                 "entities": None,
                 "ask_location": False,
@@ -229,6 +339,36 @@ async def chat_endpoint(request: ChatRequest, raw_request: Request):
                 print(f"[Chat] Follow-up suggestion detected: {last_suggestion}, hijacked intent to: {intent}")
 
         # ==================================================================
+        # BƯỚC 2.8: NER-BASED INTENT RESCUE (Cứu intent khi SVM không tự tin)
+        # ==================================================================
+        # Nếu confidence thấp (SVM không chắc) NHƯNG NER phát hiện food/location entities
+        # → Override intent sang đúng loại thay vì để OOS guard chặn.
+        # Ví dụ: "liệt kê 5 quán bánh mì tại hà nội" → SVM conf=-0.058 nhưng NER thấy "bánh mì" + "hà nội"
+        if confidence < CONFIDENCE_THRESHOLD and intent not in CONVERSATION_INTENTS:
+            pre_ner = extract_entities(user_message)
+            has_food = bool(pre_ner.get("food"))
+            has_location = bool(pre_ner.get("location"))
+            has_place_type = bool(pre_ner.get("place_type"))
+            
+            if has_food or has_location or has_place_type:
+                # Quyết định intent dựa trên loại entity phát hiện được
+                if has_food:
+                    old_intent = intent
+                    intent = "tim_mon_an"
+                    confidence = 0.7  # Override confidence để pass OOS guard
+                    print(f"[NER-Rescue] 🔄 '{old_intent}' → 'tim_mon_an' (found food: {pre_ner['food']})")
+                elif has_place_type:
+                    old_intent = intent
+                    intent = "tim_dia_diem"
+                    confidence = 0.7
+                    print(f"[NER-Rescue] 🔄 '{old_intent}' → 'tim_dia_diem' (found place_type: {pre_ner['place_type']})")
+                elif has_location and not has_food:
+                    old_intent = intent
+                    intent = "tim_dia_diem"
+                    confidence = 0.7
+                    print(f"[NER-Rescue] 🔄 '{old_intent}' → 'tim_dia_diem' (found location: {pre_ner['location']})")
+
+        # ==================================================================
         # BƯỚC 3: OUT-OF-SCOPE GUARD — Phòng thủ 2 lớp
         # ==================================================================
         # Lớp 1: Model trực tiếp classify là "out_of_scope"
@@ -277,47 +417,23 @@ async def chat_endpoint(request: ChatRequest, raw_request: Request):
         # [Phase 1] Dùng Response Generator thay vì INTENT_RESPONSES dict
         response_message = generate_greeting_response(intent)
 
-        # ==================================================================
-        # TRIP PLANNER CHECK (Phase 4) — trước intent handler bình thường
-        # ==================================================================
-        if is_planning_request(user_message):
-            entities = extract_entities(user_message)
-            destination = entities.get("location", [""])[0] if entities.get("location") else ""
-            duration = extract_duration(user_message)
-            
-            if destination:
-                print(f"[Chat] 🗺️ Trip planning: {destination} for {duration} days")
-                
-                # Lấy data từ recommender cho destination
-                food_result = recommender.recommend(
-                    {"location": [destination], "food": [], "place_type": [], "raw_query": f"đặc sản {destination}"},
-                    intent="tim_mon_an", top_k=duration * 2, user_message=f"món ăn {destination}"
-                )
-                spot_result = recommender.recommend(
-                    {"location": [destination], "food": [], "place_type": [], "raw_query": f"địa điểm {destination}"},
-                    intent="tim_dia_diem", top_k=duration * 2, user_message=f"địa điểm du lịch {destination}"
-                )
-                
-                response_message = generate_trip_plan(
-                    destination=destination,
-                    duration=duration,
-                    food_places=food_result.get("results", []),
-                    tourist_spots=spot_result.get("results", []),
-                )
-                
-                return ChatResponse(
-                    intent="lap_ke_hoach",
-                    confidence=1.0,
-                    message=response_message,
-                    recommendations=[],
-                    entities=entities,
-                    ask_location=False,
-                )
-            # Nếu không có destination → fall through to normal flow
+        # Track merged province notification
+        merged_province_note = None
 
         if intent in ("tim_mon_an", "tim_dia_diem"):
             # NER → Extract entities từ câu hiện tại
             entities = extract_entities(user_message)
+            
+            # ==================================================================
+            # MERGED PROVINCE DETECTION: Kiểm tra tỉnh cũ đã sáp nhập
+            # ==================================================================
+            if entities.get("location"):
+                for loc in list(entities["location"]):
+                    loc_lower = loc.lower().strip()
+                    if loc_lower in MERGED_PROVINCES:
+                        info = MERGED_PROVINCES[loc_lower]
+                        merged_province_note = f"📌 *{info['note']}*\n"
+                        print(f"[Chat] Merged province detected: {loc_lower} → {info['current']}")
             
             # ==================================================================
             # CONTEXT AWARENESS: Topic Change Detection + Merge
@@ -439,6 +555,9 @@ async def chat_endpoint(request: ChatRequest, raw_request: Request):
                     location_not_found=location_not_found,
                     searched_location=searched_location,
                 )
+                # Prepend merged province notification if applicable
+                if merged_province_note:
+                    response_message = merged_province_note + response_message
                 # Format recommendations với medal, rating, giá
                 items_text, suggestion_type = format_recommendations(
                     recommendations, intent,
@@ -469,108 +588,6 @@ async def chat_endpoint(request: ChatRequest, raw_request: Request):
             ]
 
         # ==================================================================
-        # PHASE 3: HANDLER CHO 3 INTENT MỚI
-        # ==================================================================
-        elif intent == "hoi_gia":
-            entities = extract_entities(user_message)
-            # Tìm kết quả liên quan để lấy thông tin giá
-            recommender_result = recommender.search(
-                entities, intent="tim_mon_an", top_k=5, user_message=user_message
-            )
-            raw_results = recommender_result["results"][:3]
-            recommendations = [RecommendationItem(**item) for item in raw_results]
-            
-            if recommendations:
-                response_message = "💰 Đây là thông tin giá cả tham khảo:\n"
-                for i, rec in enumerate(recommendations, 1):
-                    price_info = rec.price_range if rec.price_range and rec.price_range.strip() else "Chưa có thông tin giá"
-                    rating_str = f" ⭐{rec.rating:.1f}" if rec.rating and float(rec.rating) > 0 else ""
-                    response_message += (
-                        f"\n{i}. **{rec.name}**{rating_str}\n"
-                        f"   📍 {rec.location}\n"
-                        f"   💵 {price_info}\n"
-                    )
-                response_message += (
-                    "\n💡 *Giá có thể thay đổi theo mùa và thời điểm. "
-                    "Liên hệ trực tiếp quán để biết giá chính xác nhé!*"
-                )
-            else:
-                response_message = (
-                    "💰 Mình chưa có thông tin giá cụ thể cho câu hỏi này.\n"
-                    "💡 Thử hỏi cụ thể hơn, ví dụ: \"Giá phở ở Hà Nội bao nhiêu?\""
-                )
-
-        elif intent == "so_sanh":
-            entities = extract_entities(user_message)
-            foods = entities.get("food", [])
-            locations = entities.get("location", [])
-            
-            if len(foods) >= 2:
-                # So sánh 2 món ăn
-                response_message = f"⚖️ So sánh **{foods[0]}** và **{foods[1]}**:\n\n"
-                for food in foods[:2]:
-                    food_entities = {"food": [food], "location": locations}
-                    result = recommender.search(
-                        food_entities, intent="tim_mon_an", top_k=1, user_message=food
-                    )
-                    if result["results"]:
-                        r = result["results"][0]
-                        rating = f"⭐{r.get('rating', 0):.1f}" if r.get('rating', 0) > 0 else "Chưa có rating"
-                        price = r.get('price_range', 'N/A') or 'N/A'
-                        response_message += (
-                            f"🍜 **{food.title()}**:\n"
-                            f"   Quán tiêu biểu: {r['name']} ({r['location']})\n"
-                            f"   Rating: {rating} | Giá: {price}\n\n"
-                        )
-                response_message += "💡 *Mỗi món đều có nét đặc trưng riêng. Tốt nhất bạn nên thử cả hai!*"
-            elif len(locations) >= 2:
-                # So sánh 2 địa điểm
-                response_message = f"⚖️ So sánh du lịch **{locations[0]}** và **{locations[1]}**:\n\n"
-                for loc in locations[:2]:
-                    loc_entities = {"location": [loc], "food": []}
-                    result = recommender.search(
-                        loc_entities, intent="tim_dia_diem", top_k=3, user_message=loc
-                    )
-                    count = len(result["results"])
-                    response_message += (
-                        f"📍 **{loc}**: {count}+ điểm du lịch trong database\n"
-                    )
-                response_message += "\n💡 *Cả hai đều là điểm đến tuyệt vời! Hỏi mình chi tiết về từng nơi nhé.*"
-            else:
-                response_message = (
-                    "⚖️ Mình cần biết rõ hơn bạn muốn so sánh gì!\n"
-                    "💡 Thử hỏi: \"So sánh phở và bún bò\" hoặc \"Nên đi Đà Nẵng hay Nha Trang?\""
-                )
-
-        elif intent == "danh_gia":
-            entities = extract_entities(user_message)
-            # Tìm kết quả có rating cao nhất
-            recommender_result = recommender.search(
-                entities, intent="tim_mon_an", top_k=5, user_message=user_message
-            )
-            raw_results = recommender_result["results"][:3]
-            recommendations = [RecommendationItem(**item) for item in raw_results]
-            
-            if recommendations:
-                response_message = "⭐ Đây là đánh giá và review tổng hợp:\n"
-                for i, rec in enumerate(recommendations, 1):
-                    rating_str = f"⭐ {rec.rating:.1f}/5.0" if rec.rating and float(rec.rating) > 0 else "Chưa có đánh giá"
-                    response_message += (
-                        f"\n{i}. **{rec.name}** — {rating_str}\n"
-                        f"   📍 {rec.location}\n"
-                        f"   📝 {rec.description}\n"
-                    )
-                response_message += (
-                    "\n💡 *Rating dựa trên dữ liệu thu thập từ nhiều nguồn. "
-                    "Bạn nên đọc thêm review trên Google Maps để có cái nhìn chi tiết hơn!*"
-                )
-            else:
-                response_message = (
-                    "⭐ Mình chưa tìm thấy đánh giá phù hợp.\n"
-                    "💡 Thử hỏi cụ thể hơn, ví dụ: \"Review phở Thìn Hà Nội\""
-                )
-
-        # ==================================================================
         # BƯỚC 5: LƯU CONTEXT VÀO REDIS (trước khi return)
         # ==================================================================
         if intent in ("tim_mon_an", "tim_dia_diem") and recommendations:
@@ -589,17 +606,6 @@ async def chat_endpoint(request: ChatRequest, raw_request: Request):
         if intent == "hoi_vi_tri":
             ask_location = location_result.get("ask_location", False)
 
-        # ==================================================================
-        # BƯỚC 5.5: SENTIMENT ANALYSIS (Phase 1 — đa dạng hóa)
-        # ==================================================================
-        sentiment, sentiment_score = analyze_sentiment(user_message)
-        sentiment_msg = get_sentiment_response_text(sentiment, sentiment_score)
-        
-        # Nếu phát hiện cảm xúc mạnh → prepend vào response
-        if sentiment_msg:
-            print(f"[Chat] Sentiment: {sentiment} (score={sentiment_score:.2f})")
-            response_message = sentiment_msg + "\n\n" + response_message
-
         # Tính pagination cho non-search intents
         _total = total_found if intent in ("tim_mon_an", "tim_dia_diem") else 0
         _remaining = remaining if intent in ("tim_mon_an", "tim_dia_diem") else 0
@@ -614,7 +620,6 @@ async def chat_endpoint(request: ChatRequest, raw_request: Request):
             "has_more_results": _remaining > 0,
             "total_results": _total,
             "remaining_results": _remaining,
-            "sentiment": sentiment if sentiment != "neutral" else None,
             "last_suggestion": suggestion_type if 'suggestion_type' in locals() else "none"
         }
 

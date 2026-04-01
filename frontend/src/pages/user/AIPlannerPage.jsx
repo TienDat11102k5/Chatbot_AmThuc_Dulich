@@ -178,13 +178,16 @@ const AIPlannerPage = () => {
         trimmed,
         {
           onChunk: (chunk) => {
+            // IMPORTANT: Create NEW object (immutable) to avoid React StrictMode double-render duplication
             setMessages(prev => {
-              const updated = [...prev];
-              const lastMsg = updated[updated.length - 1];
+              const lastMsg = prev[prev.length - 1];
               if (lastMsg && lastMsg.id === botMsgId) {
-                lastMsg.text += chunk;
+                return [
+                  ...prev.slice(0, -1),
+                  { ...lastMsg, text: lastMsg.text + chunk }
+                ];
               }
-              return updated;
+              return prev;
             });
           },
           onMetadata: (meta) => {

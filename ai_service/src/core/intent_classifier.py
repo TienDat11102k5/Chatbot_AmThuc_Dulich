@@ -249,40 +249,6 @@ class IntentClassifier:
                         confidence = min(abs(float(decision_scores)), 1.0)
             
             # ==================================================================
-            # 3b. Phase 4: Keyword-based intent refinement cho 3 intent moi
-            # Phat hien tu khoa gia/danh gia/so sanh de override SVM prediction
-            # Chay TRUOC rule-based food/place de lay quyen uu tien
-            # ==================================================================
-            user_lower = user_message.lower()
-            
-            # Tu khoa gia ca (hoi_gia)
-            PRICE_KW = ["bao nhiêu", "bao nhieu", "giá", "gia bao", "tiền", "tien",
-                        "đắt", "rẻ", "mắc", "chi phí", "chi phi", "tốn", "budget"]
-            # Tu khoa danh gia (danh_gia)
-            REVIEW_KW = ["review", "đánh giá", "danh gia", "nhận xét", "nhan xet",
-                         "tốt không", "ngon không", "có tốt", "có ngon", "có hay",
-                         "có được", "đáng", "worth", "feedback", "rating"]
-            # Tu khoa so sanh (so_sanh)
-            COMPARE_KW = ["so sánh", "so sanh", "hay hơn", "ngon hơn", "tốt hơn",
-                          "đẹp hơn", "nên chọn", "nen chon", "nên ăn", "nen an",
-                          "nên đi", "hay là", "hay la", "compare"]
-            
-            has_price = any(kw in user_lower for kw in PRICE_KW)
-            has_review = any(kw in user_lower for kw in REVIEW_KW)
-            has_compare = any(kw in user_lower for kw in COMPARE_KW)
-            
-            # Override prediction neu phat hien tu khoa ro rang
-            if has_price and prediction != "out_of_scope":
-                prediction = "hoi_gia"
-                confidence = max(confidence, 0.85)
-            elif has_review and prediction != "out_of_scope":
-                prediction = "danh_gia"
-                confidence = max(confidence, 0.85)
-            elif has_compare and prediction != "out_of_scope":
-                prediction = "so_sanh"
-                confidence = max(confidence, 0.85)
-            
-            # ==================================================================
             # 4. Extract Entities SỚM để phục vụ Rule-based override
             # ==================================================================
             from src.core.ner import extract_entities
@@ -300,10 +266,6 @@ class IntentClassifier:
             PROTECTED_INTENTS = {
                 "out_of_scope", "chao_hoi", "cam_on", "tam_biet", "hoi_thong_tin"
             }
-            # Chi protect 3 intent moi khi co keyword tuong ung (Phase 4)
-            if has_price: PROTECTED_INTENTS.add("hoi_gia")
-            if has_review: PROTECTED_INTENTS.add("danh_gia")
-            if has_compare: PROTECTED_INTENTS.add("so_sanh")
             
             # GIẢI PHÓNG out_of_scope NẾU LÀ CÂU TÌM KIẾM CỤ THỂ
             # Ví dụ: "địa điểm du lịch ở phú quốc" -> model có thể bị nhầm out_of_scope vì ngắn

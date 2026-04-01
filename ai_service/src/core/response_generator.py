@@ -150,18 +150,7 @@ INFO_RESPONSES = [
     "💡 Mình có thể giúp bạn:\n"
     "• 🍜 Tìm món ăn ngon theo vùng miền\n"
     "• 📍 Gợi ý địa điểm du lịch\n"
-    "• 🗺️ Lập kế hoạch chuyến đi\n"
     "• 📍 Tìm quán gần đây",
-]
-
-WEATHER_RESPONSES = [
-    "🌤️ Mình chưa hỗ trợ tra cứu thời tiết trực tiếp. "
-    "Bạn có thể tra trên **weather.com** hoặc **thoitiet.vn** nhé!\n"
-    "💡 Nhưng mình có thể gợi ý **món ăn** hoặc **địa điểm** phù hợp với thời tiết đó!",
-
-    "☁️ Xin lỗi, mình không tra được thời tiết. "
-    "Nhưng nếu trời mưa thì ăn **phở nóng** rất hợp, hay trời nắng thì uống **nước mía** đã khát lắm! 😄\n"
-    "Bạn muốn mình gợi ý món gì không?",
 ]
 
 # ==============================================================================
@@ -250,55 +239,6 @@ PLACE_FOLLOW_UP_SUGGESTIONS = [
 ]
 
 # ==============================================================================
-# 6. SENTIMENT RESPONSES — Đa dạng phản hồi cảm xúc
-# ==============================================================================
-
-POSITIVE_SENTIMENT_RESPONSES = [
-    "😊 Cảm ơn bạn nhiều! Rất vui vì gợi ý hữu ích nha!",
-    "🥰 Bạn khen mình vui ghê! Tìm thêm gì không nào?",
-    "😄 Yay! Vui quá khi bạn thích! Mình luôn sẵn sàng giúp!",
-    "🌟 Cảm ơn bạn! Chúc bạn ăn ngon và chơi vui nhé!",
-    "😊 Tuyệt vời! Mình rất vui vì đã giúp được bạn!",
-]
-
-NEGATIVE_SENTIMENT_RESPONSES = [
-    "😔 Mình xin lỗi vì kết quả chưa như ý. "
-    "Bạn thử mô tả cụ thể hơn nhé! VD: \"Tìm quán phở ngon ở quận 1\"",
-
-    "🙏 Xin lỗi bạn! Mình sẽ cố gắng gợi ý tốt hơn. "
-    "Thử nói rõ hơn về loại món ăn hoặc khu vực bạn muốn nhé!",
-
-    "😅 Mình hiểu, kết quả chưa ổn lắm. "
-    "Bạn thử hỏi cụ thể hơn, mình sẽ tìm chính xác hơn!",
-
-    "🔍 Mình xin lỗi! Thử đổi cách hỏi xem sao? "
-    "Ví dụ: thêm **tên món** + **địa điểm** cụ thể nhé.",
-]
-
-# ==============================================================================
-# 7. PRICE RESPONSES — Cho intent hoi_gia (Phase 3)
-# ==============================================================================
-
-PRICE_RESPONSES = [
-    "💰 Thông tin giá cả tham khảo:",
-    "🏷️ Đây là khoảng giá mình tìm được:",
-    "💵 Giá tham khảo cho bạn nè:",
-]
-
-COMPARISON_RESPONSES = [
-    "⚖️ So sánh cho bạn nè:",
-    "🔍 Mình so sánh giúp bạn nhé:",
-    "📊 Hai món này khác nhau như sau:",
-]
-
-REVIEW_RESPONSES = [
-    "⭐ Đây là đánh giá tổng hợp:",
-    "📝 Review cho bạn tham khảo:",
-    "🌟 Thông tin đánh giá:",
-]
-
-
-# ==============================================================================
 # 8. MAIN FUNCTIONS — API chính
 # ==============================================================================
 
@@ -328,8 +268,6 @@ def generate_greeting_response(intent: str, entities: dict = None,
         return random.choice(GOODBYE_RESPONSES)
     elif intent == "hoi_thong_tin":
         return random.choice(INFO_RESPONSES)
-    elif intent == "hoi_thoi_tiet":
-        return random.choice(WEATHER_RESPONSES)
     elif intent == "out_of_scope":
         return random.choice(OUT_OF_SCOPE_RESPONSES)
     
@@ -469,17 +407,6 @@ def generate_pagination_message(remaining: int) -> str:
     return random.choice(templates)
 
 
-def get_sentiment_response_text(sentiment: str, score: float) -> str:
-    """Sinh response dựa trên sentiment đã phân tích."""
-    if score < 0.3:
-        return ""
-    
-    if sentiment == "positive":
-        return random.choice(POSITIVE_SENTIMENT_RESPONSES)
-    elif sentiment == "negative":
-        return random.choice(NEGATIVE_SENTIMENT_RESPONSES)
-    
-    return ""
 """
 Module sinh câu trả lời tự nhiên, đa dạng — hết file.
 """

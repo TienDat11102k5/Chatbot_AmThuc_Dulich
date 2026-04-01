@@ -157,13 +157,16 @@ function AIChatWidget() {
         {
           onChunk: (chunk) => {
             // Append chunk to last bot message (streaming effect)
+            // IMPORTANT: Create NEW object (immutable) to avoid React StrictMode double-render duplication
             setMessages(prev => {
-              const updated = [...prev];
-              const lastMsg = updated[updated.length - 1];
+              const lastMsg = prev[prev.length - 1];
               if (lastMsg && lastMsg.id === botMsgId) {
-                lastMsg.content += chunk;
+                return [
+                  ...prev.slice(0, -1),
+                  { ...lastMsg, content: lastMsg.content + chunk }
+                ];
               }
-              return updated;
+              return prev;
             });
           },
           onMetadata: (meta) => {

@@ -63,7 +63,12 @@ const ErrorState = ({ message, onRetry }) => (
 const INTENT_COLORS = {
   tim_mon_an: 'bg-orange-100 text-orange-700 border-orange-200',
   tim_dia_diem: 'bg-blue-100 text-blue-700 border-blue-200',
-  hoi_thoi_tiet: 'bg-cyan-100 text-cyan-700 border-cyan-200',
+  hoi_vi_tri: 'bg-teal-100 text-teal-700 border-teal-200',
+  chao_hoi: 'bg-green-100 text-green-700 border-green-200',
+  cam_on: 'bg-pink-100 text-pink-700 border-pink-200',
+  tam_biet: 'bg-purple-100 text-purple-700 border-purple-200',
+  hoi_thong_tin: 'bg-indigo-100 text-indigo-700 border-indigo-200',
+  out_of_scope: 'bg-slate-100 text-slate-700 border-slate-200',
 };
 
 const getIntentColor = (tag) => INTENT_COLORS[tag] || 'bg-slate-100 text-slate-700 border-slate-200';

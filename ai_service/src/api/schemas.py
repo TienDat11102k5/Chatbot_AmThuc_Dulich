@@ -114,7 +114,7 @@ class ChatResponse(BaseModel):
     }
     """
     intent: str = Field(
-        description="Ý định của người dùng (tim_mon_an, tim_dia_diem, hoi_vi_tri, hoi_thoi_tiet, chao_hoi, cam_on, tam_biet, hoi_thong_tin, hoi_gia, so_sanh, danh_gia, out_of_scope)"
+        description="Ý định của người dùng (tim_mon_an, tim_dia_diem, hoi_vi_tri, chao_hoi, cam_on, tam_biet, hoi_thong_tin, out_of_scope)"
     )
     confidence: float = Field(
         description="Độ tự tin của AI khi dự đoán intent (0.0 → 1.0)"
@@ -146,11 +146,6 @@ class ChatResponse(BaseModel):
     remaining_results: int = Field(
         default=0,
         description="Số kết quả còn lại chưa hiển thị"
-    )
-    # Sentiment field — Phase 3
-    sentiment: Optional[str] = Field(
-        default=None,
-        description="Cảm xúc phát hiện được: 'positive', 'negative', 'neutral' hoặc None"
     )
 
 
