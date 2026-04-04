@@ -62,9 +62,16 @@ const AIPlannerPage = () => {
   const chatEndRef = useRef(null);
   const lastUserMsgRef = useRef(null);
 
+  const chatContainerRef = useRef(null);
+
   // Auto-scroll to newest message
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTo({
+        top: chatContainerRef.current.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
   }, [messages, isTyping]);
 
   // Load existing session messages if sessionId in URL
@@ -78,7 +85,7 @@ const AIPlannerPage = () => {
         if (data && data.length > 0) {
           setMessages(data.map((m, i) => ({
             id: m.id || i,
-            type: m.sender_type === 'USER' ? 'user' : 'ai',
+            type: (m.sender_type?.toUpperCase() === 'USER' || m.senderType?.toUpperCase() === 'USER' || m.role?.toUpperCase() === 'USER') ? 'user' : 'ai',
             text: m.content || '',
             timestamp: m.timestamp,
           })));
@@ -98,6 +105,14 @@ const AIPlannerPage = () => {
   // ─── Handle session selection from sidebar ─────────────────────────────────
   const handleSessionSelect = useCallback(async (sessionId) => {
     try {
+      // Abort ongoing stream if any
+      if (abortRef.current) {
+        abortRef.current();
+        abortRef.current = null;
+        isProcessingRef.current = false;
+        setIsTyping(false);
+      }
+
       // Update URL with sessionId
       setSearchParams({ sessionId });
       sessionIdRef.current = sessionId;
@@ -111,7 +126,7 @@ const AIPlannerPage = () => {
       if (data && data.length > 0) {
         setMessages(data.map((m, i) => ({
           id: m.id || i,
-          type: m.sender_type === 'USER' ? 'user' : 'ai',
+          type: (m.sender_type?.toUpperCase() === 'USER' || m.senderType?.toUpperCase() === 'USER' || m.role?.toUpperCase() === 'USER') ? 'user' : 'ai',
           text: m.content || '',
           timestamp: m.timestamp,
         })));
@@ -124,6 +139,14 @@ const AIPlannerPage = () => {
 
   // ─── Handle new chat ───────────────────────────────────────────────────────
   const handleNewChat = useCallback(() => {
+    // Abort ongoing stream if any
+    if (abortRef.current) {
+      abortRef.current();
+      abortRef.current = null;
+      isProcessingRef.current = false;
+      setIsTyping(false);
+    }
+    
     // Clear session and messages
     sessionIdRef.current = null;
     setMessages([]);
@@ -280,11 +303,11 @@ const AIPlannerPage = () => {
           </div>
 
           {/* Messages area */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-6">
+          <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-6 space-y-6">
             {/* Empty state */}
             {messages.length === 0 && !isTyping && (
               <div className="flex flex-col items-center justify-center h-full text-center p-8">
-                <div className="w-16 h-16 rounded-full bg-accent-100 flex items-center justify-center text-3xl mb-4">🍜</div>
+                <div className="w-16 h-16 rounded-full bg-primary-100 flex items-center justify-center text-3xl mb-4">🤖</div>
                 <h3 className="text-lg font-bold text-slate-800 mb-2">Xin chào!</h3>
                 <p className="text-sm text-slate-500 leading-relaxed">
                   Hãy hỏi tôi về ẩm thực, du lịch, hoặc yêu cầu lên lịch trình.<br />
@@ -301,14 +324,14 @@ const AIPlannerPage = () => {
                       <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Bạn</span>
                       <div className="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-xs">👤</div>
                     </div>
-                    <div className="max-w-[85%] rounded-2xl rounded-tr-none bg-accent-500 p-4 text-slate-900 shadow-sm">
+                    <div className="max-w-[85%] rounded-2xl rounded-tr-none bg-primary-600 p-4 text-white shadow-sm">
                       <p className="text-sm leading-relaxed">{msg.text}</p>
                     </div>
                   </div>
                 ) : (
                   <div className="flex flex-col items-start gap-2">
                     <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-full bg-accent-500 flex items-center justify-center text-xs">🤖</div>
+                      <div className="w-6 h-6 rounded-full bg-primary-600 text-white flex items-center justify-center text-xs">🤖</div>
                       <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">SavoryTrip AI</span>
                     </div>
                     <div
@@ -323,7 +346,7 @@ const AIPlannerPage = () => {
             {/* Typing indicator */}
             {isTyping && (
               <div className="flex items-start gap-2">
-                <div className="w-6 h-6 rounded-full bg-accent-500 flex items-center justify-center text-xs">🤖</div>
+                <div className="w-6 h-6 rounded-full bg-primary-600 text-white flex items-center justify-center text-xs">🤖</div>
                 <div className="bg-slate-100 rounded-2xl rounded-tl-none px-4 py-3 flex gap-1">
                   <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
                   <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
@@ -365,7 +388,7 @@ const AIPlannerPage = () => {
               <button
                 type="submit"
                 disabled={!inputText.trim() || isTyping}
-                className="w-8 h-8 rounded-lg bg-accent-500 flex items-center justify-center text-slate-900 hover:bg-accent-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shrink-0"
+                className="w-8 h-8 rounded-lg bg-primary-600 flex items-center justify-center text-white hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shrink-0"
                 aria-label="Gửi tin nhắn"
               >
                 <Send size={14} />
@@ -400,8 +423,8 @@ const AIPlannerPage = () => {
                 size={36}
                 className={`drop-shadow-md transition-transform group-hover:scale-125 ${
                   pin.id === activePin?.id
-                    ? 'text-accent-500 animate-bounce'
-                    : 'text-accent-400 hover:text-accent-500'
+                    ? 'text-primary-600 animate-bounce'
+                    : 'text-primary-400 hover:text-primary-600'
                 }`}
                 fill="currentColor"
               />
@@ -426,14 +449,14 @@ const AIPlannerPage = () => {
               className="absolute z-20 w-64 bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden"
               style={{ top: `calc(${activePin.top} - 170px)`, left: activePin.left, transform: 'translateX(-50%)' }}
             >
-              <div className="h-24 w-full bg-gradient-to-br from-primary-600/20 to-accent-500/20 flex items-center justify-center text-3xl">
+              <div className="h-24 w-full bg-gradient-to-br from-primary-600/20 to-primary-600/40 flex items-center justify-center text-3xl">
                 🍜
               </div>
               <div className="p-3">
                 <div className="flex justify-between items-start mb-1">
                   <h4 className="font-bold text-sm text-slate-900 flex-1 mr-2 leading-tight">{activePin.label}</h4>
                   {activePin.rating > 0 && (
-                    <span className="text-accent-500 text-xs font-bold shrink-0">⭐ {activePin.rating}</span>
+                    <span className="text-primary-600 text-xs font-bold shrink-0">⭐ {activePin.rating}</span>
                   )}
                 </div>
                 {activePin.address && (
@@ -443,7 +466,7 @@ const AIPlannerPage = () => {
                   <button className="flex-1 py-1.5 bg-slate-100 rounded-lg text-[10px] font-bold text-slate-700 hover:bg-slate-200 transition-colors">
                     Xem chi tiết
                   </button>
-                  <button className="px-2 py-1.5 bg-accent-500/20 text-accent-600 rounded-lg hover:bg-accent-500/30 transition-colors">
+                  <button className="px-2 py-1.5 bg-primary-50 text-primary-600 rounded-lg hover:bg-primary-100 transition-colors">
                     <Bookmark size={12} />
                   </button>
                 </div>
@@ -486,7 +509,7 @@ const AIPlannerPage = () => {
 
           {/* Save itinerary button */}
           <div className="absolute bottom-8 right-8 z-20">
-            <button className="flex items-center gap-3 px-8 py-4 bg-accent-500 rounded-full shadow-2xl hover:scale-105 transition-transform text-slate-900 font-bold">
+            <button className="flex items-center gap-3 px-8 py-4 bg-primary-600 rounded-full shadow-2xl hover:scale-105 transition-transform text-white font-bold">
               <Bookmark size={20} />
               Lưu lịch trình
             </button>

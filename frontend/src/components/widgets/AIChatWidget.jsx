@@ -86,13 +86,65 @@ function AIChatWidget() {
   const messagesEndRef = useRef(null);
   const lastUserMsgRef = useRef(null); // For retry functionality
   const inputRef = useRef(null); // For auto-focusing input
+  const chatContainerRef = useRef(null);
+
+  // ─── Drag functionality cho nút Chat ───────────────────────────────────────
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragInfo = useRef({ isDown: false, startX: 0, startY: 0, startPosX: 0, startPosY: 0, hasMoved: false });
+
+  const handlePointerDown = useCallback((e) => {
+    e.currentTarget.setPointerCapture(e.pointerId);
+    dragInfo.current.isDown = true;
+    dragInfo.current.hasMoved = false;
+    dragInfo.current.startX = e.clientX;
+    dragInfo.current.startY = e.clientY;
+    dragInfo.current.startPosX = position.x;
+    dragInfo.current.startPosY = position.y;
+  }, [position]);
+
+  const handlePointerMove = useCallback((e) => {
+    if (!dragInfo.current.isDown) return;
+    const dx = e.clientX - dragInfo.current.startX;
+    const dy = e.clientY - dragInfo.current.startY;
+    
+    // Chỉ kích hoạt drag khi kéo xa quá 3px (chống nhầm lẫn với click)
+    if (!dragInfo.current.hasMoved && (Math.abs(dx) > 3 || Math.abs(dy) > 3)) {
+      dragInfo.current.hasMoved = true;
+      setIsDragging(true);
+    }
+    
+    if (dragInfo.current.hasMoved) {
+      setPosition({
+        x: dragInfo.current.startPosX + dx,
+        y: dragInfo.current.startPosY + dy
+      });
+    }
+  }, []);
+
+  const handlePointerUp = useCallback((e) => {
+    dragInfo.current.isDown = false;
+    e.currentTarget.releasePointerCapture(e.pointerId);
+    
+    setTimeout(() => {
+      if (dragInfo.current.hasMoved) {
+        setIsDragging(false);
+        dragInfo.current.hasMoved = false;
+      }
+    }, 0);
+  }, []);
 
   // Auto-scroll to newest message
   useEffect(() => {
     // Sử dụng setTimeout ngắn để đảm bảo DOM render kịp chunk Text mới của ReactMarkdown.
     // Việc này sửa lỗi "khựng, không cuộn sát dưới đáy" khi SSE stream dồn dập
     const scrollToBottom = () => {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      if (chatContainerRef.current) {
+        chatContainerRef.current.scrollTo({
+          top: chatContainerRef.current.scrollHeight,
+          behavior: 'smooth'
+        });
+      }
     };
     const timerId = setTimeout(scrollToBottom, 50);
     return () => clearTimeout(timerId);
@@ -222,7 +274,9 @@ function AIChatWidget() {
       {/* ================================================================
           CỬA SỔ CHAT
           ================================================================ */}
-      <div className={`
+      <div 
+        style={{ transform: `translate(${position.x}px, ${position.y}px) scale(${isOpen ? 1 : 0.9})` }}
+        className={`
         fixed z-50 bottom-24 right-4 sm:right-6
         w-[calc(100vw-32px)] sm:w-96
         max-h-[70vh] sm:max-h-[520px]
@@ -230,8 +284,8 @@ function AIChatWidget() {
         flex flex-col overflow-hidden
         transition-all duration-300 ease-out origin-bottom-right
         ${isOpen
-          ? 'opacity-100 scale-100 pointer-events-auto'
-          : 'opacity-0 scale-90 pointer-events-none'
+          ? 'opacity-100 pointer-events-auto'
+          : 'opacity-0 pointer-events-none'
         }
       `}>
         {/* Header */}
@@ -281,7 +335,7 @@ function AIChatWidget() {
         )}
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-1 bg-slate-50">
+        <div ref={chatContainerRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-1 bg-slate-50">
           {messages.map((msg, index) => (
             <div key={msg.id}>
               {/* Timestamp separator */}
@@ -412,21 +466,37 @@ function AIChatWidget() {
       </div>
 
       {/* ================================================================
-          NÚT FLOATING
+          NÚT FLOATING (DRAGGABLE)
           ================================================================ */}
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
+        onClick={(e) => {
+          if (isDragging || dragInfo.current.hasMoved) {
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+          }
+          setIsOpen(!isOpen);
+        }}
+        style={{ 
+          transform: `translate(${position.x}px, ${position.y}px)`, 
+          touchAction: 'none' 
+        }}
         className={`
           fixed bottom-5 right-4 sm:right-6 z-50
           w-14 h-14 rounded-full
           bg-primary-600 hover:bg-primary-700
-          text-white shadow-lg hover:shadow-xl
+          text-white shadow-lg
           flex items-center justify-center
-          transition-all duration-200 active:scale-95
+          transition-colors duration-200 active:scale-95
+          cursor-grab active:cursor-grabbing
         `}
         aria-label={isOpen ? 'Đóng chat AI' : 'Mở chat AI'}
       >
-        <div className="transition-all duration-200">
+        <div className="transition-all duration-200 pointer-events-none">
           {isOpen ? <X size={24} /> : <Sparkles size={22} />}
         </div>
         {!isOpen && (

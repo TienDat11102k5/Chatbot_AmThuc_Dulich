@@ -64,7 +64,7 @@ const TripCard = ({ trip }) => {
 const TABS = [
   { id: 'trips', label: 'Chuyến đi của tôi', icon: MapPin },
   { id: 'saved', label: 'Địa điểm đã lưu', icon: Bookmark },
-  { id: 'history', label: 'Lịch sử AI', icon: History, link: '/chat' },
+  { id: 'history', label: 'Lịch sử AI', icon: History, link: '/chat-history' },
   { id: 'settings', label: 'Cài đặt', icon: Settings, link: '/settings' },
 ];
 
