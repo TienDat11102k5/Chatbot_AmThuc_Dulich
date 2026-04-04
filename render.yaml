@@ -16,7 +16,7 @@ services:
   - type: web
     name: ai-service
     runtime: python
-    plan: free
+    plan: starter
     buildCommand: pip install -r ai_service/requirements.txt
     startCommand: cd ai_service && python run_server.py
     envVars:
@@ -57,7 +57,7 @@ services:
   - type: web
     name: backend
     runtime: docker
-    plan: free
+    plan: starter
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
     envVars:
@@ -98,12 +98,12 @@ services:
   - type: web
     name: frontend
     runtime: static
-    plan: free
-    buildCommand: cd frontend && npm install && npm run build
+    plan: starter
+    buildCommand: cd frontend && npm install --legacy-peer-deps && npm run build
     staticPublishPath: ./frontend/dist
     envVars:
       - key: NODE_VERSION
-        value: 18.0.0
+        value: 20
     routes:
       - type: rewrite
         source: /api/*
