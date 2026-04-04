@@ -10,6 +10,7 @@ services:
     name: chatbot-redis
     plan: free
     maxmemoryPolicy: allkeys-lru
+    ipAllowList: []
     
   # AI Service (Python FastAPI)
   - type: web
