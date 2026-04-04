@@ -168,6 +168,7 @@ class RecommenderSystem:
         csv_path = os.path.join(base_dir, "data", "knowledge_base.csv")
         try:
             self.df = pd.read_csv(csv_path)
+            logger.info(f"[Recommender] CSV loaded with columns: {list(self.df.columns)}")
             
             # Chuẩn hóa tên cột để khớp với SQL
             # CSV có: category_vi, domain, province, district
@@ -176,9 +177,15 @@ class RecommenderSystem:
                 'category_vi': 'type',
                 'domain': 'tags'
             })
+            logger.info(f"[Recommender] After rename, columns: {list(self.df.columns)}")
             
             # Tạo cột 'location' từ province hoặc district (giống SQL: COALESCE(province, district))
-            self.df['location'] = self.df['province'].fillna(self.df['district'])
+            if 'province' in self.df.columns and 'district' in self.df.columns:
+                self.df['location'] = self.df['province'].fillna(self.df['district'])
+                logger.info(f"[Recommender] Created 'location' column from province/district")
+            else:
+                logger.error(f"[Recommender] Missing province or district column!")
+                self.df['location'] = ''
             
             # Thêm các cột còn thiếu với giá trị mặc định nếu chưa có
             if 'price_range' not in self.df.columns:
@@ -188,9 +195,12 @@ class RecommenderSystem:
             if 'address' not in self.df.columns:
                 self.df['address'] = ''
             
+            logger.info(f"[Recommender] Final columns: {list(self.df.columns)}")
             logger.info(f"[Recommender] Đã nạp {len(self.df)} bản ghi từ CSV ({csv_path})")
         except Exception as e:
             logger.error(f"[Recommender] Lỗi đọc CSV: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
             self.df = pd.DataFrame()
     
     def build_tfidf_matrix(self):
