@@ -107,4 +107,4 @@ services:
     routes:
       - type: rewrite
         source: /api/*
-        destination: https://backend.onrender.com/api/*
+        destination: https://backend-0hvq.onrender.com/api/*
