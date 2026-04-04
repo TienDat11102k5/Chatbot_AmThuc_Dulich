@@ -117,7 +117,7 @@ const authService = {
   async googleLogin(accessToken) {
     try {
       console.log("[authService] googleLogin with token, configured baseURL:", api.defaults.baseURL);
-      const response = await api.post('/auth/google', { token: accessToken });
+      const response = await api.post('/auth/google', { idToken: accessToken });
       console.log("[authService] googleLogin response RAW:", response);
       console.log("[authService] googleLogin response DATA:", response.data);
       if (response.data && response.data.data) {
