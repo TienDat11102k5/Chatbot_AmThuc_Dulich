@@ -97,7 +97,7 @@ services:
   # Frontend (React + Nginx)
   - type: web
     name: frontend
-    runtime: static
+    runtime: node
     plan: starter
     buildCommand: cd frontend && npm install --legacy-peer-deps && npm run build
     staticPublishPath: ./frontend/dist
