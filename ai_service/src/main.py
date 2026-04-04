@@ -31,6 +31,8 @@ from src.api.router import router as ai_router
 from src.api.admin_router import admin_router  # Phase 1: Admin endpoints
 from src.core.intent_classifier import IntentClassifier  # Model phân loại ý định
 from src.core.recommender_postgres import RecommenderSystem  # Hệ thống đề xuất PostgreSQL
+from src.core.config import settings
+from src.core.logger import logger
 
 # ==============================================================================
 # 1. SEMANTIC CACHE — BỘ NHỚ ĐỆM THÔNG MINH (Redis-backed)
@@ -79,24 +81,21 @@ class SemanticCache:
         self.hit_count = 0   # Đếm số lần bắn trúng cache (dùng cho thống kê)
         self.miss_count = 0  # Đếm số lần hụt cache
         
-        redis_host = os.getenv("REDIS_HOST", "localhost")
-        redis_port = int(os.getenv("REDIS_PORT", "6379"))
-        
         try:
             self.redis_client = redis_lib.Redis(
-                host=redis_host,
-                port=redis_port,
+                host=settings.REDIS_HOST,
+                port=settings.REDIS_PORT,
                 decode_responses=True,  # Tự động decode bytes → str
                 socket_timeout=2,       # Timeout 2 giây — tránh block lâu
                 socket_connect_timeout=2
             )
             # Ping để kiểm tra kết nối ngay lúc khởi động
             self.redis_client.ping()
-            print(f"      ✅ Đã kết nối Redis tại {redis_host}:{redis_port}")
+            logger.info(f"✅ Đã kết nối Redis tại {settings.REDIS_HOST}:{settings.REDIS_PORT}")
         except Exception as e:
             # Không kết nối được → Graceful Degradation
             self.redis_client = None
-            print(f"      ⚠️  Không kết nối được Redis ({e}) — Bỏ qua Semantic Cache")
+            logger.warning(f"⚠️  Không kết nối được Redis ({e}) — Bỏ qua Semantic Cache")
 
     def get(self, key: str):
         """
@@ -118,14 +117,14 @@ class SemanticCache:
             data = self.redis_client.get(normalized_key)
             if data:
                 self.hit_count += 1
-                print(f"[Cache] 🎯 HIT — Trả ngay kết quả từ Redis cho: '{key[:30]}...'")
+                logger.info(f"[Cache] 🎯 HIT — Trả ngay kết quả từ Redis cho: '{key[:30]}...'")
                 return json.loads(data)  # Deserialize JSON → dict
             self.miss_count += 1
             return None
         except Exception as e:
             # Redis lỗi giữa chừng → bỏ qua cache, tiếp tục xử lý bình thường
             self.miss_count += 1
-            print(f"[Cache] ⚠️ Redis lỗi khi đọc: {e}")
+            logger.warning(f"[Cache] ⚠️ Redis lỗi khi đọc: {e}")
             return None
 
     def set(self, key: str, value):
@@ -150,7 +149,7 @@ class SemanticCache:
             )
         except Exception as e:
             # Redis lỗi khi ghi → bỏ qua, không crash AI
-            print(f"[Cache] ⚠️ Redis lỗi khi ghi: {e}")
+            logger.warning(f"[Cache] ⚠️ Redis lỗi khi ghi: {e}")
 
 
 
@@ -176,46 +175,46 @@ async def lifespan(app: FastAPI):
     - Nếu mỗi request đều đọc file .pkl → chậm 200-500ms.
     - Load 1 lần vào RAM → truy cập chỉ 1-5ms → Nhanh gấp 100 lần!
     """
-    print("\n" + "="*55)
-    print(" 🚀 AI SERVICE ĐANG KHỞI ĐỘNG...")
-    print("="*55)
+    logger.info("="*55)
+    logger.info(" 🚀 AI SERVICE ĐANG KHỞI ĐỘNG...")
+    logger.info("="*55)
     
     # --- STARTUP: Load mọi thứ vào RAM ---
     
     # Load Model phân loại ý định (SVM)
-    print("[1/3] Đang nạp Model Intent Classifier (SVM)...")
+    logger.info("[1/3] Đang nạp Model Intent Classifier (SVM)...")
     app.state.classifier = IntentClassifier()
-    print("      ✅ Model SVM đã sẵn sàng trong RAM!")
+    logger.info("      ✅ Model SVM đã sẵn sàng trong RAM!")
     
     # Khởi tạo hệ thống Recommender (tính Ma trận TF-IDF từ Knowledge Base)
-    print("[2/3] Đang khởi tạo Recommender System (TF-IDF Matrix)...")
+    logger.info("[2/3] Đang khởi tạo Recommender System (TF-IDF Matrix)...")
     app.state.recommender = RecommenderSystem()
-    print("      ✅ Recommender đã sẵn sàng!")
+    logger.info("      ✅ Recommender đã sẵn sàng!")
     
     # Khởi tạo Semantic Cache kết nối Redis
-    print("[3/3] Đang thiết lập Semantic Cache (Redis-backed, TTL=1h)...")
+    logger.info("[3/3] Đang thiết lập Semantic Cache (Redis-backed, TTL=1h)...")
     app.state.cache = SemanticCache()  # Phase 7: Không còn max_size, dùng Redis TTL thay thế
-    print("      ✅ Cache đã sẵn sàng!")
+    logger.info("      ✅ Cache đã sẵn sàng!")
     
-    print("\n" + "="*55)
-    print(" ✅ AI SERVICE KHỞI ĐỘNG THÀNH CÔNG!")
-    print(" 🌐 Swagger UI: http://localhost:8000/docs")
-    print(" 📡 Endpoint:   POST http://localhost:8000/api/v1/ai/chat")
-    print("="*55 + "\n")
+    logger.info("="*55)
+    logger.info(" ✅ AI SERVICE KHỞI ĐỘNG THÀNH CÔNG!")
+    logger.info(" 🌐 Swagger UI: http://localhost:8000/docs")
+    logger.info(" 📡 Endpoint:   POST http://localhost:8000/api/v1/ai/chat")
+    logger.info("="*55)
     
     # yield = Đánh dấu server đang chạy. Code dưới yield chạy khi server DỪNG.
     yield
     
     # --- SHUTDOWN: Dọn dẹp khi tắt server ---
     cache = app.state.cache
-    print("\n" + "="*55)
-    print(" 🛑 AI SERVICE ĐANG DỪNG...")
-    print(f" 📊 Cache Stats: HIT={cache.hit_count} | MISS={cache.miss_count}")
+    logger.info("="*55)
+    logger.info(" 🛑 AI SERVICE ĐANG DỪNG...")
+    logger.info(f" 📊 Cache Stats: HIT={cache.hit_count} | MISS={cache.miss_count}")
     total = cache.hit_count + cache.miss_count
     if total > 0:
         hit_rate = (cache.hit_count / total) * 100
-        print(f" 📈 Tỉ lệ HIT: {hit_rate:.1f}%")
-    print("="*55 + "\n")
+        logger.info(f" 📈 Tỉ lệ HIT: {hit_rate:.1f}%")
+    logger.info("="*55)
 
 
 # ==============================================================================

@@ -130,7 +130,7 @@ class ContextManager:
             print(f"[ContextManager] Error loading context: {e}")
             return {}
     
-    def merge_entities(self, current_entities: Dict, saved_context: Dict) -> Dict:
+    def merge_entities(self, current_entities: Dict, saved_context: Dict, current_intent: str = None) -> Dict:
         """
         Merge entities hiện tại với context đã lưu.
         
@@ -138,10 +138,12 @@ class ContextManager:
         1. Nếu current có entity → dùng current (ưu tiên mới)
         2. Nếu current không có nhưng saved có → dùng saved (fallback)
         3. Đặc biệt với location: nếu current không có location → dùng saved location
+        4. CLEAR ENTITY: Bỏ food nếu tìm khách sạn, bỏ place_type nếu tìm food.
         
         Args:
             current_entities: Entities extract từ câu hỏi hiện tại
             saved_context: Context đã lưu từ Redis
+            current_intent: Intent hiện tại để clear entities kô phù hợp
             
         Returns:
             Dict: Merged entities
@@ -153,6 +155,15 @@ class ContextManager:
             "place_type": current_entities.get("place_type", []),
             "raw_query": current_entities.get("raw_query", "")
         }
+        
+        # FIX Lỗi #4: Clear entity rác khi đổi context/intent
+        last_intent = saved_context.get("last_intent")
+        if current_intent and last_intent and current_intent != last_intent:
+            print(f"[ContextManager] Intent changed from {last_intent} to {current_intent}. Filtering context entities.")
+            if current_intent in ["find_hotel", "find_place"]:
+                saved_entities["food"] = []
+            elif current_intent == "find_food":
+                saved_entities["place_type"] = []
         
         # Fallback: Nếu current không có, dùng saved
         if not merged["food"] and saved_entities.get("food"):
@@ -169,8 +180,12 @@ class ContextManager:
         
         # Update raw_query nếu đã merge entities
         if (merged["food"] != current_entities.get("food", []) or 
-            merged["location"] != current_entities.get("location", [])):
-            merged["raw_query"] = " ".join(merged["food"] + merged["location"])
+            merged["location"] != current_entities.get("location", []) or
+            merged["place_type"] != current_entities.get("place_type", [])):
+            
+            # Reconstruct raw query
+            parts = merged["food"] + merged["place_type"] + merged["location"]
+            merged["raw_query"] = " ".join(parts)
         
         return merged
     

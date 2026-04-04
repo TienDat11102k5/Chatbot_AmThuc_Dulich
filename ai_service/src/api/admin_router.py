@@ -168,3 +168,14 @@ async def get_oos_logs(limit: int = 50):
         "total": len(logs),
         "logs": logs[:limit]
     }
+
+@admin_router.get(
+    "/metrics",
+    summary="Thống kê Tracking Thời gian thực (Metrics)",
+    description="Lấy dữ liệu giám sát hệ thống AI, bao gồm tổng request, thời gian trung bình, ý định và cache."
+)
+async def get_system_metrics():
+    """Liên kết với hệ thống metrics_store trong core."""
+    from src.core.metrics import metrics_store
+    return metrics_store.get_summary()
+

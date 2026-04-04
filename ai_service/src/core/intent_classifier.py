@@ -20,6 +20,8 @@ from sklearn.metrics import classification_report, accuracy_score # Đồ thị 
 
 # Gọi bộ tiền xử lý NLP mà chúng ta vừa mới code ở file bên cạnh (nlp_utils.py)
 from src.core.nlp_utils import preprocess_text
+from src.core.config import settings
+from src.core.logger import logger
 
 # ==============================================================================
 # 1. CẤU HÌNH CÁC ĐƯỜNG DẪN CƠ BẢN (PATHS) DÙNG CHUNG TOÀN FILE
@@ -53,9 +55,9 @@ class IntentClassifier:
         if os.path.exists(model_file) and os.path.exists(vectorizer_file):
             self.model = joblib.load(model_file)
             self.vectorizer = joblib.load(vectorizer_file)
-            print(f"[INFO] Đã load Model và Vectorizer thành công từ {MODEL_DIR}")
+            logger.info(f" Đã load Model và Vectorizer thành công từ {MODEL_DIR}")
         else:
-            print(f"[WARNING] Không tìm thấy model files. Cần train trước.")
+            logger.warning(f" Không tìm thấy model files. Cần train trước.")
             # Khởi tạo pipeline để train (nếu cần)
             self.pipeline = Pipeline([
                 ('tfidf', TfidfVectorizer()),
@@ -71,19 +73,19 @@ class IntentClassifier:
         4. Huấn luyện (Fit).
         5. Xuất Metric báo cáo cho môn học AI. (Lưu cả file metrics.txt).
         """
-        print("\n" + "="*50)
-        print(" BẮT ĐẦU QUÁ TRÌNH HUẤN LUYỆN (TRAINING MODEL)")
-        print("="*50)
+        logger.info("\n" + "="*50)
+        logger.info(" BẮT ĐẦU QUÁ TRÌNH HUẤN LUYỆN (TRAINING MODEL)")
+        logger.info("="*50)
         
         # 1. ĐỌC DỮ LIỆU
         if not os.path.exists(DATA_PATH):
             raise FileNotFoundError(f"Không tìm được dataset tại: {DATA_PATH}")
         
         df = pd.read_csv(DATA_PATH)
-        print(f"[1] Đã nạp thành công {len(df)} câu hỏi vào bộ nhớ.")
+        logger.info(f"[1] Đã nạp thành công {len(df)} câu hỏi vào bộ nhớ.")
         
         # 2. XỬ LÝ NLP CHO CỘT VĂN BẢN
-        print("[2] Đang chạy Tokenizer (Cắt từ tiếng Việt) & Loại bỏ Stop words...")
+        logger.info("[2] Đang chạy Tokenizer (Cắt từ tiếng Việt) & Loại bỏ Stop words...")
         # Lặp qua tất cả 180+ dòng, áp dụng hàm preprocess_text đã viết
         df['cleaned_text'] = df['text'].apply(preprocess_text)
         
@@ -96,10 +98,10 @@ class IntentClassifier:
         # test_size=0.2 Nghĩa là: Cắt 80% câu đi học sinh AI luyện thi, 
         # 20% còn lại giấu đi để sau luyện xong vác ra test xem nó có đoán bừa hay không.
         x_train, x_test, y_train, y_test = train_test_split(x_data, y_data, test_size=0.2, random_state=42)
-        print(f"[3] Đã chia tập dữ liệu: Train ({len(x_train)} câu) - Test ({len(x_test)} câu)")
+        logger.info(f"[3] Đã chia tập dữ liệu: Train ({len(x_train)} câu) - Test ({len(x_test)} câu)")
         
         # 4. THỰC HIỆN HUẤN LUYỆN (FIT)
-        print("[4] Đang khởi động thuật toán TfidfVectorizer + Support Vector Machine ...")
+        logger.info("[4] Đang khởi động thuật toán TfidfVectorizer + Support Vector Machine ...")
         # Tạo pipeline mới để train
         self.pipeline = Pipeline([
             ('tfidf', TfidfVectorizer()),
@@ -108,36 +110,36 @@ class IntentClassifier:
         self.pipeline.fit(x_train, y_train)
         self.model = self.pipeline # Cập nhật thuộc tính model của class thành bản đã Train xong
         self.vectorizer = self.pipeline.named_steps['tfidf']  # Lưu vectorizer để dùng sau
-        print("    -> Huấn luyện THÀNH CÔNG!")
+        logger.info("    -> Huấn luyện THÀNH CÔNG!")
         
         # 5. LÀM BÀI KIỂM TRA (ĐÁNH GIÁ METRICS ĐỒ ÁN MÔN HỌC)
-        print("[5] Lôi 20% đề dự phòng ra kiểm tra năng lực Model...")
+        logger.info("[5] Lôi 20% đề dự phòng ra kiểm tra năng lực Model...")
         y_pred = self.model.predict(x_test) # Ra lệnh Model làm bài thử
         
         acc_score = accuracy_score(y_test, y_pred)
         report = classification_report(y_test, y_pred)
         
-        print(f"\n🚀 ĐỘ CHÍNH XÁC (ACCURACY): {acc_score * 100:.2f} %")
-        print(f"📊 BÁO CÁO CHI TIẾT (Classification Report):\n")
-        print(report)
+        logger.info(f"\n🚀 ĐỘ CHÍNH XÁC (ACCURACY): {acc_score * 100:.2f} %")
+        logger.info(f"📊 BÁO CÁO CHI TIẾT (Classification Report):\n")
+        logger.info(report)
         
         # In các dòng bị đoán sai (Miss classification) để Developer Debug
-        print("\n🔍 CÁC MẪU DỰ ĐOÁN SAI (NẾU CÓ):")
+        logger.info("\n🔍 CÁC MẪU DỰ ĐOÁN SAI (NẾU CÓ):")
         errors = 0
         for text, true_label, pred_label in zip(x_test, y_test, y_pred):
             if true_label != pred_label:
-                print(f"   [SAI] Câu: '{text}' | Lời giải đúng: '{true_label}' | AI Đoán thành: '{pred_label}'")
+                logger.info(f"   [SAI] Câu: '{text}' | Lời giải đúng: '{true_label}' | AI Đoán thành: '{pred_label}'")
                 errors += 1
         if errors == 0:
-            print("   👉 Không có câu nào bị sai! (Quá hoàn hảo, hoặc dataset quá ít :D)")
+            logger.info("   👉 Không có câu nào bị sai! (Quá hoàn hảo, hoặc dataset quá ít :D)")
             
         # 6. SAO LƯU MODEL & BÁO CÁO LẠI RA FILE CỨNG
         self._save_model()
         self._save_metrics_report(acc_score, report)
         
-        print("\n" + "="*50)
-        print(" QUÁ TRÌNH HUẤN LUYỆN ĐÃ KẾT THÚC.")
-        print("="*50 + "\n")
+        logger.info("\n" + "="*50)
+        logger.info(" QUÁ TRÌNH HUẤN LUYỆN ĐÃ KẾT THÚC.")
+        logger.info("="*50 + "\n")
 
     def _save_model(self):
         """
@@ -149,8 +151,8 @@ class IntentClassifier:
         # Lưu vectorizer riêng để dùng khi predict
         vectorizer_file = os.path.join(MODEL_DIR, "vectorizer.pkl")
         joblib.dump(self.vectorizer, vectorizer_file)
-        print(f"[💾] Đã gói gọn não bộ AI và Lưu trữ Model vật lý vô: {MODEL_FILE}")
-        print(f"[💾] Đã lưu Vectorizer vào: {vectorizer_file}")
+        logger.info(f"[💾] Đã gói gọn não bộ AI và Lưu trữ Model vật lý vô: {MODEL_FILE}")
+        logger.info(f"[💾] Đã lưu Vectorizer vào: {vectorizer_file}")
         
     def _save_metrics_report(self, accuracy, report):
         """
@@ -174,7 +176,21 @@ class IntentClassifier:
             f.write("   - Vectorizer: TF-IDF (TfidfVectorizer)\n")
             f.write("   - NLP Preprocessor: Underthesea + Custom Stopwords\n")
             
-        print(f"[📝] Đã in Báo cáo Metrics thành công ra: {report_path}")
+        logger.info(f"[📝] Đã in Báo cáo Metrics thành công ra: {report_path}")
+
+    def _calculate_confidence(self, decision_scores) -> float:
+        """
+        Tính toán confidence từ decision_scores của SVC bằng Softmax (Temperature scaling).
+        """
+        import numpy as np
+        
+        if isinstance(decision_scores, (list, tuple)) or hasattr(decision_scores, '__len__'):
+            scores = np.array(decision_scores, dtype=np.float64) * 3.0  # Temperature scaling
+            exp_scores = np.exp(scores - np.max(scores))
+            probs = exp_scores / exp_scores.sum()
+            return float(np.max(probs))
+        else:
+            return min(abs(float(decision_scores)), 1.0)
 
     def predict_intent(self, user_message: str) -> dict:
         """
@@ -223,13 +239,7 @@ class IntentClassifier:
                 else:
                     # Phase 4: Softmax — chuyển decision_function scores → xác suất thực (tổng=1.0)
                     decision_scores = self.model.decision_function([cleaned_text])[0]
-                    if isinstance(decision_scores, (list, tuple)) or hasattr(decision_scores, '__len__'):
-                        scores = np.array(decision_scores, dtype=np.float64) * 3.0  # Temperature scaling để làm sắc nét phân phối
-                        exp_scores = np.exp(scores - np.max(scores))  # Trừ max tránh overflow
-                        probs = exp_scores / exp_scores.sum()
-                        confidence = float(np.max(probs))
-                    else:
-                        confidence = min(abs(float(decision_scores)), 1.0)
+                    confidence = self._calculate_confidence(decision_scores)
             else:
                 # Model và vectorizer riêng biệt
                 text_vector = self.vectorizer.transform([cleaned_text])
@@ -240,13 +250,7 @@ class IntentClassifier:
                 else:
                     # Phase 4: Softmax — tương tự pipeline mode ở trên
                     decision_scores = self.model.decision_function(text_vector)[0]
-                    if isinstance(decision_scores, (list, tuple)) or hasattr(decision_scores, '__len__'):
-                        scores = np.array(decision_scores, dtype=np.float64) * 3.0  # Temperature scaling
-                        exp_scores = np.exp(scores - np.max(scores))
-                        probs = exp_scores / exp_scores.sum()
-                        confidence = float(np.max(probs))
-                    else:
-                        confidence = min(abs(float(decision_scores)), 1.0)
+                    confidence = self._calculate_confidence(decision_scores)
             
             # ==================================================================
             # 4. Extract Entities SỚM để phục vụ Rule-based override
@@ -297,17 +301,17 @@ class IntentClassifier:
 
                 # Bắt đầu chuỗi nếu (if-elif) ưu tiên để không bị ghi đè lẫn nhau:
                 if "quán" in user_message_lower:
-                    print(f"[Intent] Rule-based override: Found 'quán', changing intent to tim_mon_an")
+                    logger.info(f"[Intent] Rule-based override: Found 'quán', changing intent to tim_mon_an")
                     prediction = "tim_mon_an"
                     confidence = 1.0
 
                 elif any(p in user_message_lower for p in LISTING_PLACE_PATTERNS) and entities.get("location"):
-                    print(f"[Intent] Rule-based override: Found list place pattern, changing intent to tim_dia_diem")
+                    logger.info(f"[Intent] Rule-based override: Found list place pattern, changing intent to tim_dia_diem")
                     prediction = "tim_dia_diem"
                     confidence = 0.95
 
                 elif any(p in user_message_lower for p in LISTING_FOOD_PATTERNS) and entities.get("location"):
-                    print(f"[Intent] Rule-based override: Found list food pattern, changing intent to tim_mon_an")
+                    logger.info(f"[Intent] Rule-based override: Found list food pattern, changing intent to tim_mon_an")
                     prediction = "tim_mon_an"
                     confidence = 0.95
                 
@@ -316,17 +320,17 @@ class IntentClassifier:
                     "checkin", "check in", "đi đâu", "có gì", "gì hay",
                     "khám phá", "tour", "travel"
                 ]) and not food_entities and not (place_type_entities and not is_accommodation):
-                    print(f"[Intent] Rule-based override: Found entertainment keyword without F&B intent, changing to tim_dia_diem")
+                    logger.info(f"[Intent] Rule-based override: Found entertainment keyword without F&B intent, changing to tim_dia_diem")
                     prediction = "tim_dia_diem"
                     confidence = 1.0
                 
                 elif place_type_entities:
                     if is_accommodation:
-                        print(f"[Intent] Rule-based override: Found accommodation place type, changing intent to tim_dia_diem")
+                        logger.info(f"[Intent] Rule-based override: Found accommodation place type, changing intent to tim_dia_diem")
                         prediction = "tim_dia_diem"
                         confidence = 1.0
                     else:
-                        print(f"[Intent] Rule-based override: Found F&B place type, changing intent to tim_mon_an")
+                        logger.info(f"[Intent] Rule-based override: Found F&B place type, changing intent to tim_mon_an")
                         prediction = "tim_mon_an"
                         confidence = 1.0
                 
@@ -343,7 +347,7 @@ class IntentClassifier:
                     # Chỉ override nếu có tên món CỤ THỂ (phở, bún bò, bánh mì...)
                     specific_foods = [f for f in food_entities if f not in generic_food_words]
                     if specific_foods and prediction != "tim_mon_an":
-                        print(f"[Intent] Rule-based override: Found specific food {specific_foods}, changing intent to tim_mon_an")
+                        logger.info(f"[Intent] Rule-based override: Found specific food {specific_foods}, changing intent to tim_mon_an")
                         prediction = "tim_mon_an"
                         confidence = 1.0  # High confidence vì rule-based
 
@@ -351,16 +355,18 @@ class IntentClassifier:
             return {
                 "intent": prediction,
                 "confidence": round(float(confidence), 4),
-                "cleaned_text": cleaned_text
+                "cleaned_text": cleaned_text,
+                "entities": entities
             }
             
         except Exception as e:
-            print(f"[Intent] Lỗi khi predict: {e}")
+            logger.info(f"[Intent] Lỗi khi predict: {e}")
             # Phase 4 fix: trả out_of_scope thay vì giao_tiep_bot (không tồn tại)
             return {
                 "intent": "out_of_scope",
                 "confidence": 0.0,
-                "cleaned_text": cleaned_text
+                "cleaned_text": cleaned_text,
+                "entities": None
             }
 
 # Nếu gọi thẳng script này bằng lệnh `python intent_classifier.py` ở Terminal:

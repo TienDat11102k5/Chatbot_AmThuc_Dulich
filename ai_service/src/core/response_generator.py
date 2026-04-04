@@ -9,6 +9,21 @@ Author: AI Brain Optimization — Phase 1
 
 import random
 from typing import List, Optional
+from src.core.config import settings
+from src.core.logger import logger
+
+def _safe_choice(options: list):
+    """
+    Hàm chọn ngẫu nhiên có kiểm soát.
+    Cố định seed nếu ở chế độ TESTING_MODE để dễ dàng viết Unit Test.
+    """
+    if settings.TESTING_MODE:
+        random.seed(42)
+    res = random.choice(options)
+    # Khôi phục seed ngẫu nhiên cho hệ thống sau khi test
+    if settings.TESTING_MODE:
+        random.seed()
+    return res
 
 
 # ==============================================================================
@@ -261,19 +276,19 @@ def generate_greeting_response(intent: str, entities: dict = None,
     """
     # Conversation intents
     if intent == "chao_hoi":
-        return random.choice(GREETING_RESPONSES)
+        return _safe_choice(GREETING_RESPONSES)
     elif intent == "cam_on":
-        return random.choice(THANKS_RESPONSES)
+        return _safe_choice(THANKS_RESPONSES)
     elif intent == "tam_biet":
-        return random.choice(GOODBYE_RESPONSES)
+        return _safe_choice(GOODBYE_RESPONSES)
     elif intent == "hoi_thong_tin":
-        return random.choice(INFO_RESPONSES)
+        return _safe_choice(INFO_RESPONSES)
     elif intent == "out_of_scope":
-        return random.choice(OUT_OF_SCOPE_RESPONSES)
+        return _safe_choice(OUT_OF_SCOPE_RESPONSES)
     
     # Location not found
     if location_not_found and searched_location:
-        return random.choice(LOCATION_NOT_FOUND_RESPONSES).format(location=searched_location)
+        return _safe_choice(LOCATION_NOT_FOUND_RESPONSES).format(location=searched_location)
     
     # Search intents
     locations = entities.get("location", []) if entities else []
@@ -283,21 +298,21 @@ def generate_greeting_response(intent: str, entities: dict = None,
     
     if intent == "tim_mon_an":
         if is_follow_up:
-            return random.choice(FOLLOW_UP_FOOD_RESPONSES)
+            return _safe_choice(FOLLOW_UP_FOOD_RESPONSES)
         elif location_str and food_str:
-            return random.choice(FOOD_WITH_SPECIFIC_RESPONSES).format(food=food_str)
+            return _safe_choice(FOOD_WITH_SPECIFIC_RESPONSES).format(food=food_str)
         elif location_str:
-            return random.choice(FOOD_WITH_LOCATION_RESPONSES).format(location=location_str)
+            return _safe_choice(FOOD_WITH_LOCATION_RESPONSES).format(location=location_str)
         else:
-            return random.choice(FOOD_GREETING_RESPONSES)
+            return _safe_choice(FOOD_GREETING_RESPONSES)
     
     elif intent == "tim_dia_diem":
         if is_follow_up:
-            return random.choice(FOLLOW_UP_PLACE_RESPONSES)
+            return _safe_choice(FOLLOW_UP_PLACE_RESPONSES)
         elif location_str:
-            return random.choice(PLACE_WITH_LOCATION_RESPONSES).format(location=location_str)
+            return _safe_choice(PLACE_WITH_LOCATION_RESPONSES).format(location=location_str)
         else:
-            return random.choice(PLACE_GREETING_RESPONSES)
+            return _safe_choice(PLACE_GREETING_RESPONSES)
     
     # Fallback
     return "Mình tìm được kết quả cho bạn nè:"
@@ -377,10 +392,10 @@ def format_recommendations(recommendations: list, intent: str,
     # Add follow-up suggestion (random, sometimes empty)
     if not is_follow_up:
         if intent == "tim_mon_an":
-            suggestion_msg, suggestion_type = random.choice(FOOD_FOLLOW_UP_SUGGESTIONS)
+            suggestion_msg, suggestion_type = _safe_choice(FOOD_FOLLOW_UP_SUGGESTIONS)
             items_text += suggestion_msg
         elif intent == "tim_dia_diem":
-            suggestion_msg, suggestion_type = random.choice(PLACE_FOLLOW_UP_SUGGESTIONS)
+            suggestion_msg, suggestion_type = _safe_choice(PLACE_FOLLOW_UP_SUGGESTIONS)
             items_text += suggestion_msg
     
     return items_text, suggestion_type
@@ -390,8 +405,8 @@ def generate_no_results_response(is_follow_up: bool = False,
                                   had_previous: bool = False) -> str:
     """Sinh response khi không có kết quả."""
     if is_follow_up and had_previous:
-        return random.choice(NO_MORE_RESULTS_RESPONSES)
-    return random.choice(NO_RESULTS_RESPONSES)
+        return _safe_choice(NO_MORE_RESULTS_RESPONSES)
+    return _safe_choice(NO_RESULTS_RESPONSES)
 
 
 def generate_pagination_message(remaining: int) -> str:
@@ -404,7 +419,7 @@ def generate_pagination_message(remaining: int) -> str:
         f"\n\n🔍 Mình còn **{remaining}** gợi ý nữa. Muốn xem thêm không?",
         f"\n\n💡 Còn {remaining} kết quả! Hỏi \"*gợi ý thêm*\" để mình hiện tiếp nhé.",
     ]
-    return random.choice(templates)
+    return _safe_choice(templates)
 
 
 """

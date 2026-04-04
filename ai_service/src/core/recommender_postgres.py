@@ -9,6 +9,8 @@ from sqlalchemy import create_engine
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from src.core.nlp_utils import preprocess_text
+from src.core.config import settings
+from src.core.logger import logger
 
 # ==============================================================================
 # FUZZY LOCATION MAP — Chuẩn hóa input không dấu về có dấu (Phase 2)
@@ -75,13 +77,8 @@ def normalize_location(location: str) -> str:
 
 # Cấu hình database từ environment variables
 def get_db_url():
-    """Tạo SQLAlchemy connection URL từ environment variables"""
-    host = os.getenv('DB_HOST', 'localhost')
-    port = os.getenv('DB_PORT', '5432')
-    dbname = os.getenv('DB_NAME', 'chatbot_db')
-    user = os.getenv('DB_USER', 'postgres')
-    password = os.getenv('DB_PASSWORD', '123456')
-    return f"postgresql+psycopg2://{user}:{password}@{host}:{port}/{dbname}"
+    """Tạo SQLAlchemy connection URL từ config"""
+    return f"postgresql+psycopg2://{settings.DB_USER}:{settings.DB_PASSWORD}@{settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}"
 
 # Singleton Engine cho toàn hệ thống
 _engine = None
@@ -126,10 +123,16 @@ class RecommenderSystem:
             self.load_data_from_db()
             self.build_tfidf_matrix()
             self.ready = True
-            print(f"[Recommender] ✅ PostgreSQL Recommender sẵn sàng!")
+            logger.info(f"[Recommender] ✅ PostgreSQL Recommender sẵn sàng!")
         except Exception as e:
-            print(f"[Recommender] ⚠️ Lỗi khởi tạo PostgreSQL Recommender: {e}")
-            print("[Recommender] Sẽ hoạt động ở chế độ rỗng (trả [] cho mọi truy vấn)")
+            logger.warning(f"[Recommender] ⚠️ Lỗi PostgreSQL: {e}. Đang load CSV Fallback...")
+            self.load_data_from_csv()
+            if self.df is not None and not self.df.empty:
+                self.build_tfidf_matrix()
+                self.ready = True
+                logger.info(f"[Recommender] ✅ CSV Fallback Recommender sẵn sàng!")
+            else:
+                logger.error("[Recommender] ❌ Cả Database lẫn CSV đều thất bại. Hoạt động ở chế độ rỗng.")
     
     def load_data_from_db(self):
         """Load dữ liệu từ PostgreSQL dùng SQLAlchemy engine (bắt buộc cho pandas 2.x)"""
@@ -153,8 +156,24 @@ class RecommenderSystem:
         """
         with engine.connect() as conn:
             self.df = pd.read_sql(places_query, conn)
+            
+        if self.df.empty:
+            raise Exception("No data in 'places' table")
         
-        print(f"[Recommender] Đã nạp {len(self.df)} bản ghi từ PostgreSQL")
+        logger.info(f"[Recommender] Đã nạp {len(self.df)} bản ghi từ PostgreSQL")
+        
+    def load_data_from_csv(self):
+        """Fallback: Load dữ liệu từ CSV nếu PostgreSQL chết"""
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        csv_path = os.path.join(base_dir, "data", "knowledge_base.csv")
+        try:
+            self.df = pd.read_csv(csv_path)
+            # Chuẩn hóa tên cột để khớp với SQL
+            self.df = self.df.rename(columns={'category_vi': 'type'})
+            logger.info(f"[Recommender] Đã nạp {len(self.df)} bản ghi từ CSV ({csv_path})")
+        except Exception as e:
+            logger.error(f"[Recommender] Lỗi đọc CSV: {e}")
+            self.df = pd.DataFrame()
     
     def build_tfidf_matrix(self):
         """Xây dựng ma trận TF-IDF + Pre-built domain indices (Phase 2)"""
@@ -184,8 +203,8 @@ class RecommenderSystem:
         # Pre-compute max rating for normalization
         self.max_rating = max(float(self.df['rating'].max()), 1.0)
         
-        print(f"[Recommender] Đã tính xong Ma trận TF-IDF: {self.tfidf_matrix.shape}")
-        print(f"[Recommender] Pre-built: {len(self.food_indices)} food, {len(self.tourism_indices)} tourism")
+        logger.info(f"[Recommender] Đã tính xong Ma trận TF-IDF: {self.tfidf_matrix.shape}")
+        logger.info(f"[Recommender] Pre-built: {len(self.food_indices)} food, {len(self.tourism_indices)} tourism")
     
     def recommend(self, entities: dict, intent: str = None, top_k: int = 3, user_message: str = "") -> dict:
         """Tìm kiếm Top K bản ghi giống nhất với filter thông minh
@@ -218,10 +237,10 @@ class RecommenderSystem:
         if not processed_query.strip():
             return {"results": [], "location_not_found": False, "searched_location": None}
         
-        print(f"[Recommender] Searching for: '{processed_query}'")
-        print(f"[Recommender] Food entities: {food_entities}")
-        print(f"[Recommender] Location entities: {location_entities}")
-        print(f"[Recommender] Place type entities: {place_type_entities}")
+        logger.info(f"[Recommender] Searching for: '{processed_query}'")
+        logger.info(f"[Recommender] Food entities: {food_entities}")
+        logger.info(f"[Recommender] Location entities: {location_entities}")
+        logger.info(f"[Recommender] Place type entities: {place_type_entities}")
         
         # Biến để track xem có tìm thấy ở địa phương không
         location_not_found = False
@@ -234,7 +253,7 @@ class RecommenderSystem:
         if intent == "tim_dia_diem":
             # Chỉ lấy địa điểm du lịch
             filtered_df = filtered_df[filtered_df['tags'].str.lower().str.contains('du lịch', na=False)]
-            print(f"[Recommender] Filtered for tourism: {len(filtered_df)} records")
+            logger.info(f"[Recommender] Filtered for tourism: {len(filtered_df)} records")
             
             # Loại bỏ khách sạn/nhà nghỉ nếu người dùng hỏi về "chơi", "vui chơi", "giải trí", "du lịch"
             # Chỉ giữ lại địa điểm vui chơi thực sự (bảo tàng, công viên, khu du lịch...)
@@ -244,11 +263,11 @@ class RecommenderSystem:
                 accommodation_types = ["khách sạn", "nhà nghỉ", "nhà khách", "homestay", "hotel", "resort"]
                 accommodation_mask = filtered_df['type'].str.lower().str.contains('|'.join(accommodation_types), na=False)
                 filtered_df = filtered_df[~accommodation_mask]  # ~ là NOT
-                print(f"[Recommender] Excluded accommodations, remaining: {len(filtered_df)} records")
+                logger.info(f"[Recommender] Excluded accommodations, remaining: {len(filtered_df)} records")
         elif intent == "tim_mon_an":
             # Chỉ lấy địa điểm ẩm thực
             filtered_df = filtered_df[filtered_df['tags'].str.lower().str.contains('ẩm thực', na=False)]
-            print(f"[Recommender] Filtered for food: {len(filtered_df)} records")
+            logger.info(f"[Recommender] Filtered for food: {len(filtered_df)} records")
             
             # Filter theo place_type nếu có (nhà hàng, quán cà phê...)
             if place_type_entities:
@@ -277,11 +296,11 @@ class RecommenderSystem:
                 
                 if place_type_mask.any():
                     filtered_df = filtered_df[place_type_mask]
-                    print(f"[Recommender] Filtered by place_type: {len(filtered_df)} records")
+                    logger.info(f"[Recommender] Filtered by place_type: {len(filtered_df)} records")
         
         # Nếu có location nhưng không có food cụ thể (chỉ có "ăn gì") → tìm đặc sản ẩm thực
         if location_entities and intent == "tim_mon_an" and (not food_entities or any(f in ["ăn gì", "ăn", "gì", "ngon", "quán"] for f in food_entities)):
-            print(f"[Recommender] Tìm đặc sản ẩm thực tại: {location_entities}")
+            logger.info(f"[Recommender] Tìm đặc sản ẩm thực tại: {location_entities}")
             
             # Filter theo location + chỉ lấy ẩm thực
             # QUAN TRỌNG: CHỈ tìm trong LOCATION, KHÔNG tìm trong ADDRESS
@@ -302,11 +321,11 @@ class RecommenderSystem:
                 location_mask = location_mask | mask
             
             filtered_df = filtered_df[location_mask]
-            print(f"[Recommender] Found {len(filtered_df)} food places in location")
+            logger.info(f"[Recommender] Found {len(filtered_df)} food places in location")
         
         # Nếu có location và intent là du lịch → tìm địa điểm du lịch
         elif location_entities and intent == "tim_dia_diem":
-            print(f"[Recommender] Tìm địa điểm du lịch tại: {location_entities}")
+            logger.info(f"[Recommender] Tìm địa điểm du lịch tại: {location_entities}")
             
             # Filter theo location
             # QUAN TRỌNG: CHỈ tìm trong cột LOCATION (tỉnh/thành phố), KHÔNG tìm trong ADDRESS
@@ -333,7 +352,7 @@ class RecommenderSystem:
                 location_mask = location_mask | mask
             
             filtered_df = filtered_df[location_mask]
-            print(f"[Recommender] Found {len(filtered_df)} tourism places in location")
+            logger.info(f"[Recommender] Found {len(filtered_df)} tourism places in location")
         
         # Filter theo food entities (nếu có)
         elif food_entities:
@@ -353,7 +372,7 @@ class RecommenderSystem:
             # Nếu có food entities thực sự (không chỉ là "ngon", "quán")
             if food_mask.any():
                 filtered_df = filtered_df[food_mask]
-                print(f"[Recommender] After food filter: {len(filtered_df)} records")
+                logger.info(f"[Recommender] After food filter: {len(filtered_df)} records")
                 
                 # Filter theo location entities (nếu có) - ưu tiên cao
                 if location_entities and len(filtered_df) > 0:
@@ -373,7 +392,7 @@ class RecommenderSystem:
                     
                     # Ưu tiên 1: Nếu có quận/huyện cụ thể → CHỈ tìm theo đó
                     if specific_districts:
-                        print(f"[Recommender] Searching for specific districts: {specific_districts}")
+                        logger.info(f"[Recommender] Searching for specific districts: {specific_districts}")
                         for district in specific_districts:
                             mask = (
                                 filtered_df['location'].str.lower().str.contains(district, na=False) |
@@ -382,7 +401,7 @@ class RecommenderSystem:
                             location_mask = location_mask | mask
                     # Ưu tiên 2: Nếu không có quận cụ thể, tìm theo tỉnh/thành phố
                     elif general_locations:
-                        print(f"[Recommender] Searching for general locations: {general_locations}")
+                        logger.info(f"[Recommender] Searching for general locations: {general_locations}")
                         for location in general_locations:
                             location_lower = location.lower()
                             # Xử lý đặc biệt cho TP.HCM (không có quận cụ thể)
@@ -399,13 +418,13 @@ class RecommenderSystem:
                             location_mask = location_mask | mask
                     
                     location_filtered = filtered_df[location_mask]
-                    print(f"[Recommender] After location filter: {len(location_filtered)} records")
+                    logger.info(f"[Recommender] After location filter: {len(location_filtered)} records")
                     
                     # Ưu tiên location match - nếu có kết quả thì dùng
                     if len(location_filtered) >= 1:
                         filtered_df = location_filtered
                     else:
-                        print(f"[Recommender] No location match, keeping food results")
+                        logger.info(f"[Recommender] No location match, keeping food results")
                         # Đánh dấu không tìm thấy ở địa phương
                         location_not_found = True
                         searched_location = ", ".join(location_entities)
@@ -423,7 +442,7 @@ class RecommenderSystem:
                         location_mask = location_mask | mask
                     
                     filtered_df = filtered_df[location_mask]
-                    print(f"[Recommender] Found {len(filtered_df)} food places in location (fallback)")
+                    logger.info(f"[Recommender] Found {len(filtered_df)} food places in location (fallback)")
                     
                     # Nếu có place_type, filter thêm
                     if place_type_entities and len(filtered_df) > 0:
@@ -440,11 +459,11 @@ class RecommenderSystem:
                         
                         if place_type_mask.any():
                             filtered_df = filtered_df[place_type_mask]
-                            print(f"[Recommender] Filtered by place_type in fallback: {len(filtered_df)} records")
+                            logger.info(f"[Recommender] Filtered by place_type in fallback: {len(filtered_df)} records")
         
         # Nếu filter quá ít kết quả, fallback nhưng VẪN GIỮ intent filter VÀ accommodation filter
         if len(filtered_df) < 3:
-            print(f"[Recommender] Too few results after filter ({len(filtered_df)}), fallback but keep intent filter")
+            logger.info(f"[Recommender] Too few results after filter ({len(filtered_df)}), fallback but keep intent filter")
             # Nếu có location entities và kết quả < 3 → đánh dấu không tìm thấy
             if location_entities and not location_not_found:
                 location_not_found = True
@@ -455,7 +474,7 @@ class RecommenderSystem:
             # Re-apply intent filter
             if intent == "tim_mon_an":
                 filtered_df = filtered_df[filtered_df['tags'].str.lower().str.contains('ẩm thực', na=False)]
-                print(f"[Recommender] Fallback to all food places: {len(filtered_df)} records")
+                logger.info(f"[Recommender] Fallback to all food places: {len(filtered_df)} records")
             elif intent == "tim_dia_diem":
                 filtered_df = filtered_df[filtered_df['tags'].str.lower().str.contains('du lịch', na=False)]
                 # Re-apply accommodation filter nếu có từ khóa giải trí
@@ -464,26 +483,42 @@ class RecommenderSystem:
                     accommodation_types = ["khách sạn", "nhà nghỉ", "nhà khách", "homestay", "hotel", "resort"]
                     accommodation_mask = filtered_df['type'].str.lower().str.contains('|'.join(accommodation_types), na=False)
                     filtered_df = filtered_df[~accommodation_mask]
-                    print(f"[Recommender] Fallback to entertainment places (no accommodations): {len(filtered_df)} records")
+                    logger.info(f"[Recommender] Fallback to entertainment places (no accommodations): {len(filtered_df)} records")
                 else:
-                    print(f"[Recommender] Fallback to all tourism places: {len(filtered_df)} records")
+                    logger.info(f"[Recommender] Fallback to all tourism places: {len(filtered_df)} records")
         
         # BƯỚC 2: Tính Cosine Similarity trên dữ liệu đã filter
         # Lấy nhiều hơn top_k để có dự phòng khi lọc trùng lặp
         fetch_k = top_k * 3  # Lấy gấp 3 để đảm bảo đủ sau khi lọc trùng
         
+        query_vector = self.vectorizer.transform([processed_query])
+        
+        # FIX Lỗi #3: Vector rỗng
+        if query_vector.nnz == 0:
+            logger.warning("[Recommender] ⚠️ Query vector is empty (all zeros), returning no results")
+            return {"results": [], "location_not_found": False, "searched_location": None}
+        
         if len(filtered_df) == len(self.df):
             # Dùng ma trận TF-IDF đã tính sẵn
-            query_vector = self.vectorizer.transform([processed_query])
             similarity_scores = cosine_similarity(query_vector, self.tfidf_matrix).flatten()
+            
+            # FIX Lỗi #3: Check NaN
+            if np.any(np.isnan(similarity_scores)):
+                logger.warning("[Recommender] ⚠️ NaN detected in similarity scores, replacing with 0")
+                similarity_scores = np.nan_to_num(similarity_scores, nan=0.0)
+                
             top_indices = similarity_scores.argsort()[::-1][:fetch_k]
         else:
             # Tính TF-IDF cho subset
             filtered_indices = filtered_df.index.tolist()
             filtered_tfidf = self.tfidf_matrix[filtered_indices]
             
-            query_vector = self.vectorizer.transform([processed_query])
             similarity_scores = cosine_similarity(query_vector, filtered_tfidf).flatten()
+            
+            # FIX Lỗi #3: Check NaN
+            if np.any(np.isnan(similarity_scores)):
+                logger.warning("[Recommender] ⚠️ NaN detected in similarity scores, replacing with 0")
+                similarity_scores = np.nan_to_num(similarity_scores, nan=0.0)
             
             # Map về indices gốc
             top_local_indices = similarity_scores.argsort()[::-1][:fetch_k]
@@ -523,7 +558,7 @@ class RecommenderSystem:
             
             # Bỏ qua nếu tên đã xuất hiện (deduplication)
             if place_name in seen_names:
-                print(f"[Recommender] Skipping duplicate: {place_name}")
+                logger.info(f"[Recommender] Skipping duplicate: {place_name}")
                 continue
             
             # Filter bỏ tên quá chung chung (không có thông tin cụ thể)
@@ -539,7 +574,7 @@ class RecommenderSystem:
                 "bún bò hà nội", "bún chả hà nội", "bánh mì hà nội"
             }
             if name_lower in generic_names:
-                print(f"[Recommender] Skipping generic name: {place_name}")
+                logger.info(f"[Recommender] Skipping generic name: {place_name}")
                 continue
             
             # Kiểm tra đa dạng loại địa điểm (chỉ áp dụng khi có nhiều kết quả)
@@ -548,7 +583,7 @@ class RecommenderSystem:
                 type_count = seen_types.get(place_type, 0)
                 if type_count >= max_per_type and len(results) > 0:
                     # Đã có đủ loại này rồi, tìm loại khác
-                    print(f"[Recommender] Skipping {place_name} ({place_type}) - already have {type_count} of this type")
+                    logger.info(f"[Recommender] Skipping {place_name} ({place_type}) - already have {type_count} of this type")
                     continue
             
             seen_names.add(place_name)
@@ -572,9 +607,9 @@ class RecommenderSystem:
                 break
         
         # Debug: In ra kết quả cuối cùng sau khi lọc trùng
-        print(f"[Recommender] Final {len(results)} unique results:")
+        logger.info(f"[Recommender] Final {len(results)} unique results:")
         for i, result in enumerate(results):
-            print(f"  {i+1}. {result['name']} ({result['type']}) - Score: {result['score']}")
+            logger.info(f"  {i+1}. {result['name']} ({result['type']}) - Score: {result['score']}")
         
         return {
             "results": results,
