@@ -15,7 +15,8 @@ echo "=================================================="
 # ---------------------------------------------------------------------------
 echo "[1/3] Waiting for PostgreSQL..."
 
-MAX_RETRIES=60
+# Giảm số lần thử (retry) để tránh timeout khi deploy lên PaaS (Zeabur, Render, v.v)
+MAX_RETRIES=10
 RETRY_COUNT=0
 
 while ! python3 -c "
@@ -30,7 +31,7 @@ s.close()
     RETRY_COUNT=$((RETRY_COUNT + 1))
     if [ $RETRY_COUNT -ge $MAX_RETRIES ]; then
         echo "  PostgreSQL not available after $MAX_RETRIES retries. Starting server without data import."
-        exec uvicorn src.main:app --host 0.0.0.0 --port 8000
+        exec uvicorn src.main:app --host 0.0.0.0 --port "${PORT:-8000}"
     fi
     echo "  ... retry $RETRY_COUNT/$MAX_RETRIES"
     sleep 2
@@ -43,7 +44,8 @@ echo "  PostgreSQL is reachable!"
 echo "[2/3] Waiting for database tables (Flyway migrations from backend)..."
 
 TABLE_RETRIES=0
-MAX_TABLE_RETRIES=90
+# Giảm retry cho table migration
+MAX_TABLE_RETRIES=15
 
 while ! python3 -c "
 import psycopg2, os
@@ -64,7 +66,7 @@ exit(0 if exists else 1)
     TABLE_RETRIES=$((TABLE_RETRIES + 1))
     if [ $TABLE_RETRIES -ge $MAX_TABLE_RETRIES ]; then
         echo "  Tables not found after $MAX_TABLE_RETRIES retries. Starting server without data."
-        exec uvicorn src.main:app --host 0.0.0.0 --port 8000
+        exec uvicorn src.main:app --host 0.0.0.0 --port "${PORT:-8000}"
     fi
     echo "  ... waiting for Flyway tables ($TABLE_RETRIES/$MAX_TABLE_RETRIES)"
     sleep 3
@@ -114,4 +116,5 @@ echo "=================================================="
 echo " Starting AI Service (Uvicorn)..."
 echo "=================================================="
 
-exec uvicorn src.main:app --host 0.0.0.0 --port 8000 --workers 2
+# Sử dụng biến môi trường $PORT (hoặc mặc định 8000 nếu không có)
+exec uvicorn src.main:app --host 0.0.0.0 --port "${PORT:-8000}" --workers 2
