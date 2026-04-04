@@ -226,10 +226,51 @@ function Navbar() {
           </NavLink>
           <div className="border-t border-neutral-200 pt-3 mt-2 flex flex-col gap-2">
             {user ? (
-              <button onClick={handleLogout}
-                className="w-full px-4 py-2.5 text-sm font-medium text-red-600 bg-red-50 rounded-lg text-center">
-                Đăng xuất
-              </button>
+              <>
+                {/* Thông tin User trên Mobile */}
+                <div className="flex items-center gap-3 px-4 py-3 bg-neutral-50 rounded-lg mb-2">
+                  <div className="w-10 h-10 rounded-full bg-primary-500 flex items-center justify-center text-white text-base font-semibold shrink-0 overflow-hidden">
+                    {user.avatarUrl ? (
+                      <img 
+                        src={user.avatarUrl.startsWith('http') ? user.avatarUrl : `http://localhost:8080${user.avatarUrl}`} 
+                        alt="Avatar" 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      user.fullName ? user.fullName.charAt(0).toUpperCase() : (user.username ? user.username.charAt(0).toUpperCase() : 'U')
+                    )}
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-bold text-neutral-900">
+                      {user.fullName || user.username || 'Người dùng'}
+                    </span>
+                    <span className="text-xs text-neutral-500">{user.email || ''}</span>
+                  </div>
+                </div>
+
+                {/* Các liên kết User trên Mobile */}
+                <Link to="/profile" onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-100 rounded-lg">
+                  <User size={18} className="text-neutral-500" /> Trang cá nhân
+                </Link>
+                <Link to="/saved" onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-100 rounded-lg">
+                  <Bookmark size={18} className="text-neutral-500" /> Đã lưu
+                </Link>
+                <Link to="/chat-history" onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-100 rounded-lg">
+                  <MessageSquare size={18} className="text-neutral-500" /> Lịch sử chat
+                </Link>
+                <Link to="/settings" onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-100 rounded-lg mb-2">
+                  <Settings size={18} className="text-neutral-500" /> Cài đặt
+                </Link>
+
+                <button onClick={handleLogout}
+                  className="flex items-center justify-center gap-2 w-full px-4 py-2.5 text-sm font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors text-center">
+                  <LogOut size={18} /> Đăng xuất
+                </button>
+              </>
             ) : (
               <>
                 <Link to="/login" onClick={() => setIsMobileMenuOpen(false)}

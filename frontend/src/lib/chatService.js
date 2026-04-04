@@ -114,8 +114,12 @@ const chatService = {
           console.error('[ChatService] Error reading token:', e);
         }
 
+        // Construct the absolute URL using the Axios base URL
+        const baseURL = api.defaults.baseURL || '';
+        const url = `${baseURL}/v1/chat/stream?sessionId=${sessionId}`;
+
         // POST request using native fetch (Axios does NOT support ReadableStream)
-        const response = await fetch(`/api/v1/chat/stream?sessionId=${sessionId}`, {
+        const response = await fetch(url, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
