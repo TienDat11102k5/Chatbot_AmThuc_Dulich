@@ -1,0 +1,114 @@
+services:
+  # PostgreSQL Database
+  - type: pserv
+    name: chatbot-db
+    env: docker
+    plan: free
+    ipAllowList: []
+    
+  # Redis Cache
+  - type: redis
+    name: chatbot-redis
+    plan: free
+    maxmemoryPolicy: allkeys-lru
+    ipAllowList: []
+    
+  # AI Service (Python FastAPI)
+  - type: web
+    name: ai-service
+    runtime: python
+    plan: free
+    buildCommand: pip install -r ai_service/requirements.txt
+    startCommand: cd ai_service && python run_server.py
+    envVars:
+      - key: PORT
+        value: 8000
+      - key: PYTHON_VERSION
+        value: 3.10.0
+      - key: DB_HOST
+        fromDatabase:
+          name: chatbot-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: chatbot-db
+          property: port
+      - key: DB_NAME
+        value: chatbot_db
+      - key: DB_USER
+        fromDatabase:
+          name: chatbot-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: chatbot-db
+          property: password
+      - key: REDIS_HOST
+        fromService:
+          type: redis
+          name: chatbot-redis
+          property: host
+      - key: REDIS_PORT
+        fromService:
+          type: redis
+          name: chatbot-redis
+          property: port
+    
+  # Backend (Spring Boot)
+  - type: web
+    name: backend
+    runtime: docker
+    plan: free
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: SPRING_DATASOURCE_URL
+        fromDatabase:
+          name: chatbot-db
+          property: connectionString
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase:
+          name: chatbot-db
+          property: user
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase:
+          name: chatbot-db
+          property: password
+      - key: SPRING_DATA_REDIS_HOST
+        fromService:
+          type: redis
+          name: chatbot-redis
+          property: host
+      - key: SPRING_DATA_REDIS_PORT
+        fromService:
+          type: redis
+          name: chatbot-redis
+          property: port
+      - key: AI_SERVICE_URL
+        fromService:
+          type: web
+          name: ai-service
+          property: url
+      - key: JWT_SECRET
+        generateValue: true
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+        
+  # Frontend (React + Nginx)
+  - type: web
+    name: frontend
+    runtime: static
+    plan: free
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: ./frontend/dist
+    envVars:
+      - key: NODE_VERSION
+        value: 18.0.0
+    routes:
+      - type: rewrite
+        source: /api/*
+        destination: https://backend.onrender.com/api/*
