@@ -32,7 +32,14 @@ const authService = {
    */
   async login(email, password) {
     const response = await api.post('/auth/login', { email, password });
-    return response.data;
+    // Backend có thể trả về { data: {...} } hoặc flat {...}
+    // Unwrap nếu có nested data
+    const result = response.data;
+    if (result.data && result.data.token) {
+      console.log('[authService] Unwrapping nested data from backend');
+      return result.data;
+    }
+    return result;
   },
 
   /**
@@ -53,7 +60,11 @@ const authService = {
    */
   async register(username, email, password) {
     const response = await api.post('/auth/register', { username, email, password });
-    return response.data;
+    const result = response.data;
+    if (result.data && result.data.token) {
+      return result.data;
+    }
+    return result;
   },
 
   /**
@@ -105,7 +116,11 @@ const authService = {
    */
   async googleLogin(idToken) {
     const response = await api.post('/auth/google', { idToken });
-    return response.data;
+    const result = response.data;
+    if (result.data && result.data.token) {
+      return result.data;
+    }
+    return result;
   },
 };
 
