@@ -30,7 +30,7 @@ const STORAGE_KEY = 'savorytrip_user';
  * timeout: 15 giây → tránh treo request quá lâu
  */
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: import.meta.env.VITE_API_URL || '/api',
   headers: {
     'Content-Type': 'application/json',
   },
