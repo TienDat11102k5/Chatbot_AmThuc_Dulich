@@ -168,8 +168,26 @@ class RecommenderSystem:
         csv_path = os.path.join(base_dir, "data", "knowledge_base.csv")
         try:
             self.df = pd.read_csv(csv_path)
+            
             # Chuẩn hóa tên cột để khớp với SQL
-            self.df = self.df.rename(columns={'category_vi': 'type'})
+            # CSV có: category_vi, domain, province, district
+            # Code cần: type, tags, location
+            self.df = self.df.rename(columns={
+                'category_vi': 'type',
+                'domain': 'tags'
+            })
+            
+            # Tạo cột 'location' từ province hoặc district (giống SQL: COALESCE(province, district))
+            self.df['location'] = self.df['province'].fillna(self.df['district'])
+            
+            # Thêm các cột còn thiếu với giá trị mặc định nếu chưa có
+            if 'price_range' not in self.df.columns:
+                self.df['price_range'] = ''
+            if 'rating' not in self.df.columns:
+                self.df['rating'] = 0
+            if 'address' not in self.df.columns:
+                self.df['address'] = ''
+            
             logger.info(f"[Recommender] Đã nạp {len(self.df)} bản ghi từ CSV ({csv_path})")
         except Exception as e:
             logger.error(f"[Recommender] Lỗi đọc CSV: {e}")
