@@ -4,14 +4,12 @@ services:
     name: chatbot-db
     env: docker
     plan: free
-    ipAllowList: []
     
   # Redis Cache
   - type: redis
     name: chatbot-redis
     plan: free
     maxmemoryPolicy: allkeys-lru
-    ipAllowList: []
     
   # AI Service (Python FastAPI)
   - type: web
@@ -87,10 +85,7 @@ services:
           name: chatbot-redis
           property: port
       - key: AI_SERVICE_URL
-        fromService:
-          type: web
-          name: ai-service
-          property: url
+        sync: false
       - key: JWT_SECRET
         generateValue: true
       - key: MAIL_USERNAME
