@@ -3,3 +3,12 @@ __pycache__/
 *.pkl
 target/
 .env
+
+# Agent/AI generated files and folders
+.agent/
+agent/
+PHAN_TICH_DO_AN_CHATBOT.md
+TEST_SCENARIOS.md
+KET_QUA_TEST.md
+test_chatbot.py
+GEMINI.md
