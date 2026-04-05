@@ -29,12 +29,8 @@ const STORAGE_KEY = 'savorytrip_user';
  * baseURL: '/api' → Vite dev server proxy sang http://localhost:8080/api
  * timeout: 15 giây → tránh treo request quá lâu
  */
-const isProd = import.meta.env.MODE === 'production';
-const PROD_BACKEND_URL = 'https://backend-0hvq.onrender.com/api';
-
 const api = axios.create({
-  // Nếu là production -> Gọi thẳng backend. Nếu là local -> Dùng proxy '/api'
-  baseURL: import.meta.env.VITE_API_URL || (isProd ? PROD_BACKEND_URL : '/api'),
+  baseURL: '/api',
   headers: {
     'Content-Type': 'application/json',
   },

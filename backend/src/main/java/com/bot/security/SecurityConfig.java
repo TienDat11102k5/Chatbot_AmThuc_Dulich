@@ -79,8 +79,8 @@ public class SecurityConfig {
                 "http://localhost:3002",
                 "http://localhost:3003",
                 "http://localhost:5173",
-                "http://localhost:5174",
-                "https://frontend-w3hd.onrender.com"
+                "http://localhost:5174"
+
         ));
         // Allowed HTTP methods
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));

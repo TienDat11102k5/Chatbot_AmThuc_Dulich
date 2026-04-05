@@ -114,20 +114,13 @@ const authService = {
    * @param {string} idToken - Token lấy được từ @react-oauth/google
    * @returns {Promise<{token: string, userId: string, username: string, email: string, role: string}>}
    */
-  async googleLogin(accessToken) {
-    try {
-      console.log("[authService] googleLogin with token, configured baseURL:", api.defaults.baseURL);
-      const response = await api.post('/auth/google', { idToken: accessToken });
-      console.log("[authService] googleLogin response RAW:", response);
-      console.log("[authService] googleLogin response DATA:", response.data);
-      if (response.data && response.data.data) {
-        return response.data.data;
-      }
-      return response.data;
-    } catch (error) {
-      console.error('[authService] Google Login Error:', error);
-      throw error;
+  async googleLogin(idToken) {
+    const response = await api.post('/auth/google', { idToken });
+    const result = response.data;
+    if (result.data && result.data.token) {
+      return result.data;
     }
+    return result;
   },
 };
 
