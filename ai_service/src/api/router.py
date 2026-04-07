@@ -20,8 +20,10 @@ from src.core.clarification import should_ask_clarification, generate_clarificat
 from src.core.response_generator import (
     generate_greeting_response, format_recommendations, generate_no_results_response,
     generate_pagination_message,
+    format_multi_section_response,
     OUT_OF_SCOPE_RESPONSES,
 )
+from src.core.multi_intent_analyzer import get_multi_intent_analyzer
 from src.core.security import is_gibberish, is_code_injection
 from src.core.config import settings
 from src.core.logger import logger
@@ -41,6 +43,9 @@ context_manager = ContextManager(redis_host=settings.REDIS_HOST, redis_port=sett
 # ==============================================================================
 
 def detect_multi_intent(entities: dict, user_message: str) -> list:
+    """[DEPRECATED] Hàm cũ — giữ lại để backward compatible với code đang dùng.
+    Logic mới đã được chuyển sang MultiIntentAnalyzer.
+    """
     intents = []
     if entities.get("food"):
         intents.append("tim_mon_an")
@@ -50,6 +55,155 @@ def detect_multi_intent(entities: dict, user_message: str) -> list:
         intents.append("tim_dia_diem")
     
     return intents if intents else ["tim_mon_an"]
+
+
+def _process_multi_intent(
+    user_message: str,
+    entities: dict,
+    confidence: float,
+    intent: str,
+    recommender,
+    session_id: str,
+) -> ChatResponse | None:
+    """
+    Xử lý câu hỏi multi-intent: phân tích, tìm kiếm từng sub-intent, gộp kết quả.
+
+    Args:
+        user_message: Câu hỏi gốc của user
+        entities: Entities đã extract (dùng để lấy location)
+        confidence: Độ tin cậy intent (từ SVM)
+        intent: Primary intent (từ SVM)
+        recommender: Recommender instance
+        session_id: Session ID hiện tại
+
+    Returns:
+        ChatResponse nếu là multi-intent, None nếu là single-intent (để pipeline cũ xử lý)
+    """
+    analyzer = get_multi_intent_analyzer()
+    sub_intents = analyzer.analyze(user_message, entities)
+
+    # Không phải multi-intent → trả None để pipeline cũ xử lý
+    if not sub_intents:
+        return None
+
+    logger.info(f"[MULTI-INTENT] Phát hiện {len(sub_intents)} sub-intent: "
+                f"{[s.category for s in sub_intents]}")
+
+    # Collect location tổng (từ sub-intent đầu tiên có location)
+    global_location = []
+    for sub in sub_intents:
+        if sub.location:
+            global_location = sub.location
+            break
+
+    all_section_results = []       # Dùng cho sub_intent_results field
+    all_recommendations = []       # Dùng cho recommendations field (gộp hết)
+
+    for sub in sub_intents:
+        try:
+            # Build entities riêng cho sub-intent này
+            sub_entities = {
+                "food": sub.keywords if sub.category in ("tim_mon_an", "tim_quan_nuoc") else [],
+                "location": sub.location or global_location,
+                "place_type": sub.keywords if sub.category in ("tim_luu_tru", "tim_quan_nuoc") else [],
+                "raw_query": " ".join(sub.keywords + (sub.location or global_location)),
+            }
+
+            # Ánh xạ filter keyword cho lưu trú và quán nước
+            if sub.filter_type == "accommodation" and not sub_entities["place_type"]:
+                sub_entities["place_type"] = ["khách sạn"]
+            elif sub.filter_type == "drink" and not sub_entities["food"]:
+                sub_entities["food"] = ["cà phê"]
+
+            # Gọi recommender với top_k = số lượng user yêu cầu
+            recommender_result = recommender.recommend(
+                sub_entities,
+                intent=sub.recommender_intent,
+                top_k=sub.quantity,
+                user_message=sub.original_clause or user_message,
+            )
+
+            raw_results = recommender_result.get("results", [])
+            recs = [RecommendationItem(**item) for item in raw_results[:sub.quantity]]
+            all_recommendations.extend(recs)
+
+            # Thêm vào section results
+            all_section_results.append({
+                "category": sub.category,
+                "category_label": sub.category_label,
+                "category_emoji": sub.category_emoji,
+                "quantity_requested": sub.quantity,
+                "recommendations": [r.model_dump() for r in recs],
+            })
+
+            logger.info(
+                f"[MULTI-INTENT] sub={sub.category} qty={sub.quantity} "
+                f"found={len(recs)} loc={sub.location}"
+            )
+
+        except Exception as e:
+            logger.error(f"[MULTI-INTENT] Lỗi khi xử lý sub_intent={sub.category}: {e}")
+            # Vẫn thêm section rỗng để giữ cấu trúc
+            all_section_results.append({
+                "category": sub.category,
+                "category_label": sub.category_label,
+                "category_emoji": sub.category_emoji,
+                "quantity_requested": sub.quantity,
+                "recommendations": [],
+            })
+
+    # Format message tổng hợp
+    response_message = format_multi_section_response(
+        section_results=all_section_results,
+        global_location=global_location,
+    )
+
+    # Lưu context đầy đủ (FIX Task 1.5 — trước đây food/place_type bị mất)
+    if all_recommendations:
+        # Gộp tất cả keywords food + place_type từ các sub-intent
+        all_food_kw = []
+        all_place_kw = []
+        for sub in sub_intents:
+            if sub.category in ("tim_mon_an", "tim_quan_nuoc"):
+                all_food_kw.extend(sub.keywords or [])
+            elif sub.category in ("tim_luu_tru",):
+                all_place_kw.extend(sub.keywords or ["khách sạn"])
+            elif sub.category == "tim_dia_diem":
+                all_place_kw.extend(sub.keywords or [])
+
+        merged_entities = {
+            "location": global_location,
+            "food": list(set(all_food_kw)),         # Deduplicate
+            "place_type": list(set(all_place_kw)),  # Deduplicate
+        }
+
+        # Intent gốc = recommender_intent của sub-intent đầu tiên (FIX Task 1.1)
+        # Dùng intent hợp lệ (tim_mon_an/tim_dia_diem) thay vì "multi_intent"
+        primary_intent = sub_intents[0].recommender_intent if sub_intents else "tim_mon_an"
+
+        context_manager.save_context(
+            session_id=session_id,
+            entities=merged_entities,
+            intent=primary_intent,
+            recommendations=[r.model_dump() for r in all_recommendations],
+            last_suggestion="none",
+            original_query=user_message,   # MỚI: Câu hỏi gốc
+        )
+
+    return ChatResponse(
+        intent="multi_intent",
+        confidence=confidence,
+        message=response_message,
+        recommendations=[r.model_dump() for r in all_recommendations],
+        entities=entities,
+        ask_location=False,
+        has_more_results=False,
+        total_results=len(all_recommendations),
+        remaining_results=0,
+        last_suggestion="none",
+        is_multi_intent=True,
+        sub_intent_results=all_section_results,
+    )
 
 def _validate_input(user_message: str) -> dict:
     """Validate gibberish and code injection."""
@@ -109,14 +263,28 @@ def _classify_intent(user_message: str, is_follow_up: bool, saved_context: dict,
     
     # Follow-up intent override
     if is_follow_up and saved_context and saved_context.get("last_intent"):
-        intent = saved_context["last_intent"]
-        confidence = 1.0
-        last_suggestion = saved_context.get("last_suggestion", "none")
-        if last_suggestion != "none":
-            if last_suggestion in ("hotel", "place"):
+        last_intent = saved_context["last_intent"]
+
+        # FIX Task 1.2: Map "multi_intent" → intent hợp lệ cho recommender
+        if last_intent == "multi_intent":
+            # Đây là follow-up sau câu multi-intent — dùng entities cũ để quyết định intent
+            saved_entities = saved_context.get("entities", {})
+            last_suggestion = saved_context.get("last_suggestion", "none")
+            if last_suggestion in ("hotel", "place") or saved_entities.get("place_type"):
                 intent = "tim_dia_diem"
-            elif last_suggestion in ("cafe", "food"):
-                intent = "tim_mon_an"
+            else:
+                intent = "tim_mon_an"  # Default: tìm ẩm thực
+            confidence = 1.0
+            logger.info(f"[Context] Multi-intent follow-up → mapped intent = {intent}")
+        else:
+            intent = last_intent
+            confidence = 1.0
+            last_suggestion = saved_context.get("last_suggestion", "none")
+            if last_suggestion != "none":
+                if last_suggestion in ("hotel", "place"):
+                    intent = "tim_dia_diem"
+                elif last_suggestion in ("cafe", "food"):
+                    intent = "tim_mon_an"
                 
     # NER Rescue
     if confidence < settings.CONFIDENCE_THRESHOLD and intent not in settings.CONVERSATION_INTENTS:
@@ -278,7 +446,8 @@ def _build_response(intent: str, confidence: float, response_message: str, recom
             entities=entities,
             intent=intent,
             recommendations=[r.model_dump() for r in recommendations],
-            last_suggestion=suggestion_type
+            last_suggestion=suggestion_type,
+            original_query=user_message,   # FIX Task 1.4: Lưu câu hỏi gốc
         )
         
     _total = total_found if intent in ("tim_mon_an", "tim_dia_diem") else 0
@@ -371,8 +540,27 @@ async def chat_endpoint(request: ChatRequest, raw_request: Request):
             entities, is_follow_up, saved_context, merged_province_note = _extract_and_merge(
                 user_message, intent, intent_result, request, is_follow_up, saved_context, session_id
             )
-            
-            # Clarification check
+
+            # ★ MULTI-INTENT CHECK (MỚI) — Kiểm tra trước khi clarification
+            if not is_follow_up:
+                multi_response = _process_multi_intent(
+                    user_message=user_message,
+                    entities=entities,
+                    confidence=confidence,
+                    intent=intent,
+                    recommender=recommender,
+                    session_id=session_id,
+                )
+                if multi_response is not None:
+                    # Đây là câu hỏi multi-intent → trả kết quả luôn
+                    metrics_store.record_request(
+                        intent="multi_intent",
+                        response_time=time.time() - start_time,
+                        has_error=False
+                    )
+                    return multi_response
+
+            # Clarification check (single intent path)
             if not is_follow_up and should_ask_clarification(entities, intent):
                 return ChatResponse(
                     intent=intent, confidence=confidence,
@@ -380,7 +568,7 @@ async def chat_endpoint(request: ChatRequest, raw_request: Request):
                     recommendations=[], entities=entities, ask_location=True
                 )
                 
-            # Search & recommendations
+            # Search & recommendations (single intent — pipeline cũ)
             intents = detect_multi_intent(entities, user_message) if len(detect_multi_intent(entities, user_message)) > 1 and ("và" in user_message.lower() or "," in user_message) else [intent]
             
             recommendations, response_message, total_found, remaining, suggestion_type = _search_recommendations(

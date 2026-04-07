@@ -148,6 +148,21 @@ class ChatResponse(BaseModel):
         description="Số kết quả còn lại chưa hiển thị"
     )
 
+    # ===========================================================================
+    # MULTI-INTENT FIELDS (MỚI — backward compatible, default=None/False)
+    # ===========================================================================
+    is_multi_intent: bool = Field(
+        default=False,
+        description="True nếu câu hỏi chứa nhiều ý định (multi-intent). "
+                    "Frontend dùng field này để quyết định render tab hay render thẳng."
+    )
+    sub_intent_results: Optional[List[dict]] = Field(
+        default=None,
+        description="Kết quả chi tiết cho từng sub-intent khi is_multi_intent=True. "
+                    "Mỗi phần tử gồm: category, category_label, category_emoji, "
+                    "quantity_requested, recommendations. "
+                    "Frontend render thành các tab riêng biệt (Du lịch / Ẩm thực / Khách sạn / Quán nước)."
+    )
 
 # ==============================================================================
 # 4. SCHEMAS ADMIN — Dành cho trang quản trị AI (Phase 1)

@@ -1,0 +1,23 @@
+✅ PASS Turn1: intent = tim_mon_an
+       Detail: actual: tim_mon_an
+✅ PASS Turn1: có kết quả
+✅ PASS Turn2: intent hợp lệ (không phải multi_intent)
+       Detail: actual: tim_dia_diem
+✅ PASS Turn2: có kết quả
+✅ PASS Turn2: không lặp kết quả từ Turn1
+       Detail: Trùng: set()
+✅ PASS Turn3: intent hợp lệ
+       Detail: actual: tim_dia_diem
+✅ PASS Turn3: không lặp kết quả từ Turn1+2
+       Detail: Trùng: set()
+✅ PASS Turn1: nhận diện là multi-intent
+       Detail: is_multi_intent = True
+✅ PASS Turn1: có >= 2 sections
+       Detail: sections = 2
+✅ PASS Turn2: intent hợp lệ (không phải multi_intent)
+       Detail: actual: tim_mon_an
+✅ PASS Turn2: có kết quả
+✅ PASS Turn2: không lặp kết quả từ Turn1
+       Detail: Trùng: set()
+✅ PASS Turn3: intent hợp lệ
+       Detail: actual: tim_mon_an

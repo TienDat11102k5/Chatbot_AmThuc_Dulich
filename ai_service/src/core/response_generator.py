@@ -422,6 +422,115 @@ def generate_pagination_message(remaining: int) -> str:
     return _safe_choice(templates)
 
 
+# ==============================================================================
+# 9. MULTI-INTENT RESPONSE FUNCTIONS (MỚI)
+# ==============================================================================
+
+# Câu chào tổng hợp khi có location
+MULTI_INTENT_GREETING_WITH_LOCATION = [
+    "📍 Bạn vừa đến **{location}**! Mình tổng hợp đầy đủ cho bạn nè:",
+    "🗺️ Đây là tổng hợp gợi ý tại **{location}** cho bạn:",
+    "✨ Mình đã tìm kiếm tại **{location}**, đây là kết quả nhé:",
+    "🎯 **{location}** có nhiều thứ hay lắm! Mình gợi ý tất cả cho bạn:",
+    "🌟 Khám phá **{location}** thôi! Đây là tổng hợp gợi ý của mình:",
+]
+
+# Câu chào khi không có location
+MULTI_INTENT_GREETING_NO_LOCATION = [
+    "🔍 Mình tổng hợp gợi ý đầy đủ cho bạn nhé:",
+    "✨ Đây là tất cả gợi ý mình tìm được cho bạn:",
+    "🎯 Mình tìm được nhiều thứ hay! Xem qua nè:",
+    "📋 Tổng hợp gợi ý cho bạn đây:",
+]
+
+# Câu kết thúc multi-intent response
+MULTI_INTENT_FOOTER = [
+    "\n\n💬 Bạn muốn xem thêm thông tin chi tiết về mục nào không?",
+    "\n\n💡 Cần thêm gợi ý cho mục nào, cứ hỏi mình nhé!",
+    "\n\n🙋 Muốn tìm hiểu thêm về địa điểm nào, hỏi mình thêm nha!",
+    "",
+    "",
+]
+
+
+def generate_multi_intent_greeting(location_list: list) -> str:
+    """
+    Sinh câu chào mở đầu cho multi-intent response.
+
+    Args:
+        location_list: Danh sách địa điểm đã tìm (từ sub-intent đầu tiên)
+
+    Returns:
+        str: Câu chào được format sẵn
+    """
+    if location_list:
+        loc_str = ", ".join(
+            loc.title() for loc in location_list[:2]
+        )
+        return _safe_choice(MULTI_INTENT_GREETING_WITH_LOCATION).format(location=loc_str)
+    else:
+        return _safe_choice(MULTI_INTENT_GREETING_NO_LOCATION)
+
+
+def format_multi_section_response(
+    section_results: list,
+    global_location: list = None
+) -> str:
+    """
+    Format kết quả nhiều sub-intent thành 1 message tổng hợp có sections.
+
+    Args:
+        section_results: Danh sách dict, mỗi dict là kết quả 1 sub-intent.
+                         Format mỗi phần tử: {
+                             "category": str,
+                             "category_label": str,
+                             "category_emoji": str,
+                             "quantity_requested": int,
+                             "recommendations": list,
+                         }
+        global_location: Location tổng (để hiển thị trong câu chào)
+
+    Returns:
+        str: Toàn bộ response message được format đẹp với section headers
+    """
+    if not section_results:
+        return _safe_choice(NO_RESULTS_RESPONSES)
+
+    # Câu chào mở đầu
+    greeting = generate_multi_intent_greeting(global_location or [])
+    message_parts = [greeting]
+
+    # Format từng section
+    for section in section_results:
+        label = section.get("category_label", "Kết quả")
+        emoji = section.get("category_emoji", "📍")
+        recommendations = section.get("recommendations", [])
+
+        if not recommendations:
+            message_parts.append(
+                f"\n\n{emoji} **{label}:**\n"
+                f"😅 Mình chưa tìm thấy kết quả phù hợp cho mục này."
+            )
+            continue
+
+        # Section header
+        actual_count = len(recommendations)
+        section_header = f"\n\n{emoji} **{label} ({actual_count} gợi ý):**"
+        message_parts.append(section_header)
+
+        # Format từng item trong section
+        for i, rec in enumerate(recommendations, 1):
+            item_text = format_recommendation_item(rec, i)
+            message_parts.append(item_text)
+
+    # Footer gợi ý tiếp theo
+    footer = _safe_choice(MULTI_INTENT_FOOTER)
+    if footer:
+        message_parts.append(footer)
+
+    return "".join(message_parts)
+
+
 """
 Module sinh câu trả lời tự nhiên, đa dạng — hết file.
 """

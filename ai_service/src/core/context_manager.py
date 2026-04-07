@@ -40,7 +40,9 @@ class ContextManager:
                 db=0,
                 decode_responses=True,  # Tự động decode bytes → string
                 socket_connect_timeout=2,
-                socket_timeout=2
+                socket_timeout=2,
+                retry_on_timeout=True,   # MỚI: Auto-retry khi timeout thay vì crash
+                max_connections=10,      # MỚI: Connection pool giới hạn tránh resource leak
             )
             # Test connection
             self.redis_client.ping()
@@ -51,7 +53,8 @@ class ContextManager:
             self.redis_client = None
     
     def save_context(self, session_id: str, entities: Dict, intent: str, 
-                    recommendations: List[Dict], last_suggestion: str = None) -> bool:
+                    recommendations: List[Dict], last_suggestion: str = None,
+                    original_query: str = None) -> bool:
         """
         Lưu context của session vào Redis.
         
@@ -61,6 +64,7 @@ class ContextManager:
             intent: Intent của câu hỏi (tim_mon_an, tim_dia_diem)
             recommendations: List các gợi ý đã trả về
             last_suggestion: Loại gợi ý follow-up vừa đưa ra (hotel, food, none)
+            original_query: Câu hỏi gốc của user (để follow-up reconstruct context)
             
         Returns:
             bool: True nếu lưu thành công, False nếu thất bại
@@ -84,7 +88,8 @@ class ContextManager:
                 "last_intent": intent,
                 "previous_recommendations": all_rec_ids,
                 "last_suggestion": last_suggestion,
-                "conversation_count": old_context.get("conversation_count", 0) + 1
+                "conversation_count": old_context.get("conversation_count", 0) + 1,
+                "original_query": original_query,  # MỚI: Câu hỏi gốc để follow-up tham chiếu
             }
             
             key = f"context:{session_id}"
@@ -99,6 +104,7 @@ class ContextManager:
         except Exception as e:
             print(f"[ContextManager] Error saving context: {e}")
             return False
+
     
     def get_context(self, session_id: str) -> Dict:
         """

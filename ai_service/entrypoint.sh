@@ -107,11 +107,26 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# STEP 4: Start the Uvicorn server
+# STEP 4: Auto-detect RAM và khởi động Uvicorn với số workers phù hợp
 # ---------------------------------------------------------------------------
 echo ""
 echo "=================================================="
 echo " Starting AI Service (Uvicorn)..."
 echo "=================================================="
 
-exec uvicorn src.main:app --host 0.0.0.0 --port 8000 --workers 2
+# Detect RAM để chọn số workers (Task 2.1 + 2.3)
+# Render Starter plan: 512MB RAM → Model SVM ~200MB/worker → chỉ dùng 1 worker
+# Máy >= 1.5GB: Dùng 2 workers để tăng throughput
+TOTAL_RAM_MB=$(free -m 2>/dev/null | awk '/^Mem:/{print $2}' || echo "512")
+echo "  Detected RAM: ${TOTAL_RAM_MB}MB"
+
+if [ "$TOTAL_RAM_MB" -gt 1500 ]; then
+    WORKERS=2
+    echo "  Workers: 2 (RAM đủ lớn)"
+else
+    WORKERS=1
+    echo "  Workers: 1 (RAM <= 1.5GB — bảo vệ RAM, tránh OOM kill)"
+fi
+
+echo ""
+exec uvicorn src.main:app --host 0.0.0.0 --port 8000 --workers $WORKERS
