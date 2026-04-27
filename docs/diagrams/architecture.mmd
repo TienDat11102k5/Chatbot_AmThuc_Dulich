@@ -1,0 +1,44 @@
+%% Sơ đồ Kiến trúc Microservices
+%% Sử dụng: https://mermaid.live/ hoặc VS Code extension "Markdown Preview Mermaid Support"
+
+graph TB
+    subgraph "Client Layer"
+        User[Người dùng]
+        Browser[Web Browser]
+    end
+
+    subgraph "Frontend Layer - Port 3000"
+        React[ReactJS + TailwindCSS<br/>- Chat Interface<br/>- Map Integration<br/>- User Dashboard]
+    end
+
+    subgraph "Backend Layer - Port 8080"
+        SpringBoot[Spring Boot<br/>- REST API Gateway<br/>- JWT Authentication<br/>- Business Logic<br/>- Cache Management]
+    end
+
+    subgraph "AI Layer - Port 8000"
+        FastAPI[FastAPI AI Service<br/>- Intent Classification<br/>- NER Extraction<br/>- Semantic Search<br/>- Response Generation]
+    end
+
+    subgraph "Data Layer"
+        PostgreSQL[(PostgreSQL + pgvector<br/>- Users, Places<br/>- Chat History<br/>- Vector Embeddings)]
+        Redis[(Redis<br/>- Session Cache<br/>- Rate Limiting<br/>- Semantic Cache)]
+        RabbitMQ[RabbitMQ<br/>- Email Queue<br/>- Async Tasks]
+    end
+
+    User -->|HTTP Request| Browser
+    Browser -->|REST API| React
+    React -->|API Calls + JWT| SpringBoot
+    SpringBoot -->|AI Request| FastAPI
+    SpringBoot -->|Query/Store| PostgreSQL
+    SpringBoot -->|Cache| Redis
+    SpringBoot -->|Publish Message| RabbitMQ
+    FastAPI -->|Vector Search| PostgreSQL
+    FastAPI -->|Semantic Cache| Redis
+
+    style User fill:#e1f5ff
+    style React fill:#61dafb
+    style SpringBoot fill:#6db33f
+    style FastAPI fill:#009688
+    style PostgreSQL fill:#336791
+    style Redis fill:#dc382d
+    style RabbitMQ fill:#ff6600

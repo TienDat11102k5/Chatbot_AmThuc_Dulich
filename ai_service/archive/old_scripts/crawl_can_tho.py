@@ -6,7 +6,7 @@ import os
 # Đổi sang server Đức để ổn định hơn
 OVERPASS_URL = "https://overpass-api.de/api/interpreter"
 
-print("🌐 BƯỚC 1: CRAWL TỌA ĐỘ TOÀN THÀNH PHỐ CẦN THƠ (SAU SÁP NHẬP)...")
+print(" BƯỚC 1: CRAWL TỌA ĐỘ TOÀN THÀNH PHỐ CẦN THƠ (SAU SÁP NHẬP)...")
 
 # CHIA NHỎ: Cần Thơ được chia làm 4 box để tránh nghẽn server
 boxes = [
@@ -36,7 +36,7 @@ places = []
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
 
 for box_id, (s, w, n, e) in enumerate(boxes):
-    print(f"📦 Đang quét vùng {box_id+1}/{len(boxes)}...")
+    print(f" Đang quét vùng {box_id+1}/{len(boxes)}...")
     
     query = f"""
     [out:json][timeout:180];
@@ -81,13 +81,13 @@ for box_id, (s, w, n, e) in enumerate(boxes):
                         "longitude": lon
                     })
                 
-                print(f"✅ Vùng {box_id+1} OK: Lấy được {len(elements)} điểm.")
+                print(f"Vùng {box_id+1} OK: Lấy được {len(elements)} điểm.")
                 break 
             else:
-                print(f"⚠️ Vùng {box_id+1} lỗi HTTP {r.status_code}. Thử lại lần {attempt+1}...")
+                print(f"Vùng {box_id+1} lỗi HTTP {r.status_code}. Thử lại lần {attempt+1}...")
                 time.sleep(15)
         except Exception as e:
-            print(f"🔄 Lỗi kết nối vùng {box_id+1}: {e}. Đang thử lại...")
+            print(f"Lỗi kết nối vùng {box_id+1}: {e}. Đang thử lại...")
             time.sleep(15)
             
     time.sleep(3)
@@ -95,7 +95,7 @@ for box_id, (s, w, n, e) in enumerate(boxes):
 df_coords = pd.DataFrame(places)
 
 if df_coords.empty:
-    print("❌ Không lấy được dữ liệu. Kiểm tra lại mạng.")
+    print("Không lấy được dữ liệu. Kiểm tra lại mạng.")
     exit()
 
 df_coords['lat_round'] = df_coords['latitude'].astype(float).round(4)
@@ -105,7 +105,7 @@ df_coords = df_coords.drop_duplicates(subset=["name", "lat_round", "lon_round"])
 
 # --- BƯỚC 2: DỊCH ĐỊA CHỈ, LỌC SẠCH & LƯU LIÊN TỤC ---
 filename = "Can_Tho_Moi.csv"
-print(f"\n🌐 BƯỚC 2: ĐANG XỬ LÝ {len(df_coords)} ĐỊA ĐIỂM VÀ LƯU VÀO {filename}...")
+print(f"\nBƯỚC 2: ĐANG XỬ LÝ {len(df_coords)} ĐỊA ĐIỂM VÀ LƯU VÀO {filename}...")
 
 if not os.path.exists(filename):
     headers_df = pd.DataFrame(columns=['id', 'name', 'domain', 'category_vi', 'latitude', 'longitude', 'address', 'district', 'description', 'search_text'])
@@ -172,8 +172,8 @@ for idx, row in df_coords.iterrows():
     pd.DataFrame([new_row]).to_csv(filename, mode='a', header=False, index=False, encoding="utf-8-sig")
     
     if (idx + 1) % 20 == 0:
-        print(f"📍 Đã lưu: {idx + 1}/{len(df_coords)}")
+        print(f" Đã lưu: {idx + 1}/{len(df_coords)}")
     
     time.sleep(0.4)  # Nghỉ để tránh bị ArcGIS chặn
 
-print(f"\n✅ XONG! File '{filename}' đã sẵn sàng cho chatbot của bạn.")
+print(f"\nXONG! File '{filename}' đã sẵn sàng cho chatbot của bạn.")

@@ -1,0 +1,74 @@
+%% Database ERD - Entity Relationship Diagram
+%% Sử dụng: https://mermaid.live/
+
+erDiagram
+    USERS ||--o{ CHAT_SESSIONS : "has"
+    USERS ||--o{ USER_FAVORITES : "saves"
+    CHAT_SESSIONS ||--o{ MESSAGES : "contains"
+    PLACES ||--o{ USER_FAVORITES : "favorited_by"
+    CATEGORIES ||--o{ PLACES : "categorizes"
+    MESSAGES }o--o{ PLACES : "references"
+
+    USERS {
+        bigint id PK
+        varchar email UK
+        varchar password_hash
+        varchar full_name
+        varchar phone
+        varchar avatar_url
+        jsonb preferences "dietary_restrictions, budget"
+        timestamp created_at
+        timestamp updated_at
+        boolean is_active
+    }
+
+    CHAT_SESSIONS {
+        bigint id PK
+        bigint user_id FK
+        varchar session_title
+        jsonb context "last_location, last_intent"
+        timestamp created_at
+        timestamp last_activity
+        boolean is_active
+    }
+
+    MESSAGES {
+        bigint id PK
+        bigint session_id FK
+        varchar sender "user | bot"
+        text content
+        jsonb metadata "intent, entities, confidence"
+        jsonb place_ids "array of referenced places"
+        timestamp created_at
+    }
+
+    PLACES {
+        bigint id PK
+        varchar name
+        text description
+        varchar address
+        varchar city
+        varchar district
+        point coordinates "PostGIS geometry"
+        jsonb tags "cuisine_type, price_range"
+        bigint category_id FK
+        float rating
+        vector embedding "pgvector for semantic search"
+        timestamp created_at
+    }
+
+    CATEGORIES {
+        bigint id PK
+        varchar name "Restaurant, Cafe, Tourist Attraction"
+        varchar slug
+        text description
+        varchar icon
+    }
+
+    USER_FAVORITES {
+        bigint id PK
+        bigint user_id FK
+        bigint place_id FK
+        text note
+        timestamp created_at
+    }

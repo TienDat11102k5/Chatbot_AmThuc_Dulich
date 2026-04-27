@@ -1,0 +1,54 @@
+%% Docker Compose Architecture
+%% Sử dụng: https://mermaid.live/
+
+graph TB
+    subgraph "Docker Network: chatbot_network"
+        subgraph "Frontend Container - Port 3000"
+            Nginx[Nginx<br/>Serve React Build<br/>Proxy /api to Backend]
+        end
+
+        subgraph "Backend Container - Port 8080"
+            Spring[Spring Boot<br/>Java 21<br/>Flyway Migrations<br/>JWT + Security]
+        end
+
+        subgraph "AI Service Container - Port 8000"
+            FastAPI[FastAPI<br/>Python 3.11<br/>NLP Models<br/>Uvicorn ASGI]
+        end
+
+        subgraph "Database Container - Port 5432"
+            Postgres[(PostgreSQL 15<br/>+ pgvector extension<br/>Volume: postgres_data)]
+        end
+
+        subgraph "Cache Container - Port 6379"
+            RedisDB[(Redis 7<br/>AOF Persistence<br/>MaxMemory: 256MB<br/>Volume: redis_data)]
+        end
+
+        subgraph "Message Queue - Port 5672/15672"
+            Rabbit[RabbitMQ 3<br/>Management UI<br/>Volume: rabbitmq_data]
+        end
+    end
+
+    Host[Host Machine<br/>Docker Compose]
+
+    Host -->|docker compose up -d| Nginx
+    Host -->|docker compose up -d| Spring
+    Host -->|docker compose up -d| FastAPI
+    Host -->|docker compose up -d| Postgres
+    Host -->|docker compose up -d| RedisDB
+    Host -->|docker compose up -d| Rabbit
+
+    Nginx -->|HTTP| Spring
+    Spring -->|JDBC| Postgres
+    Spring -->|Redis Protocol| RedisDB
+    Spring -->|AMQP| Rabbit
+    Spring -->|HTTP| FastAPI
+    FastAPI -->|JDBC| Postgres
+    FastAPI -->|Redis Protocol| RedisDB
+
+    style Nginx fill:#269bd2
+    style Spring fill:#6db33f
+    style FastAPI fill:#009688
+    style Postgres fill:#336791
+    style RedisDB fill:#dc382d
+    style Rabbit fill:#ff6600
+    style Host fill:#f0f0f0

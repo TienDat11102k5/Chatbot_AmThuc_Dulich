@@ -1,0 +1,50 @@
+%% Sequence Diagram - Luồng xử lý tin nhắn
+%% Sử dụng: https://mermaid.live/
+
+sequenceDiagram
+    actor User as Người dùng
+    participant FE as Frontend
+    participant BE as Backend
+    participant Cache as Redis
+    participant AI as AI Service
+    participant DB as PostgreSQL
+
+    User->>FE: Nhập câu hỏi<br/>"Tìm quán phở ở Cầu Giấy dưới 50k"
+    FE->>BE: POST /api/chat/message<br/>{message, userId, token}
+    
+    BE->>BE: Xác thực JWT Token
+    BE->>Cache: Kiểm tra cache<br/>chat:session:{userId}
+    
+    alt Cache Hit
+        Cache-->>BE: Trả về context cũ
+    else Cache Miss
+        BE->>DB: Lấy lịch sử chat<br/>SELECT * FROM chat_sessions
+        DB-->>BE: Chat history
+        BE->>Cache: Lưu vào cache (TTL=15m)
+    end
+
+    BE->>DB: Lấy user preferences<br/>SELECT * FROM users
+    DB-->>BE: {dietary_restrictions, favorites}
+
+    BE->>AI: POST /ai/process<br/>{query, context, preferences}
+    
+    AI->>AI: 1. Intent Classification<br/>(LinearSVC + TF-IDF)
+    AI->>AI: 2. NER Extraction<br/>(Location, Food, Price)
+    AI->>AI: 3. Build Query Vector<br/>(TF-IDF Transform)
+    
+    AI->>DB: Vector Search<br/>SELECT * FROM places<br/>ORDER BY cosine_similarity
+    DB-->>AI: Top 5 places
+    
+    AI->>AI: 4. Generate Response<br/>(Template-based)
+    AI-->>BE: {intent, entities, places[], response}
+
+    BE->>DB: Lưu message vào DB<br/>INSERT INTO messages
+    DB-->>BE: Message saved
+    
+    BE->>Cache: Cập nhật context<br/>chat:session:{userId}
+    
+    BE-->>FE: {response, places[], metadata}
+    FE->>FE: Render kết quả<br/>(Cards + Map)
+    FE-->>User: Hiển thị gợi ý
+
+    Note over User,DB: Thời gian xử lý: ~500-800ms

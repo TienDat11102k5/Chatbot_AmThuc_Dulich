@@ -1,14 +1,42 @@
+# Dependencies
 node_modules/
-__pycache__/
-*.pkl
-target/
-.env
+*/node_modules/
 
-# Agent/AI generated files and folders
-.agent/
-agent/
-PHAN_TICH_DO_AN_CHATBOT.md
-TEST_SCENARIOS.md
-KET_QUA_TEST.md
-test_chatbot.py
-GEMINI.md
+# Build outputs
+target/
+*/target/
+build/
+dist/
+
+# Python
+__pycache__/
+*/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Environment variables (QUAN TRỌNG!)
+.env
+*/.env
+
+# Logs
+*.log
+logs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker volumes
+docker/data/
+
+# Temporary files
+*.tmp
+*.temp
