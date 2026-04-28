@@ -3,8 +3,13 @@ import pandas as pd
 import time
 import os
 
-# Đổi sang server Đức để ổn định hơn
-OVERPASS_URL = "https://overpass-api.de/api/interpreter"
+# Thử nhiều server Overpass để tăng tỷ lệ thành công
+OVERPASS_SERVERS = [
+    "http://overpass-api.de/api/interpreter",
+    "https://overpass.kumi.systems/api/interpreter", 
+    "https://overpass.openstreetmap.ru/api/interpreter",
+    "http://overpass.openstreetmap.fr/api/interpreter"
+]
 
 print(" BƯỚC 1: CRAWL TỌA ĐỘ TOÀN THÀNH PHỐ CẦN THƠ (SAU SÁP NHẬP)...")
 
@@ -51,43 +56,54 @@ for box_id, (s, w, n, e) in enumerate(boxes):
     """
     
     for attempt in range(3):
-        try:
-            # Sử dụng data={'data': query} và truyền headers
-            r = requests.post(OVERPASS_URL, data={'data': query}, headers=headers, timeout=200)
-            
-            if r.status_code == 200:
-                elements = r.json().get("elements", [])
-                for el in elements:
-                    tags = el.get("tags", {})
-                    name = tags.get("name")
-                    if not name: 
-                        continue
-                    
-                    lat = el.get("lat") if el["type"] == "node" else el.get("center", {}).get("lat")
-                    lon = el.get("lon") if el["type"] == "node" else el.get("center", {}).get("lon")
-                    
-                    if not lat or not lon: continue
-
-                    cat = (tags.get("amenity") or tags.get("tourism") or 
-                           tags.get("historic") or tags.get("shop") or tags.get("leisure"))
-                    
-                    cat_vn = category_vi.get(cat, "địa điểm")
-                    
-                    places.append({
-                        "name": name, 
-                        "domain": domain_mapping.get(cat_vn, "Khác"),
-                        "category_vi": cat_vn, 
-                        "latitude": lat, 
-                        "longitude": lon
-                    })
+        # Thử từng server một cho đến khi thành công
+        success = False
+        for server_idx, OVERPASS_URL in enumerate(OVERPASS_SERVERS):
+            try:
+                print(f"   Thử server {server_idx + 1}: {OVERPASS_URL.split('//')[1].split('/')[0]}")
                 
-                print(f"Vùng {box_id+1} OK: Lấy được {len(elements)} điểm.")
-                break 
-            else:
-                print(f"Vùng {box_id+1} lỗi HTTP {r.status_code}. Thử lại lần {attempt+1}...")
-                time.sleep(15)
-        except Exception as e:
-            print(f"Lỗi kết nối vùng {box_id+1}: {e}. Đang thử lại...")
+                # Sử dụng data={'data': query} và truyền headers
+                r = requests.post(OVERPASS_URL, data={'data': query}, headers=headers, timeout=200)
+                
+                if r.status_code == 200:
+                    elements = r.json().get("elements", [])
+                    for el in elements:
+                        tags = el.get("tags", {})
+                        name = tags.get("name")
+                        if not name: 
+                            continue
+                        
+                        lat = el.get("lat") if el["type"] == "node" else el.get("center", {}).get("lat")
+                        lon = el.get("lon") if el["type"] == "node" else el.get("center", {}).get("lon")
+                        
+                        if not lat or not lon: continue
+
+                        cat = (tags.get("amenity") or tags.get("tourism") or 
+                               tags.get("historic") or tags.get("shop") or tags.get("leisure"))
+                        
+                        cat_vn = category_vi.get(cat, "địa điểm")
+                        
+                        places.append({
+                            "name": name, 
+                            "domain": domain_mapping.get(cat_vn, "Khác"),
+                            "category_vi": cat_vn, 
+                            "latitude": lat, 
+                            "longitude": lon
+                        })
+                    
+                    print(f"   Vùng {box_id+1} OK: Lấy được {len(elements)} điểm từ server {server_idx + 1}.")
+                    success = True
+                    break  # Thành công, thoát khỏi vòng lặp server
+                else:
+                    print(f"   Server {server_idx + 1} lỗi HTTP {r.status_code}")
+                    
+            except Exception as e:
+                print(f"   Server {server_idx + 1} lỗi kết nối: {e}")
+        
+        if success:
+            break  # Thành công, thoát khỏi vòng lặp attempt
+        else:
+            print(f"   Vùng {box_id+1} thất bại tất cả server. Thử lại lần {attempt+1}...")
             time.sleep(15)
             
     time.sleep(3)
